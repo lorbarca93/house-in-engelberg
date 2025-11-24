@@ -876,7 +876,7 @@ def generate_apexcharts_html(results: dict, config, projection_15yr: List[dict])
     return charts_html
 
 
-def generate_html_report(results: dict, config, charts: List, projection_15yr: List[dict], irr_results: dict, output_path: str = "base_case_report.html"):
+def generate_html_report(results: dict, config, charts: List, projection_15yr: List[dict], irr_results: dict, output_path: str = "output/base_case_report.html"):
     """Generate HTML report with charts, KPIs, 15-year projection, and IRRs."""
     
     # Format numbers for display
@@ -1349,6 +1349,12 @@ def generate_html_report(results: dict, config, charts: List, projection_15yr: L
                     <h3><i class="fas fa-user"></i> Cash Flow per Owner</h3>
                     <div class="value {('positive' if results['cash_flow_per_owner'] >= 0 else 'negative')}">{format_currency(results['cash_flow_per_owner'])}</div>
                     <div class="description">Per owner per year</div>
+                </div>
+                
+                <div class="kpi-card scroll-reveal" style="border-left: 4px solid var(--info);">
+                    <h3><i class="fas fa-calendar-alt"></i> Monthly Cash per Owner</h3>
+                    <div class="value {('positive' if results['cash_flow_per_owner'] >= 0 else 'negative')}">{format_currency(results['cash_flow_per_owner'] / 12)}</div>
+                    <div class="description">Per owner per month</div>
                 </div>
                 
                 <div class="kpi-card scroll-reveal">
@@ -1870,9 +1876,13 @@ def main():
     print("=" * 70)
     print()
     
-    # Export to Excel
-    print("\n[*] Exporting results to Excel...")
-    export_to_excel(results, config, projection_15yr, irr_results)
+    # Excel export disabled - user only uses HTML reports
+    # print("\n[*] Exporting results to Excel...")
+    # export_to_excel(results, config, projection_15yr, irr_results)
+    
+    # Ensure output directory exists
+    import os
+    os.makedirs("output", exist_ok=True)
     
     # Generate charts
     print("[*] Generating charts...")
@@ -1885,8 +1895,8 @@ def main():
     print("\n" + "=" * 70)
     print("[+] Analysis complete!")
     print("=" * 70)
-    print(f"[+] Excel file: base_case_results.xlsx")
-    print(f"[+] HTML report: base_case_report.html")
+    # print(f"[+] Excel file: base_case_results.xlsx")  # Excel export disabled
+    print(f"[+] HTML report: output/base_case_report.html")
     print("=" * 70)
 
 

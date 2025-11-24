@@ -37,9 +37,10 @@ ENV/
 .DS_Store
 Thumbs.db
 
-# Output files (optional - uncomment if you don't want to track outputs)
-# *.html
-# *.xlsx
+# Output files
+*.xlsx
+# HTML reports are in output/ directory and are tracked
+output/*.html
 
 # Jupyter Notebook
 .ipynb_checkpoints

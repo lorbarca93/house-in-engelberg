@@ -725,17 +725,17 @@ def calculate_npv_irr_for_config(config: BaseCaseConfig, discount_rate: float = 
     
     Args:
         config: BaseCaseConfig to analyze
-        discount_rate: Discount rate for NPV calculation (default 5%)
+        discount_rate: Discount rate for NPV calculation (default 4%)
     
     Returns:
         Dictionary with NPV and IRR metrics
     """
-    # Calculate 15-year projection
-    projection = compute_15_year_projection(config, start_year=2026, inflation_rate=0.02, property_appreciation_rate=0.02)
-    
-    # Get initial equity per owner
+    # Get initial equity per owner (calculate once, reuse)
     initial_result = compute_annual_cash_flows(config)
     initial_equity = initial_result['equity_per_owner']
+    
+    # Calculate 15-year projection
+    projection = compute_15_year_projection(config, start_year=2026, inflation_rate=0.02, property_appreciation_rate=0.02)
     
     # Get final values
     final_property_value = projection[-1]['property_value']
@@ -747,7 +747,8 @@ def calculate_npv_irr_for_config(config: BaseCaseConfig, discount_rate: float = 
         initial_equity,
         final_property_value,
         final_loan_balance,
-        config.financing.num_owners
+        config.financing.num_owners,
+        purchase_price=config.financing.purchase_price
     )
     
     # Calculate NPV (using IRR with sale)
@@ -885,9 +886,266 @@ def calculate_sensitivity_metrics(all_sensitivities: Dict[str, pd.DataFrame], ba
     }
 
 
+def generate_sensitivity_impact_table(cash_on_cash_data, npv_data, irr_data, sensitivities, sensitivity_info) -> str:
+    """
+    Generate a comprehensive table showing all sensitivity impacts (IRR, NPV, Cash-on-Cash).
+    """
+    # Create a dictionary to collect all sensitivity data
+    all_sens_data = {}
+    
+    # Collect all sensitivity names
+    all_sens_names = set()
+    all_sens_names.update([name for name, _ in cash_on_cash_data])
+    all_sens_names.update([name for name, _, _ in npv_data])
+    all_sens_names.update([name for name, _, _ in irr_data])
+    
+    # Build comprehensive data for each sensitivity
+    for sens_name in all_sens_names:
+        sens_entry = {
+            'name': sens_name,
+            'range_min': '',
+            'range_max': '',
+            'range_base': '',
+            'description': '',
+            'coc_worst': None,
+            'coc_best': None,
+            'npv_worst': None,
+            'npv_best': None,
+            'irr_worst': None,
+            'irr_best': None
+        }
+        
+        # Get range and description
+        if sens_name in sensitivity_info:
+            info = sensitivity_info[sens_name]
+            sens_entry['range_min'] = info.get('min', 'N/A')
+            sens_entry['range_max'] = info.get('max', 'N/A')
+            sens_entry['range_base'] = info.get('base', 'N/A')
+            sens_entry['description'] = info.get('what_it_evaluates', '')
+        
+        # Get Cash-on-Cash data
+        coc_entry = next((data for name, data in cash_on_cash_data if name == sens_name), None)
+        if coc_entry:
+            sens_entry['coc_worst'] = coc_entry.get('worst_impact', 0)
+            sens_entry['coc_best'] = coc_entry.get('best_impact', 0)
+        
+        # Get NPV data
+        npv_entry = next((data for name, data, _ in npv_data if name == sens_name), None)
+        if npv_entry:
+            sens_entry['npv_worst'] = npv_entry.get('npv_worst_impact', 0)
+            sens_entry['npv_best'] = npv_entry.get('npv_best_impact', 0)
+        
+        # Get IRR data
+        irr_entry = next((data for name, data, _ in irr_data if name == sens_name), None)
+        if irr_entry:
+            sens_entry['irr_worst'] = irr_entry.get('irr_worst_impact', 0)
+            sens_entry['irr_best'] = irr_entry.get('irr_best_impact', 0)
+        
+        all_sens_data[sens_name] = sens_entry
+    
+    # Sort by maximum absolute NPV impact
+    sorted_sens = sorted(all_sens_data.values(), 
+                        key=lambda x: max(abs(x['npv_worst'] or 0), abs(x['npv_best'] or 0)), 
+                        reverse=True)
+    
+    # Generate table HTML
+    table_html = '''
+    <div style="margin-top: 30px; padding: 25px; background: #f8f9fa; border-radius: 12px; border-left: 4px solid #0f3460;">
+        <h4 style="color: #0f3460; margin-bottom: 20px; font-size: 1.3em; font-weight: 600;">Comprehensive Sensitivity Impact Table</h4>
+        <p style="margin-bottom: 20px; color: #495057; line-height: 1.7;">
+            This table shows the impact of each sensitivity factor on three key metrics: 
+            <strong>Cash-on-Cash (Unlevered)</strong>, <strong>NPV</strong>, and <strong>IRR</strong>. 
+            Values show the impact relative to the base case (worst case = negative impact, best case = positive impact).
+        </p>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <thead>
+                    <tr style="background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%); color: white;">
+                        <th style="padding: 15px; text-align: left; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2);">Sensitivity Factor</th>
+                        <th style="padding: 15px; text-align: left; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2);">Range Tested</th>
+                        <th style="padding: 15px; text-align: center; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2);" colspan="2">Cash-on-Cash Impact (%)</th>
+                        <th style="padding: 15px; text-align: center; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2);" colspan="2">NPV Impact (CHF)</th>
+                        <th style="padding: 15px; text-align: center; font-weight: 600;" colspan="2">IRR Impact (%)</th>
+                    </tr>
+                    <tr style="background: #e8ecef; color: #495057;">
+                        <th style="padding: 10px 15px; border-right: 1px solid #dee2e6;"></th>
+                        <th style="padding: 10px 15px; border-right: 1px solid #dee2e6;"></th>
+                        <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Worst</th>
+                        <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Best</th>
+                        <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Worst</th>
+                        <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Best</th>
+                        <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Worst</th>
+                        <th style="padding: 10px 15px; text-align: center; font-size: 0.9em; font-weight: 500;">Best</th>
+                    </tr>
+                </thead>
+                <tbody>
+    '''
+    
+    for sens in sorted_sens:
+        # Format range
+        range_str = f"{sens['range_min']} to {sens['range_max']}<br><small style='color: #6c757d;'>(Base: {sens['range_base']})</small>"
+        
+        # Format Cash-on-Cash
+        coc_worst_str = f"<span style='color: #e74c3c; font-weight: 600;'>{sens['coc_worst']:.2f}%</span>" if sens['coc_worst'] is not None else "<span style='color: #999;'>N/A</span>"
+        coc_best_str = f"<span style='color: #2ecc71; font-weight: 600;'>{sens['coc_best']:.2f}%</span>" if sens['coc_best'] is not None else "<span style='color: #999;'>N/A</span>"
+        
+        # Format NPV
+        npv_worst_str = f"<span style='color: #e74c3c; font-weight: 600;'>{sens['npv_worst']:,.0f}</span>" if sens['npv_worst'] is not None else "<span style='color: #999;'>N/A</span>"
+        npv_best_str = f"<span style='color: #2ecc71; font-weight: 600;'>{sens['npv_best']:,.0f}</span>" if sens['npv_best'] is not None else "<span style='color: #999;'>N/A</span>"
+        
+        # Format IRR
+        irr_worst_str = f"<span style='color: #e67e22; font-weight: 600;'>{sens['irr_worst']:.2f}%</span>" if sens['irr_worst'] is not None else "<span style='color: #999;'>N/A</span>"
+        irr_best_str = f"<span style='color: #2ecc71; font-weight: 600;'>{sens['irr_best']:.2f}%</span>" if sens['irr_best'] is not None else "<span style='color: #999;'>N/A</span>"
+        
+        table_html += f'''
+                    <tr style="border-bottom: 1px solid #e8ecef;">
+                        <td style="padding: 15px; font-weight: 600; color: #1a1a2e; border-right: 1px solid #e8ecef;">{sens['name']}</td>
+                        <td style="padding: 15px; color: #495057; border-right: 1px solid #e8ecef; font-size: 0.9em;">{range_str}</td>
+                        <td style="padding: 15px; text-align: center; border-right: 1px solid #e8ecef;">{coc_worst_str}</td>
+                        <td style="padding: 15px; text-align: center; border-right: 1px solid #e8ecef;">{coc_best_str}</td>
+                        <td style="padding: 15px; text-align: center; border-right: 1px solid #e8ecef;">{npv_worst_str}</td>
+                        <td style="padding: 15px; text-align: center; border-right: 1px solid #e8ecef;">{npv_best_str}</td>
+                        <td style="padding: 15px; text-align: center; border-right: 1px solid #e8ecef;">{irr_worst_str}</td>
+                        <td style="padding: 15px; text-align: center;">{irr_best_str}</td>
+                    </tr>
+        '''
+    
+    table_html += '''
+                </tbody>
+            </table>
+        </div>
+    </div>
+    '''
+    
+    return table_html
+
+
+def get_sensitivity_ranges_and_descriptions() -> Dict[str, Dict[str, any]]:
+    """
+    Returns detailed information about each sensitivity including:
+    - Min and max values tested
+    - What the sensitivity evaluates
+    - Base case value
+    """
+    return {
+        'Occupancy Rate': {
+            'min': '30%',
+            'max': '70%',
+            'base': '~50% (seasonal average)',
+            'description': 'Occupancy rate measures the percentage of available nights that are actually rented. Higher occupancy means more revenue but also higher operating costs (cleaning, utilities). This sensitivity tests how the investment performs if occupancy ranges from a conservative 30% (low demand scenario) to an optimistic 70% (strong demand scenario).',
+            'what_it_evaluates': 'Tests the impact of rental demand on cash flow and returns. Lower occupancy reduces revenue but also reduces variable costs like cleaning. Higher occupancy maximizes revenue potential.'
+        },
+        'Daily Rate': {
+            'min': '200 CHF',
+            'max': '400 CHF',
+            'base': '~324 CHF (weighted seasonal average)',
+            'description': 'Average daily rate (ADR) is the average price charged per night. This is a key revenue driver - small changes in daily rate can significantly impact annual cash flow. The sensitivity tests rates from 200 CHF (discounted pricing) to 400 CHF (premium pricing).',
+            'what_it_evaluates': 'Evaluates pricing strategy impact. Higher rates increase revenue directly but may reduce occupancy. Lower rates may increase occupancy but reduce per-night profitability.'
+        },
+        'Owner Nights': {
+            'min': '0 nights',
+            'max': '150 nights',
+            'base': '20 nights (5 per owner)',
+            'description': 'Owner nights are nights when the property is used by owners rather than rented. More personal use means less rental income, but provides personal value. This sensitivity tests scenarios from 0 nights (fully rented) to 150 nights (significant personal use).',
+            'what_it_evaluates': 'Measures the trade-off between personal use and rental income. More owner nights reduce rentable inventory but provide non-monetary value to owners.'
+        },
+        'Interest Rate': {
+            'min': '1.2%',
+            'max': '3.5%',
+            'base': '1.3%',
+            'description': 'Mortgage interest rate directly affects debt service payments. Higher rates increase monthly payments and reduce cash flow. This sensitivity tests rates from 1.2% (very favorable) to 3.5% (less favorable market conditions).',
+            'what_it_evaluates': 'Assesses financing cost risk. Interest rate changes directly impact debt service and therefore cash flow after debt service. This is critical for understanding financing risk.'
+        },
+        'Variable Interest Rate': {
+            'min': 'Base rate (1.3%)',
+            'max': '5.0%',
+            'base': '1.3% (fixed)',
+            'description': 'Variable interest rate mortgages expose the investment to interest rate risk over time. Rates can increase or decrease, significantly impacting debt service. This sensitivity models different rate change scenarios over the 15-year investment period.',
+            'what_it_evaluates': 'Evaluates the risk of variable rate mortgages where interest rates can change over time. Tests scenarios including gradual increases, rapid increases, volatility, and worst-case scenarios.'
+        },
+        'Management Fee': {
+            'min': '20%',
+            'max': '35%',
+            'base': '20%',
+            'description': 'Property management fee is a percentage of gross rental income paid to the management company. This fee covers property management services. Higher fees reduce net operating income. The sensitivity tests fees from 20% (competitive) to 35% (premium service).',
+            'what_it_evaluates': 'Measures the impact of management cost on profitability. Management fees are a significant operating expense that directly reduces cash flow.'
+        },
+        'Cleaning Cost': {
+            'min': '0 CHF',
+            'max': '150 CHF per stay',
+            'base': '80 CHF per stay',
+            'description': 'Cleaning cost per stay is a variable expense that depends on occupancy. More stays mean more cleaning costs. This sensitivity tests cleaning costs from 0 CHF (if included in management fee) to 150 CHF per stay (premium cleaning service).',
+            'what_it_evaluates': 'Evaluates the impact of variable cleaning costs on cash flow. Since cleaning costs scale with occupancy, this affects profitability especially at higher occupancy rates.'
+        },
+        'Utilities': {
+            'min': '2,000 CHF',
+            'max': '4,000 CHF',
+            'base': '3,000 CHF',
+            'description': 'Annual utilities cost includes electricity, water, heating, and other utilities. This is a fixed annual expense that varies with property usage and energy prices. The sensitivity tests costs from 2,000 CHF (efficient property) to 4,000 CHF (higher usage or energy costs).',
+            'what_it_evaluates': 'Assesses the impact of utility costs on operating expenses. Higher utility costs reduce net operating income and cash flow.'
+        },
+        'Maintenance Reserve': {
+            'min': '0.5%',
+            'max': '2.0%',
+            'base': '1.0%',
+            'description': 'Maintenance reserve is set aside annually as a percentage of property value for future repairs and maintenance. Higher reserves provide more safety but reduce current cash flow. The sensitivity tests reserves from 0.5% (minimal) to 2.0% (conservative).',
+            'what_it_evaluates': 'Measures the trade-off between current cash flow and future maintenance funding. Higher reserves reduce cash flow now but provide more funds for future repairs.'
+        },
+        'Loan-to-Value': {
+            'min': '60%',
+            'max': '80%',
+            'base': '75%',
+            'description': 'Loan-to-value (LTV) ratio determines how much of the purchase price is financed versus equity. Higher LTV means more debt (higher payments) but less initial equity required. The sensitivity tests LTV from 60% (more equity, less debt) to 80% (more debt, less equity).',
+            'what_it_evaluates': 'Evaluates financing structure impact. Higher LTV increases debt service but reduces initial capital requirement. Lower LTV requires more upfront capital but reduces ongoing debt payments.'
+        },
+        'Amortization Rate': {
+            'min': '1.0%',
+            'max': '2.0%',
+            'base': '1.0%',
+            'description': 'Amortization rate determines how quickly the loan principal is paid down. Higher rates reduce cash flow (more principal payment) but build equity faster. The sensitivity tests rates from 1.0% (slower equity build) to 2.0% (faster equity build).',
+            'what_it_evaluates': 'Measures the trade-off between cash flow and equity building. Higher amortization reduces cash flow but increases equity over time.'
+        },
+        'Platform Mix': {
+            'min': '0% Airbnb',
+            'max': '100% Airbnb',
+            'base': 'Mixed (varies)',
+            'description': 'Different booking platforms have different fee structures. Airbnb typically charges 3% host fee but allows higher rates, while Booking.com charges 15% commission. This sensitivity tests different mixes of Airbnb vs Booking.com.',
+            'what_it_evaluates': 'Evaluates the impact of booking platform selection on net revenue. Platform fees directly affect the net income received from rentals.'
+        },
+        'Cleaning Pass-Through': {
+            'min': 'Included in fee',
+            'max': 'Passed to guests',
+            'base': 'Separate cost (80 CHF)',
+            'description': 'Cleaning costs can be handled three ways: included in management fee, passed through to guests, or borne by owners. Each approach has different cash flow implications. This sensitivity compares these three scenarios.',
+            'what_it_evaluates': 'Measures how cleaning cost allocation affects cash flow. Passing costs to guests increases revenue, while including in management fee may reduce transparency.'
+        },
+        'Owner Nights': {
+            'min': '0 nights',
+            'max': '150 nights',
+            'base': '20 nights (5 per owner)',
+            'description': 'Owner nights reduce rentable inventory. More personal use means less rental income but provides personal value. This sensitivity tests scenarios from fully rented (0 owner nights) to significant personal use (150 nights).',
+            'what_it_evaluates': 'Evaluates the trade-off between personal use and rental income. More owner nights reduce revenue but provide non-monetary value.'
+        },
+        'CAPEX Events': {
+            'min': 'No CAPEX',
+            'max': 'Multiple major events',
+            'base': 'No CAPEX in base case',
+            'description': 'Major capital expenditures (roof replacement, heating system, renovations) are one-time costs that significantly impact cash flow in specific years. This sensitivity models the impact of major CAPEX events occurring during the investment period.',
+            'what_it_evaluates': 'Assesses the impact of major one-time expenses on cash flow. CAPEX events can significantly reduce cash flow in the year they occur but may improve property value or reduce future maintenance.'
+        },
+        'Mortgage Type': {
+            'min': 'Interest-only',
+            'max': 'Amortizing (1-2%)',
+            'base': 'Amortizing (1%)',
+            'description': 'Mortgage type affects debt service. Interest-only mortgages have lower payments but no equity build. Amortizing mortgages build equity but have higher payments. This sensitivity compares interest-only vs amortizing options.',
+            'what_it_evaluates': 'Measures the trade-off between cash flow and equity building. Interest-only provides better cash flow but no principal reduction.'
+        }
+    }
+
+
 def generate_summary_charts(metrics: Dict, base_config: BaseCaseConfig, all_sensitivities: Dict = None) -> str:
     """
-    Generate tornado, spider, and waterfall charts for sensitivity analysis summary using Plotly.
+    Generate tornado and waterfall charts for sensitivity analysis summary using Plotly.
     Tornado charts show BOTH positive and negative impacts (bidirectional).
     Includes a new tornado chart for yearly cash-on-cash (unlevered) efficiency.
     
@@ -1010,7 +1268,8 @@ def generate_summary_charts(metrics: Dict, base_config: BaseCaseConfig, all_sens
             hovermode='closest',
             xaxis=dict(zeroline=True, zerolinewidth=2, zerolinecolor='black', showgrid=True)
         )
-        charts_html.append(f'<div class="chart-container"><h3 style="margin-bottom: 20px; color: var(--primary);">Annual Cash Requirement/Generation Analysis</h3><p style="margin-bottom: 20px; color: #555;">This chart shows how much money you need to put in (negative, left) or can make (positive, right) per year as a percentage of the purchase price, for each sensitivity factor. This is the unlevered cash-on-cash return, showing the property\'s operating performance independent of financing.</p>{fig_tornado_coc.to_html(include_plotlyjs="cdn", div_id="tornadoCOC")}</div>')
+        
+        charts_html.append(f'<div class="chart-container"><h3 style="margin-bottom: 20px; color: var(--primary);">Annual Cash Requirement/Generation Analysis</h3><p style="margin-bottom: 20px; color: #555; line-height: 1.7;">This chart shows how much money you need to put in (negative, left side in red) or can make (positive, right side in green) per year as a percentage of the purchase price, for each sensitivity factor. This is the <strong>unlevered cash-on-cash return</strong>, showing the property\'s operating performance independent of financing. The chart helps you understand the worst-case scenario for annual cash requirements and the best-case scenario for cash generation.</p>{fig_tornado_coc.to_html(include_plotlyjs="cdn", div_id="tornadoCOC")}</div>')
     
     # 1. Tornado Chart for NPV - BIDIRECTIONAL
     # For tornado chart, we want bars extending from zero (negative left, positive right)
@@ -1061,7 +1320,8 @@ def generate_summary_charts(metrics: Dict, base_config: BaseCaseConfig, all_sens
         hovermode='closest',
         xaxis=dict(zeroline=True, zerolinewidth=2, zerolinecolor='black', showgrid=True)
     )
-    charts_html.append(f'<div class="chart-container">{fig_tornado_npv.to_html(include_plotlyjs="cdn", div_id="tornadoNPV")}</div>')
+    
+    charts_html.append(f'<div class="chart-container"><h3 style="margin-bottom: 20px; color: var(--primary);">NPV Impact Analysis</h3><p style="margin-bottom: 20px; color: #555; line-height: 1.7;">This tornado chart shows how each sensitivity factor impacts the Net Present Value (NPV) of the investment over 15 years. NPV represents the total discounted value of all future cash flows. Red bars (left) show negative impact (reduces NPV), green bars (right) show positive impact (increases NPV). The longer the bar, the greater the impact.</p>{fig_tornado_npv.to_html(include_plotlyjs="cdn", div_id="tornadoNPV")}</div>')
     
     # 2. Tornado Chart for IRR - BIDIRECTIONAL
     irr_categories = [name for name, _, _ in irr_data]
@@ -1109,52 +1369,23 @@ def generate_summary_charts(metrics: Dict, base_config: BaseCaseConfig, all_sens
         hovermode='closest',
         xaxis=dict(zeroline=True, zerolinewidth=2, zerolinecolor='black', showgrid=True)
     )
-    charts_html.append(f'<div class="chart-container">{fig_tornado_irr.to_html(include_plotlyjs=False, div_id="tornadoIRR")}</div>')
     
-    # 3. Spider/Radar Chart - Show range magnitude
-    top_sensitivities = sorted(sensitivities.items(), key=lambda x: max(abs(x[1].get('npv_best_impact', 0)), abs(x[1].get('npv_worst_impact', 0))), reverse=True)[:8]
+    charts_html.append(f'<div class="chart-container"><h3 style="margin-bottom: 20px; color: var(--primary);">IRR Impact Analysis</h3><p style="margin-bottom: 20px; color: #555; line-height: 1.7;">This tornado chart shows how each sensitivity factor impacts the Internal Rate of Return (IRR) of the investment. IRR is the annualized return percentage, including both operating cash flows and the property sale at the end of 15 years. Higher IRR means better returns. Red bars (left) show scenarios that reduce IRR, green bars (right) show scenarios that increase IRR.</p>{fig_tornado_irr.to_html(include_plotlyjs=False, div_id="tornadoIRR")}</div>')
     
-    fig_radar = go.Figure()
-    
-    # Get max values for normalization
-    max_npv_range = max(max(abs(d.get('npv_best_impact', 0)), abs(d.get('npv_worst_impact', 0))) for d in sensitivities.values()) if sensitivities else 1
-    max_irr_range = max(max(abs(d.get('irr_best_impact', 0)), abs(d.get('irr_worst_impact', 0))) for d in sensitivities.values()) if sensitivities else 1
-    
-    categories = ['NPV Range', 'IRR Range']
-    
-    for name, data in top_sensitivities:
-        # Calculate range (total swing)
-        npv_range = abs(data.get('npv_best_impact', 0) - data.get('npv_worst_impact', 0))
-        irr_range = abs(data.get('irr_best_impact', 0) - data.get('irr_worst_impact', 0))
-        
-        # Normalize to 0-100 scale
-        npv_norm = (npv_range / max_npv_range * 100) if max_npv_range > 0 else 0
-        irr_norm = (irr_range / max_irr_range * 100) if max_irr_range > 0 else 0
-        
-        fig_radar.add_trace(go.Scatterpolar(
-            r=[npv_norm, irr_norm],
-            theta=categories,
-            fill='toself',
-            name=name,
-            line=dict(width=2)
-        ))
-    
-    fig_radar.update_layout(
-        polar=dict(
-            radialaxis=dict(
-                visible=True,
-                range=[0, 100],
-                tickmode='linear',
-                tick0=0,
-                dtick=20
-            )),
-        showlegend=True,
-        title="Spider Chart: Sensitivity Range Comparison (Top 8)",
-        height=500
+    # Generate comprehensive sensitivity impact table
+    sensitivity_info = get_sensitivity_ranges_and_descriptions()
+    sensitivity_table_html = generate_sensitivity_impact_table(
+        cash_on_cash_data, 
+        npv_data, 
+        irr_data, 
+        sensitivities, 
+        sensitivity_info
     )
-    charts_html.append(f'<div class="chart-container">{fig_radar.to_html(include_plotlyjs=False, div_id="spiderChart")}</div>')
     
-    # 4. Waterfall Chart for NPV - Cumulative worst case scenario
+    # Add the table after all tornado charts
+    charts_html.append(f'<div class="chart-container" style="margin-top: 40px;"><h3 style="margin-bottom: 20px; color: var(--primary);">Sensitivity Impact Summary</h3>{sensitivity_table_html}</div>')
+    
+    # 3. Waterfall Chart for NPV - Cumulative worst case scenario
     # Sort by worst impact (most negative)
     waterfall_npv_data = sorted(sensitivities.items(), key=lambda x: x[1].get('npv_worst_impact', 0))
     waterfall_npv_labels = ["Base Case"] + [name for name, _ in waterfall_npv_data[:10]] + ["Worst Case"]
@@ -1919,6 +2150,13 @@ def generate_detailed_sensitivity_sections_with_charts(all_sensitivities: Dict[s
         sections.append(f'''
         <div class="sensitivity-section" id="sens-{anchor_id}">
             <h3>{sens_name}</h3>
+            {f'''
+            <div class="intro-box" style="margin-bottom: 25px;">
+                <p style="margin-bottom: 12px;"><strong>What this sensitivity evaluates:</strong> {get_sensitivity_ranges_and_descriptions().get(sens_name, {}).get('what_it_evaluates', 'This sensitivity tests how changes in this parameter affect the investment performance.')}</p>
+                <p style="margin-bottom: 12px;"><strong>Range tested:</strong> From <strong>{get_sensitivity_ranges_and_descriptions().get(sens_name, {}).get('min', 'N/A')}</strong> (worst case scenario) to <strong>{get_sensitivity_ranges_and_descriptions().get(sens_name, {}).get('max', 'N/A')}</strong> (best case scenario). Base case value: <strong>{get_sensitivity_ranges_and_descriptions().get(sens_name, {}).get('base', 'N/A')}</strong>.</p>
+                <p style="margin-bottom: 0;"><strong>Context:</strong> {get_sensitivity_ranges_and_descriptions().get(sens_name, {}).get('description', 'This parameter is an important factor in determining the investment\'s financial performance.')}</p>
+            </div>
+            ''' if sens_name in get_sensitivity_ranges_and_descriptions() else ''}
             <div class="sensitivity-card">
                 <p>
                     {sensitivity_descriptions.get(sens_name, 'Analysis of this sensitivity factor.')}
@@ -1996,13 +2234,19 @@ def generate_detailed_sensitivity_sections(all_sensitivities: Dict[str, pd.DataF
         </table>
         """
         
+        # Get detailed explanation for this sensitivity
+        sensitivity_info = get_sensitivity_ranges_and_descriptions()
+        sens_info = sensitivity_info.get(sens_name, {})
+        
         sections.append(f'''
         <div class="sensitivity-section">
             <h3 style="color: #667eea; font-size: 1.5em; margin-bottom: 15px; margin-top: 30px;">{sens_name}</h3>
             <div class="sensitivity-card">
-                <p style="font-size: 1.05em; line-height: 1.8; margin-bottom: 20px;">
-                    {sensitivity_descriptions.get(sens_name, 'Analysis of this sensitivity factor.')}
-                </p>
+                <div class="intro-box" style="margin-bottom: 25px;">
+                    <p style="margin-bottom: 12px; font-size: 1.05em; line-height: 1.8;"><strong>What this sensitivity evaluates:</strong> {sens_info.get('what_it_evaluates', sensitivity_descriptions.get(sens_name, 'This sensitivity tests how changes in this parameter affect the investment performance.'))}</p>
+                    <p style="margin-bottom: 12px; font-size: 1.05em; line-height: 1.8;"><strong>Range tested:</strong> From <strong>{sens_info.get('min', 'N/A')}</strong> (worst case scenario) to <strong>{sens_info.get('max', 'N/A')}</strong> (best case scenario). Base case value: <strong>{sens_info.get('base', 'N/A')}</strong>.</p>
+                    <p style="margin-bottom: 0; font-size: 1.05em; line-height: 1.8;"><strong>Context:</strong> {sens_info.get('description', sensitivity_descriptions.get(sens_name, 'This parameter is an important factor in determining the investment\'s financial performance.'))}</p>
+                </div>
                 {table_html}
             </div>
         </div>
@@ -2012,7 +2256,7 @@ def generate_detailed_sensitivity_sections(all_sensitivities: Dict[str, pd.DataF
 
 
 def generate_sensitivity_html(all_sensitivities: Dict[str, pd.DataFrame], charts: List[Tuple[str, go.Figure]], 
-                              base_config: BaseCaseConfig, metrics: Dict = None, output_path: str = "sensitivity_analysis.html"):
+                              base_config: BaseCaseConfig, metrics: Dict = None, output_path: str = "output/sensitivity_analysis.html"):
     """Generate HTML report with sensitivity analyses using ApexCharts."""
     base_result = compute_annual_cash_flows(base_config)
     
@@ -2547,7 +2791,7 @@ def generate_sensitivity_html(all_sensitivities: Dict[str, pd.DataFrame], charts
                 <div class="chart-section-title">
                     The following visualizations provide a comprehensive overview of how different sensitivity factors impact the investment. 
                     The first chart shows annual cash-on-cash (unlevered) efficiency - how much money you need to put in or can make per year. 
-                    Subsequent tornado charts show NPV and IRR impacts, spider charts compare relative effects, and waterfall charts 
+                    Subsequent tornado charts show NPV and IRR impacts, and waterfall charts 
                     illustrate cumulative impacts across all sensitivity factors.
                 </div>
                 {summary_charts_html}
@@ -2703,9 +2947,13 @@ def main():
     
     print()
     
-    # Export to Excel
-    print("[*] Exporting results to Excel...")
-    export_sensitivities_to_excel(all_sensitivities)
+    # Excel export disabled - user only uses HTML reports
+    # print("[*] Exporting results to Excel...")
+    # export_sensitivities_to_excel(all_sensitivities)
+    
+    # Ensure output directory exists
+    import os
+    os.makedirs("output", exist_ok=True)
     
     # Calculate NPV and IRR metrics for summary charts
     print("[*] Calculating NPV and IRR metrics...")
@@ -2723,8 +2971,8 @@ def main():
     print("=" * 70)
     print("[+] Sensitivity analysis complete!")
     print("=" * 70)
-    print(f"[+] Excel file: sensitivity_analysis.xlsx")
-    print(f"[+] HTML report: sensitivity_analysis.html")
+    # print(f"[+] Excel file: sensitivity_analysis.xlsx")  # Excel export disabled
+    print(f"[+] HTML report: output/sensitivity_analysis.html")
     print("=" * 70)
 
 

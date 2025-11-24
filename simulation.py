@@ -243,7 +243,7 @@ def create_base_case_config() -> BaseCaseConfig:
     financing = FinancingParams(
         purchase_price=purchase_price,
         ltv=0.75,               # 75 percent loan to value
-        interest_rate=0.019,    # 1.9 percent interest
+        interest_rate=0.013,    # 1.3 percent interest (updated per user request)
         amortization_rate=0.01, # 1 percent amortization on initial loan
         num_owners=num_owners
     )
@@ -381,11 +381,10 @@ def compute_annual_cash_flows(config: BaseCaseConfig) -> Dict[str, float]:
     # Add seasonal breakdown if seasons are defined
     if r.seasons:
         result["seasonal_breakdown"] = r.get_seasonal_breakdown()
-        # Calculate weighted average daily rate
-        total_income = sum(season.season_income for season in r.seasons)
-        total_nights = sum(season.rented_nights for season in r.seasons)
-        result["average_daily_rate"] = total_income / total_nights if total_nights > 0 else 0
-        result["overall_occupancy_rate"] = total_nights / r.rentable_nights if r.rentable_nights > 0 else 0
+        # Calculate weighted average daily rate (reuse already calculated values for efficiency)
+        # gross_rental_income and rented_nights are already calculated above
+        result["average_daily_rate"] = gross_rental_income / rented_nights if rented_nights > 0 else 0
+        result["overall_occupancy_rate"] = rented_nights / r.rentable_nights if r.rentable_nights > 0 else 0
     else:
         result["average_daily_rate"] = r.average_daily_rate
         result["overall_occupancy_rate"] = r.occupancy_rate
@@ -409,26 +408,32 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
     """
     projection = []
     current_loan = config.financing.loan_amount
-    current_property_value = config.financing.purchase_price
+    initial_loan_amount = config.financing.loan_amount  # Store for amortization calculation
     year = start_year
     
     # Base year results (no inflation)
     base_result = compute_annual_cash_flows(config)
     base_gross_income = base_result['gross_rental_income']
     base_property_mgmt = base_result['property_management_cost']
-    base_tourist_tax = base_result['tourist_tax']
+    base_cleaning = base_result.get('cleaning_cost', 0.0)  # Get cleaning cost if separate
+    base_tourist_tax = base_result['tourist_tax']  # Tourist tax from base result
     base_insurance = base_result['insurance']
     base_utilities = base_result['utilities']
     base_maintenance = base_result['maintenance_reserve']
     
+    # Pre-calculate inflation and appreciation factors for efficiency
+    inflation_factors = [(1 + inflation_rate) ** (year_num - 1) for year_num in range(1, 16)]
+    appreciation_factors = [(1 + property_appreciation_rate) ** (year_num - 1) for year_num in range(1, 16)]
+    
     for year_num in range(1, 16):  # Years 1-15
-        # Apply inflation and appreciation
-        inflation_factor = (1 + inflation_rate) ** (year_num - 1)
-        appreciation_factor = (1 + property_appreciation_rate) ** (year_num - 1)
+        # Apply inflation and appreciation (using pre-calculated factors)
+        inflation_factor = inflation_factors[year_num - 1]
+        appreciation_factor = appreciation_factors[year_num - 1]
         
         # Inflated revenue and variable expenses
         gross_rental_income = base_gross_income * inflation_factor
         property_management_cost = base_property_mgmt * inflation_factor
+        cleaning_cost = base_cleaning * inflation_factor  # Cleaning is variable, inflates with occupancy/revenue
         tourist_tax = base_tourist_tax * inflation_factor
         
         # Fixed expenses (insurance, utilities) also inflate
@@ -441,6 +446,7 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
         
         total_operating_expenses = (
             property_management_cost +
+            cleaning_cost +  # Include cleaning cost if it's separate
             tourist_tax +
             insurance +
             utilities +
@@ -451,7 +457,7 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
         
         # Calculate debt service based on current loan balance
         interest_payment = current_loan * config.financing.interest_rate
-        amortization_payment = config.financing.loan_amount * config.financing.amortization_rate
+        amortization_payment = initial_loan_amount * config.financing.amortization_rate  # Use stored initial loan amount
         debt_service = interest_payment + amortization_payment
         
         cash_flow_after_debt_service = net_operating_income - debt_service
@@ -507,10 +513,12 @@ def calculate_irr(cash_flows: List[float], initial_investment: float, sale_proce
     if sale_proceeds > 0:
         cf_array[-1] += sale_proceeds
     
-    # Define NPV function
+    # Define NPV function (optimized with pre-calculated discount factors)
     def npv(rate):
         try:
-            return sum(cf / (1 + rate) ** i for i, cf in enumerate(cf_array))
+            # Pre-calculate discount factors for efficiency
+            discount_factors = [(1 + rate) ** i for i in range(len(cf_array))]
+            return sum(cf / df for cf, df in zip(cf_array, discount_factors))
         except:
             return float('inf')
     

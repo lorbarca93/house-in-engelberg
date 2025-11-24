@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import json
 from simulation import (
     create_base_case_config,
     BaseCaseConfig,
@@ -55,10 +56,10 @@ def run_monte_carlo_simulation(base_config: BaseCaseConfig,
         # Daily Rate: 200 to 400 CHF (base case ~324 CHF weighted average)
         daily_rate = np.random.uniform(200, 400)
         
-        # Interest Rate: 1.2% to 3.5% (base case 1.9%)
+        # Interest Rate: 1.2% to 3.5% (base case 1.3%)
         interest_rate = np.random.uniform(0.012, 0.035)
         
-        # Management Fee: 20% to 35% (base case 30%)
+        # Management Fee: 20% to 35% (base case 20%)
         management_fee = np.random.uniform(0.20, 0.35)
         
         # Create modified configuration
@@ -94,7 +95,8 @@ def run_monte_carlo_simulation(base_config: BaseCaseConfig,
             initial_equity,
             final_property_value,
             final_loan_balance,
-            config.financing.num_owners
+            config.financing.num_owners,
+            purchase_price=config.financing.purchase_price
         )
         
         # Calculate NPV
@@ -428,7 +430,7 @@ def create_monte_carlo_charts(df: pd.DataFrame, stats: dict) -> list:
 
 def generate_monte_carlo_html(df: pd.DataFrame, stats: dict, charts: list, 
                               base_config: BaseCaseConfig, num_simulations: int,
-                              output_path: str = "monte_carlo_analysis.html"):
+                              output_path: str = "output/monte_carlo_analysis.html"):
     """Generate HTML report for Monte Carlo analysis."""
     
     def format_currency(value):
@@ -448,7 +450,8 @@ def generate_monte_carlo_html(df: pd.DataFrame, stats: dict, charts: list,
         base_result['equity_per_owner'],
         base_final_value,
         base_final_loan,
-        base_config.financing.num_owners
+        base_config.financing.num_owners,
+        purchase_price=base_config.financing.purchase_price
     )
     
     # Calculate base NPV
@@ -462,8 +465,10 @@ def generate_monte_carlo_html(df: pd.DataFrame, stats: dict, charts: list,
     
     # Generate Plotly charts HTML - use to_html() directly for each chart
     charts_html = ""
+    correlation_chart_html = ""  # Extract correlation chart separately
     plotly_js_parts = []
     first_chart = True
+    correlation_fig = None  # Store correlation chart figure
     
     for chart_name, fig in charts:
         # Get chart title
@@ -473,6 +478,12 @@ def generate_monte_carlo_html(df: pd.DataFrame, stats: dict, charts: list,
                 chart_title = fig.layout.title.text
             elif isinstance(fig.layout.title, str):
                 chart_title = fig.layout.title
+        
+        # Extract correlation chart separately for dedicated section
+        if chart_name == "correlation_charts":
+            # Store the figure for later use
+            correlation_fig = fig
+            continue  # Skip adding to main charts_html
         
         # Use to_html() directly - it handles everything including the script
         if first_chart:
@@ -490,6 +501,12 @@ def generate_monte_carlo_html(df: pd.DataFrame, stats: dict, charts: list,
             {chart_html}
         </div>
         '''
+    
+    # Generate correlation chart HTML
+    if correlation_fig is not None:
+        # Use to_html() to generate the chart HTML
+        # Since Plotly JS is already loaded from first chart, we don't need to include it again
+        correlation_chart_html = correlation_fig.to_html(include_plotlyjs=False, div_id="correlation_charts", full_html=False)
     
     # No need for separate plotly_js since it's embedded in the HTML
     plotly_js = ""
@@ -855,17 +872,17 @@ def generate_monte_carlo_html(df: pd.DataFrame, stats: dict, charts: list,
                 
                 <h3 style="margin-top: 25px; margin-bottom: 15px;">Parameters Varied</h3>
                 <ul style="font-size: 1.05em; line-height: 2;">
-                    <li><strong>Occupancy Rate:</strong> Uniform distribution from 30% to 70% (base case: ~61.5%)</li>
-                    <li><strong>Average Daily Rate:</strong> Uniform distribution from 200 to 400 CHF (base case: ~324 CHF)</li>
-                    <li><strong>Interest Rate:</strong> Uniform distribution from 1.2% to 3.5% (base case: 1.9%)</li>
-                    <li><strong>Property Management Fee Rate:</strong> Uniform distribution from 20% to 35% (base case: 30%)</li>
+                    <li><strong>Occupancy Rate:</strong> Uniform distribution from 30% to 70% (base case: ~50% weighted average)</li>
+                    <li><strong>Average Daily Rate:</strong> Uniform distribution from 200 to 400 CHF (base case: ~324 CHF weighted average)</li>
+                    <li><strong>Interest Rate:</strong> Uniform distribution from 1.2% to 3.5% (base case: 1.3%)</li>
+                    <li><strong>Property Management Fee Rate:</strong> Uniform distribution from 20% to 35% (base case: 20%)</li>
                 </ul>
                 
                 <h3 style="margin-top: 25px; margin-bottom: 15px;">Simulation Process</h3>
                 <ul style="font-size: 1.05em; line-height: 2;">
                     <li>For each simulation, random values are drawn from uniform distributions for all four parameters</li>
                     <li>A complete 15-year financial projection is calculated for each scenario</li>
-                    <li>NPV and IRR are computed using a 5% discount rate</li>
+                    <li>NPV and IRR are computed using a 4% discount rate</li>
                     <li>Results are aggregated to show probability distributions and key statistics</li>
                 </ul>
                 
@@ -963,7 +980,7 @@ def generate_monte_carlo_html(df: pd.DataFrame, stats: dict, charts: list,
             </p>
             <div class="chart-container scroll-reveal">
                 <div class="chart-title">NPV vs Key Parameters</div>
-                <div id="correlation_charts" style="min-height: 600px;"></div>
+                {correlation_chart_html if correlation_chart_html else '<div id="correlation_charts" style="min-height: 600px;"></div>'}
             </div>
         </div>
         
@@ -1112,9 +1129,13 @@ def main():
     print("[*] Generating charts...")
     charts = create_monte_carlo_charts(df, stats)
     
-    # Export to Excel
-    print("[*] Exporting results to Excel...")
-    export_to_excel(df, stats)
+    # Excel export disabled - user only uses HTML reports
+    # print("[*] Exporting results to Excel...")
+    # export_to_excel(df, stats)
+    
+    # Ensure output directory exists
+    import os
+    os.makedirs("output", exist_ok=True)
     
     # Generate HTML report
     print("[*] Generating HTML report...")
@@ -1124,8 +1145,8 @@ def main():
     print("=" * 70)
     print("[+] Monte Carlo analysis complete!")
     print("=" * 70)
-    print(f"[+] Excel file: monte_carlo_results.xlsx")
-    print(f"[+] HTML report: monte_carlo_analysis.html")
+    # print(f"[+] Excel file: monte_carlo_results.xlsx")  # Excel export disabled
+    print(f"[+] HTML report: output/monte_carlo_analysis.html")
     print("=" * 70)
     print()
     print("KEY RESULTS:")
