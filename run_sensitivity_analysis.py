@@ -849,13 +849,20 @@ def calculate_sensitivity_metrics(all_sensitivities: Dict[str, pd.DataFrame], ba
             irr_best_impact = (best_impact / abs(base_cf)) * base_metrics['irr_with_sale_pct'] * 0.3 if base_cf != 0 else 0
             irr_worst_impact = (worst_impact / abs(base_cf)) * base_metrics['irr_with_sale_pct'] * 0.3 if base_cf != 0 else 0
             
+            # Get parameter values from dataframe
+            param_col = df.columns[0]
+            best_param_val = df.loc[best_idx, param_col]
+            worst_param_val = df.loc[worst_idx, param_col]
+            
             sensitivity_impacts[sens_name] = {
                 'npv_best_impact': npv_best_impact,
                 'npv_worst_impact': npv_worst_impact,
                 'irr_best_impact': irr_best_impact,
                 'irr_worst_impact': irr_worst_impact,
                 'best_cf': best_cf,
-                'worst_cf': worst_cf
+                'worst_cf': worst_cf,
+                'best_param_value': best_param_val,  # Store actual parameter value for best case
+                'worst_param_value': worst_param_val  # Store actual parameter value for worst case
             }
             continue
         
@@ -877,7 +884,9 @@ def calculate_sensitivity_metrics(all_sensitivities: Dict[str, pd.DataFrame], ba
                 'irr_best_impact': irr_best_impact,
                 'irr_worst_impact': irr_worst_impact,
                 'best_cf': df.loc[best_idx, 'Cash Flow After Debt (CHF)'],
-                'worst_cf': df.loc[worst_idx, 'Cash Flow After Debt (CHF)']
+                'worst_cf': df.loc[worst_idx, 'Cash Flow After Debt (CHF)'],
+                'best_param_value': best_param_val,  # Store actual parameter value for best case
+                'worst_param_value': worst_param_val  # Store actual parameter value for worst case
             }
     
     return {
@@ -886,15 +895,16 @@ def calculate_sensitivity_metrics(all_sensitivities: Dict[str, pd.DataFrame], ba
     }
 
 
-def generate_sensitivity_impact_table(cash_on_cash_data, npv_data, irr_data, sensitivities, sensitivity_info) -> str:
+def generate_sensitivity_impact_table(cap_rate_data, cash_on_cash_data, npv_data, irr_data, sensitivities, sensitivity_info) -> str:
     """
-    Generate a comprehensive table showing all sensitivity impacts (IRR, NPV, Cash-on-Cash).
+    Generate a comprehensive table showing all sensitivity impacts (IRR, NPV, Cap Rate, Cash-on-Cash Return).
     """
     # Create a dictionary to collect all sensitivity data
     all_sens_data = {}
     
     # Collect all sensitivity names
     all_sens_names = set()
+    all_sens_names.update([name for name, _ in cap_rate_data])
     all_sens_names.update([name for name, _ in cash_on_cash_data])
     all_sens_names.update([name for name, _, _ in npv_data])
     all_sens_names.update([name for name, _, _ in irr_data])
@@ -907,6 +917,8 @@ def generate_sensitivity_impact_table(cash_on_cash_data, npv_data, irr_data, sen
             'range_max': '',
             'range_base': '',
             'description': '',
+            'cap_rate_worst': None,
+            'cap_rate_best': None,
             'coc_worst': None,
             'coc_best': None,
             'npv_worst': None,
@@ -923,7 +935,13 @@ def generate_sensitivity_impact_table(cash_on_cash_data, npv_data, irr_data, sen
             sens_entry['range_base'] = info.get('base', 'N/A')
             sens_entry['description'] = info.get('what_it_evaluates', '')
         
-        # Get Cash-on-Cash data
+        # Get Cap Rate data (unlevered)
+        cap_rate_entry = next((data for name, data in cap_rate_data if name == sens_name), None)
+        if cap_rate_entry:
+            sens_entry['cap_rate_worst'] = cap_rate_entry.get('worst_impact', 0)
+            sens_entry['cap_rate_best'] = cap_rate_entry.get('best_impact', 0)
+        
+        # Get Cash-on-Cash Return data (levered)
         coc_entry = next((data for name, data in cash_on_cash_data if name == sens_name), None)
         if coc_entry:
             sens_entry['coc_worst'] = coc_entry.get('worst_impact', 0)
@@ -956,59 +974,71 @@ def generate_sensitivity_impact_table(cash_on_cash_data, npv_data, irr_data, sen
             This table shows the impact of each sensitivity factor on three key metrics: 
             <strong>Cash-on-Cash (Unlevered)</strong>, <strong>NPV</strong>, and <strong>IRR</strong>. 
             Values show the impact relative to the base case (worst case = negative impact, best case = positive impact).
+            <br><br>
+            <strong>Range Tested:</strong> Shows the minimum (worst case) and maximum (best case) parameter values tested. 
+            Each sensitivity factor is tested across its full range, with both extremes clearly indicated.
         </p>
         <div style="overflow-x: auto;">
             <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                 <thead>
                     <tr style="background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%); color: white;">
-                        <th style="padding: 15px; text-align: left; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2);">Sensitivity Factor</th>
-                        <th style="padding: 15px; text-align: left; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2);">Range Tested</th>
-                        <th style="padding: 15px; text-align: center; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2);" colspan="2">Cash-on-Cash Impact (%)</th>
-                        <th style="padding: 15px; text-align: center; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2);" colspan="2">NPV Impact (CHF)</th>
-                        <th style="padding: 15px; text-align: center; font-weight: 600;" colspan="2">IRR Impact (%)</th>
+                    <th style="padding: 15px; text-align: left; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2);">Sensitivity Factor</th>
+                    <th style="padding: 15px; text-align: left; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2);">Range Tested</th>
+                    <th style="padding: 15px; text-align: center; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2);" colspan="2">Cap Rate Impact (pp)</th>
+                    <th style="padding: 15px; text-align: center; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2);" colspan="2">Cash-on-Cash Impact (pp)</th>
+                    <th style="padding: 15px; text-align: center; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2);" colspan="2">NPV Impact (CHF)</th>
+                    <th style="padding: 15px; text-align: center; font-weight: 600;" colspan="2">IRR Impact (pp)</th>
                     </tr>
-                    <tr style="background: #e8ecef; color: #495057;">
-                        <th style="padding: 10px 15px; border-right: 1px solid #dee2e6;"></th>
-                        <th style="padding: 10px 15px; border-right: 1px solid #dee2e6;"></th>
-                        <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Worst</th>
-                        <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Best</th>
-                        <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Worst</th>
-                        <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Best</th>
-                        <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Worst</th>
-                        <th style="padding: 10px 15px; text-align: center; font-size: 0.9em; font-weight: 500;">Best</th>
-                    </tr>
+                <tr style="background: #e8ecef; color: #495057;">
+                    <th style="padding: 10px 15px; border-right: 1px solid #dee2e6;"></th>
+                    <th style="padding: 10px 15px; border-right: 1px solid #dee2e6;"></th>
+                    <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Worst</th>
+                    <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Best</th>
+                    <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Worst</th>
+                    <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Best</th>
+                    <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Worst</th>
+                    <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Best</th>
+                    <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Worst</th>
+                    <th style="padding: 10px 15px; text-align: center; font-size: 0.9em; font-weight: 500;">Best</th>
+                </tr>
                 </thead>
                 <tbody>
     '''
     
     for sens in sorted_sens:
-        # Format range
-        range_str = f"{sens['range_min']} to {sens['range_max']}<br><small style='color: #6c757d;'>(Base: {sens['range_base']})</small>"
+        # Format range with clear indication of extremes
+        range_str = f"<strong>Min:</strong> {sens['range_min']} | <strong>Max:</strong> {sens['range_max']}<br><small style='color: #6c757d;'>(Base Case: {sens['range_base']})</small>"
         
-        # Format Cash-on-Cash
-        coc_worst_str = f"<span style='color: #e74c3c; font-weight: 600;'>{sens['coc_worst']:.2f}%</span>" if sens['coc_worst'] is not None else "<span style='color: #999;'>N/A</span>"
-        coc_best_str = f"<span style='color: #2ecc71; font-weight: 600;'>{sens['coc_best']:.2f}%</span>" if sens['coc_best'] is not None else "<span style='color: #999;'>N/A</span>"
+        # Format Cap Rate
+        cap_rate_worst_str = f"<span style='color: #e74c3c; font-weight: 600;'>{sens['cap_rate_worst']:.2f} pp</span>" if sens['cap_rate_worst'] is not None else "<span style='color: #999;'>N/A</span>"
+        cap_rate_best_str = f"<span style='color: #2ecc71; font-weight: 600;'>{sens['cap_rate_best']:.2f} pp</span>" if sens['cap_rate_best'] is not None else "<span style='color: #999;'>N/A</span>"
+        
+        # Format Cash-on-Cash Return
+        coc_worst_str = f"<span style='color: #e74c3c; font-weight: 600;'>{sens['coc_worst']:.2f} pp</span>" if sens['coc_worst'] is not None else "<span style='color: #999;'>N/A</span>"
+        coc_best_str = f"<span style='color: #2ecc71; font-weight: 600;'>{sens['coc_best']:.2f} pp</span>" if sens['coc_best'] is not None else "<span style='color: #999;'>N/A</span>"
         
         # Format NPV
         npv_worst_str = f"<span style='color: #e74c3c; font-weight: 600;'>{sens['npv_worst']:,.0f}</span>" if sens['npv_worst'] is not None else "<span style='color: #999;'>N/A</span>"
         npv_best_str = f"<span style='color: #2ecc71; font-weight: 600;'>{sens['npv_best']:,.0f}</span>" if sens['npv_best'] is not None else "<span style='color: #999;'>N/A</span>"
         
         # Format IRR
-        irr_worst_str = f"<span style='color: #e67e22; font-weight: 600;'>{sens['irr_worst']:.2f}%</span>" if sens['irr_worst'] is not None else "<span style='color: #999;'>N/A</span>"
-        irr_best_str = f"<span style='color: #2ecc71; font-weight: 600;'>{sens['irr_best']:.2f}%</span>" if sens['irr_best'] is not None else "<span style='color: #999;'>N/A</span>"
+        irr_worst_str = f"<span style='color: #e67e22; font-weight: 600;'>{sens['irr_worst']:.2f} pp</span>" if sens['irr_worst'] is not None else "<span style='color: #999;'>N/A</span>"
+        irr_best_str = f"<span style='color: #2ecc71; font-weight: 600;'>{sens['irr_best']:.2f} pp</span>" if sens['irr_best'] is not None else "<span style='color: #999;'>N/A</span>"
         
         table_html += f'''
                     <tr style="border-bottom: 1px solid #e8ecef;">
                         <td style="padding: 15px; font-weight: 600; color: #1a1a2e; border-right: 1px solid #e8ecef;">{sens['name']}</td>
                         <td style="padding: 15px; color: #495057; border-right: 1px solid #e8ecef; font-size: 0.9em;">{range_str}</td>
-                        <td style="padding: 15px; text-align: center; border-right: 1px solid #e8ecef;">{coc_worst_str}</td>
-                        <td style="padding: 15px; text-align: center; border-right: 1px solid #e8ecef;">{coc_best_str}</td>
-                        <td style="padding: 15px; text-align: center; border-right: 1px solid #e8ecef;">{npv_worst_str}</td>
-                        <td style="padding: 15px; text-align: center; border-right: 1px solid #e8ecef;">{npv_best_str}</td>
-                        <td style="padding: 15px; text-align: center; border-right: 1px solid #e8ecef;">{irr_worst_str}</td>
+                        <td style="padding: 15px; text-align: center; border-right: 1px solid #e8ecef;">{cap_rate_worst_str}</td>
+                        <td style="padding: 15px; text-align: center; border-right: 1px solid #dee2e6;">{cap_rate_best_str}</td>
+                        <td style="padding: 15px; text-align: center; border-right: 1px solid #dee2e6;">{coc_worst_str}</td>
+                        <td style="padding: 15px; text-align: center; border-right: 1px solid #dee2e6;">{coc_best_str}</td>
+                        <td style="padding: 15px; text-align: center; border-right: 1px solid #dee2e6;">{npv_worst_str}</td>
+                        <td style="padding: 15px; text-align: center; border-right: 1px solid #dee2e6;">{npv_best_str}</td>
+                        <td style="padding: 15px; text-align: center; border-right: 1px solid #dee2e6;">{irr_worst_str}</td>
                         <td style="padding: 15px; text-align: center;">{irr_best_str}</td>
                     </tr>
-        '''
+                '''
     
     table_html += '''
                 </tbody>
@@ -1155,52 +1185,74 @@ def generate_summary_charts(metrics: Dict, base_config: BaseCaseConfig, all_sens
     base_metrics = metrics['base_case']
     sensitivities = metrics['sensitivities']
     
-    # Calculate cash-on-cash (unlevered) for each sensitivity
-    # This shows how much money needs to be put in or can be made per year
+    # Calculate CAP RATE (unlevered) impact for each sensitivity
+    # Cap Rate = NOI / Purchase Price (industry standard unlevered metric)
+    cap_rate_data = []
+    # Calculate LEVERED Cash-on-Cash Return impact for each sensitivity
+    # Cash-on-Cash Return = (Cash Flow After Debt Service / Initial Equity Investment) × 100
     cash_on_cash_data = []
+    
     if all_sensitivities:
         base_result = compute_annual_cash_flows(base_config)
-        base_noi = base_result['net_operating_income']  # Unlevered cash flow
+        base_noi = base_result['net_operating_income']  # Net Operating Income (unlevered)
         base_purchase_price = base_config.financing.purchase_price
+        base_equity = base_result['equity_total']  # Initial equity investment
+        base_cf_after_debt = base_result['cash_flow_after_debt_service']  # Levered cash flow
+        
+        # Base case metrics
+        base_cap_rate = (base_noi / base_purchase_price) * 100  # Cap Rate (unlevered)
+        base_coc_return = (base_cf_after_debt / base_equity) * 100 if base_equity > 0 else 0  # Cash-on-Cash Return (levered)
         
         for sens_name, df in all_sensitivities.items():
             if 'Cash Flow After Debt (CHF)' not in df.columns:
                 continue
             
-            # Get best and worst NOI (unlevered cash flow)
-            # We need to calculate NOI for each scenario
+            # Get best and worst case scenarios
             best_idx = df['Cash Flow After Debt (CHF)'].idxmax()
             worst_idx = df['Cash Flow After Debt (CHF)'].idxmin()
             
-            # For simplicity, use the cash flow after debt as proxy
-            # But we want unlevered, so we need to add back debt service
-            # Actually, let's calculate it properly
             best_cf_after_debt = df.loc[best_idx, 'Cash Flow After Debt (CHF)']
             worst_cf_after_debt = df.loc[worst_idx, 'Cash Flow After Debt (CHF)']
             
-            # Get debt service from base case
+            # Get debt service from base case (assume constant for sensitivity)
             base_debt_service = base_result['debt_service']
             
-            # Unlevered cash flow = cash flow after debt + debt service
+            # Calculate NOI (unlevered) = Cash Flow After Debt + Debt Service
             best_noi = best_cf_after_debt + base_debt_service
             worst_noi = worst_cf_after_debt + base_debt_service
             
-            # Cash-on-cash (unlevered) = NOI / Purchase Price
-            best_coc = (best_noi / base_purchase_price) * 100
-            worst_coc = (worst_noi / base_purchase_price) * 100
-            base_coc = (base_noi / base_purchase_price) * 100
+            # CAP RATE (unlevered metric) = NOI / Purchase Price
+            best_cap_rate = (best_noi / base_purchase_price) * 100
+            worst_cap_rate = (worst_noi / base_purchase_price) * 100
+            cap_rate_impact_best = best_cap_rate - base_cap_rate
+            cap_rate_impact_worst = worst_cap_rate - base_cap_rate
             
-            # Impact relative to base
-            best_impact = best_coc - base_coc
-            worst_impact = worst_coc - base_coc
+            # CASH-ON-CASH RETURN (levered metric) = (Cash Flow After Debt / Equity) × 100
+            best_coc_return = (best_cf_after_debt / base_equity) * 100 if base_equity > 0 else 0
+            worst_coc_return = (worst_cf_after_debt / base_equity) * 100 if base_equity > 0 else 0
+            coc_impact_best = best_coc_return - base_coc_return
+            coc_impact_worst = worst_coc_return - base_coc_return
             
-            cash_on_cash_data.append((sens_name, {
-                'best_impact': best_impact,
-                'worst_impact': worst_impact,
-                'best_coc': best_coc,
-                'worst_coc': worst_coc,
-                'base_coc': base_coc
+            # Store Cap Rate data (unlevered)
+            cap_rate_data.append((sens_name, {
+                'best_impact': cap_rate_impact_best,
+                'worst_impact': cap_rate_impact_worst,
+                'best_cap_rate': best_cap_rate,
+                'worst_cap_rate': worst_cap_rate,
+                'base_cap_rate': base_cap_rate
             }))
+            
+            # Store Cash-on-Cash Return data (levered)
+            cash_on_cash_data.append((sens_name, {
+                'best_impact': coc_impact_best,
+                'worst_impact': coc_impact_worst,
+                'best_coc': best_coc_return,
+                'worst_coc': worst_coc_return,
+                'base_coc': base_coc_return
+            }))
+    
+    # Get sensitivity info for ranges (needed for tooltips and table)
+    sensitivity_info = get_sensitivity_ranges_and_descriptions()
     
     # Prepare data for tornado charts - calculate range for each sensitivity
     # Sort by maximum absolute impact (range)
@@ -1217,59 +1269,216 @@ def generate_summary_charts(metrics: Dict, base_config: BaseCaseConfig, all_sens
     # Sort by range and take top 10
     npv_data = sorted(npv_data, key=lambda x: x[2], reverse=True)[:10]
     irr_data = sorted(irr_data, key=lambda x: x[2], reverse=True)[:10]
+    cap_rate_data = sorted(cap_rate_data, key=lambda x: max(abs(x[1]['best_impact']), abs(x[1]['worst_impact'])), reverse=True)[:10]
     cash_on_cash_data = sorted(cash_on_cash_data, key=lambda x: max(abs(x[1]['best_impact']), abs(x[1]['worst_impact'])), reverse=True)[:10]
     
     charts_html = []
     
-    # 0. NEW: Tornado Chart for Cash-on-Cash (Unlevered) - FIRST CHART
-    if cash_on_cash_data:
-        coc_categories = [name for name, _ in cash_on_cash_data]
-        coc_categories = coc_categories[::-1]
+    # 0. Tornado Chart for Cap Rate (Unlevered) - FIRST CHART
+    # Cap Rate = NOI / Purchase Price (industry standard unlevered metric)
+    if cap_rate_data:
+        cap_rate_categories = [name for name, _ in cap_rate_data]
+        cap_rate_categories = cap_rate_categories[::-1]
         
-        coc_positive = [data['best_impact'] for _, data in cash_on_cash_data[::-1]]
-        coc_negative = [data['worst_impact'] for _, data in cash_on_cash_data[::-1]]
+        cap_rate_positive = [data['best_impact'] for _, data in cap_rate_data[::-1]]
+        cap_rate_negative = [data['worst_impact'] for _, data in cap_rate_data[::-1]]
+        
+        # Prepare hover text with range information
+        cap_rate_hover_negative = []
+        cap_rate_hover_positive = []
+        for name, data in cap_rate_data[::-1]:
+            sens_info = sensitivity_info.get(name, {})
+            min_val = sens_info.get('min', 'N/A')
+            max_val = sens_info.get('max', 'N/A')
+            base_val = sens_info.get('base', 'N/A')
+            
+            # Get actual parameter values if available
+            sens_data = sensitivities.get(name, {})
+            worst_param = sens_data.get('worst_param_value', None)
+            best_param = sens_data.get('best_param_value', None)
+            
+            if worst_param is not None:
+                worst_display = f"{worst_param:.1f}" if isinstance(worst_param, float) else str(worst_param)
+                min_val = worst_display
+            if best_param is not None:
+                best_display = f"{best_param:.1f}" if isinstance(best_param, float) else str(best_param)
+                max_val = best_display
+            
+            # Format hover text for Cap Rate
+            hover_text_neg = f"<b>{name}</b><br>"
+            hover_text_neg += f"Parameter Range: {sens_info.get('min', 'N/A')} to {sens_info.get('max', 'N/A')}<br>"
+            hover_text_neg += f"Base Case: {base_val}<br>"
+            hover_text_neg += f"Worst Case Parameter: {min_val}<br>"
+            hover_text_neg += f"Cap Rate Impact: %{{value:.2f}} pp<br>"
+            hover_text_neg += f"Base Cap Rate: {data['base_cap_rate']:.2f}%<br>"
+            hover_text_neg += f"Worst Cap Rate: {data['worst_cap_rate']:.2f}%"
+            
+            hover_text_pos = f"<b>{name}</b><br>"
+            hover_text_pos += f"Parameter Range: {sens_info.get('min', 'N/A')} to {sens_info.get('max', 'N/A')}<br>"
+            hover_text_pos += f"Base Case: {base_val}<br>"
+            hover_text_pos += f"Best Case Parameter: {max_val}<br>"
+            hover_text_pos += f"Cap Rate Impact: %{{value:.2f}} pp<br>"
+            hover_text_pos += f"Base Cap Rate: {data['base_cap_rate']:.2f}%<br>"
+            hover_text_pos += f"Best Cap Rate: {data['best_cap_rate']:.2f}%"
+            
+            cap_rate_hover_negative.append(hover_text_neg)
+            cap_rate_hover_positive.append(hover_text_pos)
         
         fig_tornado_coc = go.Figure()
         
-        # Negative impact bar (extends left from zero)
+        # Negative impact bar (extends left from zero) - ALWAYS show even if zero
         fig_tornado_coc.add_trace(go.Bar(
             y=coc_categories,
-            x=coc_negative,
+            x=[v if v < 0 else 0 for v in coc_negative],  # Show 0 if positive
             orientation='h',
             name='Worst Case Impact',
             marker_color='#e74c3c',
             text=[f"{abs(v):.2f}%" if v < 0 else "" for v in coc_negative],
             textposition='outside',
             textfont=dict(color='#e74c3c', size=10),
-            base=0
+            base=0,
+            hovertemplate='%{customdata}<extra></extra>',
+            customdata=coc_hover_negative
         ))
         
-        # Positive impact bar (extends right from zero)
+        # Positive impact bar (extends right from zero) - ALWAYS show even if zero
         fig_tornado_coc.add_trace(go.Bar(
             y=coc_categories,
-            x=coc_positive,
+            x=[v if v > 0 else 0 for v in coc_positive],  # Show 0 if negative
             orientation='h',
             name='Best Case Impact',
             marker_color='#2ecc71',
             text=[f"{v:.2f}%" if v > 0 else "" for v in coc_positive],
             textposition='outside',
             textfont=dict(color='#2ecc71', size=10),
-            base=0
+            base=0,
+            hovertemplate='%{customdata}<extra></extra>',
+            customdata=coc_hover_positive
         ))
         
-        fig_tornado_coc.update_layout(
-            title="Tornado Chart: Yearly Cash-on-Cash (Unlevered) Impact by Sensitivity Factor",
-            xaxis_title="Cash-on-Cash Impact (% of Purchase Price)",
-            yaxis_title="Sensitivity Factor",
-            height=500,
-            barmode='relative',
-            showlegend=True,
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-            hovermode='closest',
-            xaxis=dict(zeroline=True, zerolinewidth=2, zerolinecolor='black', showgrid=True)
-        )
+        template = get_chart_template()
+        layout_updates = template.copy()
+        layout_updates.update({
+            'title': {
+                'text': "Tornado Chart: Cap Rate Impact by Sensitivity Factor (Unlevered)",
+                'font': template['title_font'],
+                'x': template['title_x'],
+                'xanchor': template['title_xanchor'],
+                'pad': template['title_pad']
+            },
+            'xaxis_title': "Cap Rate Impact (percentage points)",
+            'yaxis_title': "Sensitivity Factor",
+            'height': 550,
+            'barmode': 'relative',
+            'showlegend': True,
+            'xaxis': dict(
+                zeroline=True,
+                zerolinewidth=2,
+                zerolinecolor='#495057',
+                showgrid=True,
+                gridcolor=template['xaxis']['gridcolor'],
+                gridwidth=template['xaxis']['gridwidth']
+            )
+        })
+        fig_tornado_cap_rate.update_layout(**layout_updates)
         
-        charts_html.append(f'<div class="chart-container"><h3 style="margin-bottom: 20px; color: var(--primary);">Annual Cash Requirement/Generation Analysis</h3><p style="margin-bottom: 20px; color: #555; line-height: 1.7;">This chart shows how much money you need to put in (negative, left side in red) or can make (positive, right side in green) per year as a percentage of the purchase price, for each sensitivity factor. This is the <strong>unlevered cash-on-cash return</strong>, showing the property\'s operating performance independent of financing. The chart helps you understand the worst-case scenario for annual cash requirements and the best-case scenario for cash generation.</p>{fig_tornado_coc.to_html(include_plotlyjs="cdn", div_id="tornadoCOC")}</div>')
+        charts_html.append(f'<div class="chart-container"><h3 style="margin-bottom: 20px; color: var(--primary);">Cap Rate Sensitivity Analysis (Unlevered)</h3><p style="margin-bottom: 20px; color: #555; line-height: 1.7;">This chart shows the impact of each sensitivity factor on the <strong>Cap Rate</strong> (Capitalization Rate), which is calculated as Net Operating Income (NOI) divided by Purchase Price. Cap Rate is an <strong>unlevered metric</strong> that measures the property\'s operating performance independent of financing structure. It represents the unlevered yield on the property investment. Higher cap rates indicate better operating performance. Red bars (left) show scenarios that reduce the cap rate, green bars (right) show scenarios that increase it.<br><br><strong>Hover over each bar</strong> to see the exact parameter values tested (minimum and maximum extremes) and the range covered by each sensitivity analysis.</p>{fig_tornado_cap_rate.to_html(include_plotlyjs="cdn", div_id="tornadoCapRate")}</div>')
+        
+        # 0b. Tornado Chart for Cash-on-Cash Return (Levered) - SECOND CHART
+        if cash_on_cash_data:
+            coc_categories = [name for name, _ in cash_on_cash_data]
+            coc_categories = coc_categories[::-1]
+            
+            coc_positive = [data['best_impact'] for _, data in cash_on_cash_data[::-1]]
+            coc_negative = [data['worst_impact'] for _, data in cash_on_cash_data[::-1]]
+            
+            # Prepare hover text with range information
+            coc_hover_negative = []
+            coc_hover_positive = []
+            for name, data in cash_on_cash_data[::-1]:
+                sens_info = sensitivity_info.get(name, {})
+                min_val = sens_info.get('min', 'N/A')
+                max_val = sens_info.get('max', 'N/A')
+                base_val = sens_info.get('base', 'N/A')
+                
+                # Get actual parameter values if available
+                sens_data = sensitivities.get(name, {})
+                best_param_val = sens_data.get('best_param_value', 'N/A')
+                worst_param_val = sens_data.get('worst_param_value', 'N/A')
+                
+                # Format hover text for Cash-on-Cash Return
+                hover_text_neg = f"<b>{name}</b><br>"
+                hover_text_neg += f"Parameter Range: {min_val} to {max_val}<br>"
+                hover_text_neg += f"Base Case: {base_val}<br>"
+                hover_text_neg += f"Worst Case Parameter: {worst_param_val}<br>"
+                hover_text_neg += f"Cash-on-Cash Impact: %{{value:.2f}}%<br>"
+                hover_text_neg += f"Base CoC Return: {data['base_coc']:.2f}%<br>"
+                hover_text_neg += f"Worst CoC Return: {data['worst_coc']:.2f}%"
+                
+                hover_text_pos = f"<b>{name}</b><br>"
+                hover_text_pos += f"Parameter Range: {min_val} to {max_val}<br>"
+                hover_text_pos += f"Base Case: {base_val}<br>"
+                hover_text_pos += f"Best Case Parameter: {best_param_val}<br>"
+                hover_text_pos += f"Cash-on-Cash Impact: %{{value:.2f}}%<br>"
+                hover_text_pos += f"Base CoC Return: {data['base_coc']:.2f}%<br>"
+                hover_text_pos += f"Best CoC Return: {data['best_coc']:.2f}%"
+                
+                coc_hover_negative.append(hover_text_neg)
+                coc_hover_positive.append(hover_text_pos)
+            
+            fig_tornado_coc = go.Figure()
+            
+            # Negative impacts (left side, red)
+            fig_tornado_coc.add_trace(go.Bar(
+                name="Worst Case Impact",
+                y=coc_categories,
+                x=coc_negative,
+                orientation='h',
+                marker_color='#e74c3c',
+                hovertemplate=coc_hover_negative,
+                text=[f"{x:.2f}%" for x in coc_negative],
+                textposition='outside'
+            ))
+            
+            # Positive impacts (right side, green)
+            fig_tornado_coc.add_trace(go.Bar(
+                name="Best Case Impact",
+                y=coc_categories,
+                x=coc_positive,
+                orientation='h',
+                marker_color='#2ecc71',
+                hovertemplate=coc_hover_positive,
+                text=[f"{x:.2f}%" for x in coc_positive],
+                textposition='outside'
+            ))
+            
+            template = get_chart_template()
+            layout_updates = template.copy()
+            layout_updates.update({
+                'title': {
+                    'text': "Tornado Chart: Cash-on-Cash Return Impact by Sensitivity Factor (Levered)",
+                    'font': template['title_font'],
+                    'x': template['title_x'],
+                    'xanchor': template['title_xanchor'],
+                    'pad': template['title_pad']
+                },
+                'xaxis_title': "Cash-on-Cash Return Impact (percentage points)",
+                'yaxis_title': "Sensitivity Factor",
+                'height': 550,
+                'barmode': 'relative',
+                'showlegend': True,
+                'xaxis': dict(
+                    zeroline=True,
+                    zerolinewidth=2,
+                    zerolinecolor='#495057',
+                    showgrid=True,
+                    gridcolor=template['xaxis']['gridcolor'],
+                    gridwidth=template['xaxis']['gridwidth']
+                )
+            })
+            fig_tornado_coc.update_layout(**layout_updates)
+            
+            charts_html.append(f'<div class="chart-container"><h3 style="margin-bottom: 20px; color: var(--primary);">Cash-on-Cash Return Sensitivity Analysis (Levered)</h3><p style="margin-bottom: 20px; color: #555; line-height: 1.7;">This chart shows the impact of each sensitivity factor on the <strong>Cash-on-Cash Return</strong>, which is calculated as (Cash Flow After Debt Service / Initial Equity Investment) × 100. Cash-on-Cash Return is a <strong>levered metric</strong> that measures the annual return on the equity investment after debt service. It shows how much cash return you receive on your invested equity. Higher returns indicate better investment performance. Red bars (left) show scenarios that reduce the return, green bars (right) show scenarios that increase it.<br><br><strong>Hover over each bar</strong> to see the exact parameter values tested (minimum and maximum extremes) and the range covered by each sensitivity analysis.</p>{fig_tornado_coc.to_html(include_plotlyjs="cdn", div_id="tornadoCoC")}</div>')
     
     # 1. Tornado Chart for NPV - BIDIRECTIONAL
     # For tornado chart, we want bars extending from zero (negative left, positive right)
@@ -1281,47 +1490,100 @@ def generate_summary_charts(metrics: Dict, base_config: BaseCaseConfig, all_sens
     npv_positive = [data.get('npv_best_impact', 0) for _, data, _ in npv_data[::-1]]
     npv_negative = [data.get('npv_worst_impact', 0) for _, data, _ in npv_data[::-1]]
     
+    # Prepare hover text with range information
+    npv_hover_negative = []
+    npv_hover_positive = []
+    for name, data, _ in npv_data[::-1]:
+        sens_info = sensitivity_info.get(name, {})
+        min_val = sens_info.get('min', 'N/A')
+        max_val = sens_info.get('max', 'N/A')
+        base_val = sens_info.get('base', 'N/A')
+        
+        # Get actual parameter values if available
+        worst_param = data.get('worst_param_value', None)
+        best_param = data.get('best_param_value', None)
+        
+        if worst_param is not None:
+            worst_display = f"{worst_param:.1f}" if isinstance(worst_param, float) else str(worst_param)
+            min_val = worst_display
+        if best_param is not None:
+            best_display = f"{best_param:.1f}" if isinstance(best_param, float) else str(best_param)
+            max_val = best_display
+        
+        npv_hover_negative.append(
+            f"<b>{name}</b><br>" +
+            f"Worst Case NPV Impact: {data.get('npv_worst_impact', 0):,.0f} CHF<br>" +
+            f"Parameter Value: {min_val}<br>" +
+            f"Range Tested: {sens_info.get('min', 'N/A')} to {sens_info.get('max', 'N/A')}<br>" +
+            f"Base Case: {base_val}"
+        )
+        npv_hover_positive.append(
+            f"<b>{name}</b><br>" +
+            f"Best Case NPV Impact: {data.get('npv_best_impact', 0):,.0f} CHF<br>" +
+            f"Parameter Value: {max_val}<br>" +
+            f"Range Tested: {sens_info.get('min', 'N/A')} to {sens_info.get('max', 'N/A')}<br>" +
+            f"Base Case: {base_val}"
+        )
+    
     fig_tornado_npv = go.Figure()
     
-    # Negative impact bar (extends left from zero)
+    # Negative impact bar (extends left from zero) - ALWAYS show even if zero
     fig_tornado_npv.add_trace(go.Bar(
         y=npv_categories,
-        x=npv_negative,
+        x=[v if v < 0 else 0 for v in npv_negative],  # Show 0 if positive
         orientation='h',
         name='Worst Case Impact',
         marker_color='#e74c3c',
         text=[f"{abs(v):,.0f}" if v < 0 else "" for v in npv_negative],
         textposition='outside',
         textfont=dict(color='#e74c3c', size=10),
-        base=0  # Bars start from zero
+        base=0,  # Bars start from zero
+        hovertemplate='%{customdata}<extra></extra>',
+        customdata=npv_hover_negative
     ))
     
-    # Positive impact bar (extends right from zero)
+    # Positive impact bar (extends right from zero) - ALWAYS show even if zero
     fig_tornado_npv.add_trace(go.Bar(
         y=npv_categories,
-        x=npv_positive,
+        x=[v if v > 0 else 0 for v in npv_positive],  # Show 0 if negative
         orientation='h',
         name='Best Case Impact',
         marker_color='#2ecc71',
         text=[f"{v:,.0f}" if v > 0 else "" for v in npv_positive],
         textposition='outside',
         textfont=dict(color='#2ecc71', size=10),
-        base=0  # Bars start from zero
+        base=0,  # Bars start from zero
+        hovertemplate='%{customdata}<extra></extra>',
+        customdata=npv_hover_positive
     ))
     
-    fig_tornado_npv.update_layout(
-        title="Tornado Chart: NPV Impact Range by Sensitivity Factor",
-        xaxis_title="NPV Impact (CHF)",
-        yaxis_title="Sensitivity Factor",
-        height=500,
-        barmode='relative',  # Relative mode for tornado chart (bars extend from zero)
-        showlegend=True,
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-        hovermode='closest',
-        xaxis=dict(zeroline=True, zerolinewidth=2, zerolinecolor='black', showgrid=True)
-    )
+    template = get_chart_template()
+    layout_updates = template.copy()
+    layout_updates.update({
+        'title': {
+            'text': "Tornado Chart: NPV Impact Range by Sensitivity Factor",
+            'font': template['title_font'],
+            'x': template['title_x'],
+            'xanchor': template['title_xanchor'],
+            'pad': template['title_pad']
+        },
+        'xaxis_title': "NPV Impact (CHF)",
+        'yaxis_title': "Sensitivity Factor",
+        'height': 550,
+        'barmode': 'relative',
+        'showlegend': True,
+        'xaxis': dict(
+            zeroline=True,
+            zerolinewidth=2,
+            zerolinecolor='#495057',
+            showgrid=True,
+            gridcolor=template['xaxis']['gridcolor'],
+            gridwidth=template['xaxis']['gridwidth']
+        )
+    })
+    fig_tornado_npv.update_layout(**layout_updates)
     
-    charts_html.append(f'<div class="chart-container"><h3 style="margin-bottom: 20px; color: var(--primary);">NPV Impact Analysis</h3><p style="margin-bottom: 20px; color: #555; line-height: 1.7;">This tornado chart shows how each sensitivity factor impacts the Net Present Value (NPV) of the investment over 15 years. NPV represents the total discounted value of all future cash flows. Red bars (left) show negative impact (reduces NPV), green bars (right) show positive impact (increases NPV). The longer the bar, the greater the impact.</p>{fig_tornado_npv.to_html(include_plotlyjs="cdn", div_id="tornadoNPV")}</div>')
+    charts_html.append(f'<div class="chart-container"><h3 style="margin-bottom: 20px; color: var(--primary);">NPV Impact Analysis</h3><p style="margin-bottom: 20px; color: #555; line-height: 1.7;">This tornado chart shows how each sensitivity factor impacts the Net Present Value (NPV) of the investment over 15 years. NPV represents the total discounted value of all future cash flows. Red bars (left) show negative impact (reduces NPV), green bars (right) show positive impact (increases NPV). The longer the bar, the greater the impact.<br><br><strong>Hover over each bar</strong> to see the exact parameter values tested (minimum and maximum extremes) and the range covered by each sensitivity analysis. Each sensitivity shows both upper and lower extremes.</p>{fig_tornado_npv.to_html(include_plotlyjs="cdn", div_id="tornadoNPV")}</div>')
     
     # 2. Tornado Chart for IRR - BIDIRECTIONAL
     irr_categories = [name for name, _, _ in irr_data]
@@ -1330,51 +1592,104 @@ def generate_summary_charts(metrics: Dict, base_config: BaseCaseConfig, all_sens
     irr_positive = [data.get('irr_best_impact', 0) for _, data, _ in irr_data[::-1]]
     irr_negative = [data.get('irr_worst_impact', 0) for _, data, _ in irr_data[::-1]]
     
+    # Prepare hover text with range information
+    irr_hover_negative = []
+    irr_hover_positive = []
+    for name, data, _ in irr_data[::-1]:
+        sens_info = sensitivity_info.get(name, {})
+        min_val = sens_info.get('min', 'N/A')
+        max_val = sens_info.get('max', 'N/A')
+        base_val = sens_info.get('base', 'N/A')
+        
+        # Get actual parameter values if available
+        worst_param = data.get('worst_param_value', None)
+        best_param = data.get('best_param_value', None)
+        
+        if worst_param is not None:
+            worst_display = f"{worst_param:.1f}" if isinstance(worst_param, float) else str(worst_param)
+            min_val = worst_display
+        if best_param is not None:
+            best_display = f"{best_param:.1f}" if isinstance(best_param, float) else str(best_param)
+            max_val = best_display
+        
+        irr_hover_negative.append(
+            f"<b>{name}</b><br>" +
+            f"Worst Case IRR Impact: {data.get('irr_worst_impact', 0):.2f}%<br>" +
+            f"Parameter Value: {min_val}<br>" +
+            f"Range Tested: {sens_info.get('min', 'N/A')} to {sens_info.get('max', 'N/A')}<br>" +
+            f"Base Case: {base_val}"
+        )
+        irr_hover_positive.append(
+            f"<b>{name}</b><br>" +
+            f"Best Case IRR Impact: {data.get('irr_best_impact', 0):.2f}%<br>" +
+            f"Parameter Value: {max_val}<br>" +
+            f"Range Tested: {sens_info.get('min', 'N/A')} to {sens_info.get('max', 'N/A')}<br>" +
+            f"Base Case: {base_val}"
+        )
+    
     fig_tornado_irr = go.Figure()
     
-    # Negative impact bar (extends left from zero)
+    # Negative impact bar (extends left from zero) - ALWAYS show even if zero
     fig_tornado_irr.add_trace(go.Bar(
         y=irr_categories,
-        x=irr_negative,
+        x=[v if v < 0 else 0 for v in irr_negative],  # Show 0 if positive
         orientation='h',
         name='Worst Case Impact',
         marker_color='#e67e22',
         text=[f"{abs(v):.2f}%" if v < 0 else "" for v in irr_negative],
         textposition='outside',
         textfont=dict(color='#e67e22', size=10),
-        base=0  # Bars start from zero
+        base=0,  # Bars start from zero
+        hovertemplate='%{customdata}<extra></extra>',
+        customdata=irr_hover_negative
     ))
     
-    # Positive impact bar (extends right from zero)
+    # Positive impact bar (extends right from zero) - ALWAYS show even if zero
     fig_tornado_irr.add_trace(go.Bar(
         y=irr_categories,
-        x=irr_positive,
+        x=[v if v > 0 else 0 for v in irr_positive],  # Show 0 if negative
         orientation='h',
         name='Best Case Impact',
         marker_color='#2ecc71',
         text=[f"{v:.2f}%" if v > 0 else "" for v in irr_positive],
         textposition='outside',
         textfont=dict(color='#2ecc71', size=10),
-        base=0  # Bars start from zero
+        base=0,  # Bars start from zero
+        hovertemplate='%{customdata}<extra></extra>',
+        customdata=irr_hover_positive
     ))
     
-    fig_tornado_irr.update_layout(
-        title="Tornado Chart: IRR Impact Range by Sensitivity Factor",
-        xaxis_title="IRR Impact (%)",
-        yaxis_title="Sensitivity Factor",
-        height=500,
-        barmode='relative',  # Relative mode for tornado chart (bars extend from zero)
-        showlegend=True,
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-        hovermode='closest',
-        xaxis=dict(zeroline=True, zerolinewidth=2, zerolinecolor='black', showgrid=True)
-    )
+    template = get_chart_template()
+    layout_updates = template.copy()
+    layout_updates.update({
+        'title': {
+            'text': "Tornado Chart: IRR Impact Range by Sensitivity Factor",
+            'font': template['title_font'],
+            'x': template['title_x'],
+            'xanchor': template['title_xanchor'],
+            'pad': template['title_pad']
+        },
+        'xaxis_title': "IRR Impact (%)",
+        'yaxis_title': "Sensitivity Factor",
+        'height': 550,
+        'barmode': 'relative',
+        'showlegend': True,
+        'xaxis': dict(
+            zeroline=True,
+            zerolinewidth=2,
+            zerolinecolor='#495057',
+            showgrid=True,
+            gridcolor=template['xaxis']['gridcolor'],
+            gridwidth=template['xaxis']['gridwidth']
+        )
+    })
+    fig_tornado_irr.update_layout(**layout_updates)
     
-    charts_html.append(f'<div class="chart-container"><h3 style="margin-bottom: 20px; color: var(--primary);">IRR Impact Analysis</h3><p style="margin-bottom: 20px; color: #555; line-height: 1.7;">This tornado chart shows how each sensitivity factor impacts the Internal Rate of Return (IRR) of the investment. IRR is the annualized return percentage, including both operating cash flows and the property sale at the end of 15 years. Higher IRR means better returns. Red bars (left) show scenarios that reduce IRR, green bars (right) show scenarios that increase IRR.</p>{fig_tornado_irr.to_html(include_plotlyjs=False, div_id="tornadoIRR")}</div>')
+    charts_html.append(f'<div class="chart-container"><h3 style="margin-bottom: 20px; color: var(--primary);">IRR Impact Analysis</h3><p style="margin-bottom: 20px; color: #555; line-height: 1.7;">This tornado chart shows how each sensitivity factor impacts the Internal Rate of Return (IRR) of the investment. IRR is the annualized return percentage, including both operating cash flows and the property sale at the end of 15 years. Higher IRR means better returns. Red bars (left) show scenarios that reduce IRR, green bars (right) show scenarios that increase IRR.<br><br><strong>Hover over each bar</strong> to see the exact parameter values tested (minimum and maximum extremes) and the range covered by each sensitivity analysis. Each sensitivity shows both upper and lower extremes.</p>{fig_tornado_irr.to_html(include_plotlyjs=False, div_id="tornadoIRR")}</div>')
     
-    # Generate comprehensive sensitivity impact table
-    sensitivity_info = get_sensitivity_ranges_and_descriptions()
+    # Generate comprehensive sensitivity impact table (sensitivity_info already retrieved above)
     sensitivity_table_html = generate_sensitivity_impact_table(
+        cap_rate_data,
         cash_on_cash_data, 
         npv_data, 
         irr_data, 
@@ -1437,12 +1752,21 @@ def generate_summary_charts(metrics: Dict, base_config: BaseCaseConfig, all_sens
         connector={"line": {"color": "rgb(63, 63, 63)"}},
     ))
     
-    fig_waterfall_irr.update_layout(
-        title="Waterfall Chart: Cumulative IRR Downside Risk (Top 10 Worst Impacts)",
-        showlegend=False,
-        height=500,
-        yaxis_title="IRR (%)"
-    )
+    template = get_chart_template()
+    layout_updates = template.copy()
+    layout_updates.update({
+        'title': {
+            'text': "Waterfall Chart: Cumulative IRR Downside Risk (Top 10 Worst Impacts)",
+            'font': template['title_font'],
+            'x': template['title_x'],
+            'xanchor': template['title_xanchor'],
+            'pad': template['title_pad']
+        },
+        'showlegend': False,
+        'height': 550,
+        'yaxis_title': "IRR (%)"
+    })
+    fig_waterfall_irr.update_layout(**layout_updates)
     charts_html.append(f'<div class="chart-container">{fig_waterfall_irr.to_html(include_plotlyjs=False, div_id="waterfallIRR")}</div>')
     
     return "\n".join(charts_html)

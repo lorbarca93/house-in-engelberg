@@ -321,9 +321,84 @@ def export_to_excel(results: dict, config, projection_15yr: List[dict], irr_resu
     print(f"[+] Excel file exported: {output_path}")
 
 
+# Professional color palette for charts
+CHART_COLORS = {
+    'primary': '#1a1a2e',
+    'secondary': '#0f3460',
+    'success': '#2ecc71',
+    'danger': '#e74c3c',
+    'warning': '#f39c12',
+    'info': '#3498db',
+    'purple': '#9b59b6',
+    'orange': '#e67e22',
+    'teal': '#1abc9c',
+    'gradient_start': '#667eea',
+    'gradient_end': '#764ba2',
+}
+
+# Professional chart template
+def get_chart_template():
+    """Returns a professional chart template configuration."""
+    return {
+        'font': {
+            'family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+            'size': 12,
+            'color': '#2c3e50'
+        },
+        'title_font': {
+            'size': 18,
+            'color': '#1a1a2e',
+            'family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto'
+        },
+        'title_x': 0.05,
+        'title_xanchor': 'left',
+        'title_pad': {'t': 10, 'b': 20},
+        'xaxis': {
+            'showgrid': True,
+            'gridcolor': '#e8ecef',
+            'gridwidth': 1,
+            'showline': True,
+            'linecolor': '#dee2e6',
+            'linewidth': 1,
+            'title': {'font': {'size': 13, 'color': '#495057'}}
+        },
+        'yaxis': {
+            'showgrid': True,
+            'gridcolor': '#e8ecef',
+            'gridwidth': 1,
+            'showline': True,
+            'linecolor': '#dee2e6',
+            'linewidth': 1,
+            'title': {'font': {'size': 13, 'color': '#495057'}}
+        },
+        'plot_bgcolor': '#ffffff',
+        'paper_bgcolor': '#ffffff',
+        'hovermode': 'x unified',
+        'hoverlabel': {
+            'bgcolor': 'rgba(26, 26, 46, 0.9)',
+            'font_size': 12,
+            'font_family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto',
+            'font_color': '#ffffff',
+            'bordercolor': '#1a1a2e'
+        },
+        'legend': {
+            'bgcolor': 'rgba(255, 255, 255, 0.9)',
+            'bordercolor': '#dee2e6',
+            'borderwidth': 1,
+            'font': {'size': 11, 'color': '#495057'},
+            'x': 1.02,
+            'xanchor': 'left',
+            'y': 1,
+            'yanchor': 'top'
+        },
+        'margin': {'l': 60, 'r': 20, 't': 60, 'b': 50}
+    }
+
+
 def create_charts(results: dict, config, projection_15yr: List[dict]) -> List[go.Figure]:
-    """Create all charts for the HTML report including 15-year projections."""
+    """Create all charts for the HTML report including 15-year projections with enhanced visuals."""
     charts = []
+    template = get_chart_template()
     
     # Chart 1: Revenue vs Expenses Breakdown
     fig1 = go.Figure()
@@ -361,13 +436,21 @@ def create_charts(results: dict, config, projection_15yr: List[dict]) -> List[go
         textposition='auto',
     ))
     
-    fig1.update_layout(
-        title="Revenue vs Expenses vs Debt Service",
-        yaxis_title="Amount (CHF)",
-        barmode='group',
-        height=400,
-        showlegend=True,
-    )
+    layout_updates = template.copy()
+    layout_updates.update({
+        'title': {
+            'text': "Revenue vs Expenses vs Debt Service",
+            'font': template['title_font'],
+            'x': template['title_x'],
+            'xanchor': template['title_xanchor'],
+            'pad': template['title_pad']
+        },
+        'yaxis_title': "Amount (CHF)",
+        'barmode': 'group',
+        'height': 450,
+        'showlegend': True,
+    })
+    fig1.update_layout(**layout_updates)
     charts.append(("revenue_expenses", fig1))
     
     # Chart 2: Operating Expenses Breakdown (Pie Chart)
@@ -378,9 +461,18 @@ def create_charts(results: dict, config, projection_15yr: List[dict]) -> List[go
         textinfo='label+percent',
         texttemplate='%{label}<br>%{value:,.0f} CHF<br>(%{percent})',
     )])
+    fig2.update_traces(
+        marker=dict(
+            colors=['#3498db', '#9b59b6', '#e67e22', '#1abc9c', '#f39c12', '#e74c3c'],
+            line=dict(color='#ffffff', width=2)
+        ),
+        textfont=dict(size=11, color='#2c3e50'),
+        hovertemplate='<b>%{label}</b><br>Amount: %{value:,.0f} CHF<br>Percentage: %{percent}<extra></extra>'
+    )
     fig2.update_layout(
+        **template,
         title="Operating Expenses Breakdown",
-        height=400,
+        height=450,
     )
     charts.append(("expenses_pie", fig2))
     
@@ -405,12 +497,28 @@ def create_charts(results: dict, config, projection_15yr: List[dict]) -> List[go
         ],
         connector={"line": {"color": "rgb(63, 63, 63)"}},
     ))
-    fig3.update_layout(
-        title="Cash Flow Waterfall",
-        yaxis_title="Amount (CHF)",
-        height=400,
-        showlegend=False,
+    fig3.update_traces(
+        increasing=dict(marker_color=CHART_COLORS['success']),
+        decreasing=dict(marker_color=CHART_COLORS['danger']),
+        totals=dict(marker_color=CHART_COLORS['info']),
+        textfont=dict(size=11, color='#2c3e50'),
+        connector_line_color='#6c757d',
+        connector_line_width=2
     )
+    layout_updates = template.copy()
+    layout_updates.update({
+        'title': {
+            'text': "Cash Flow Waterfall",
+            'font': template['title_font'],
+            'x': template['title_x'],
+            'xanchor': template['title_xanchor'],
+            'pad': template['title_pad']
+        },
+        'yaxis_title': "Amount (CHF)",
+        'height': 450,
+        'showlegend': False,
+    })
+    fig3.update_layout(**layout_updates)
     charts.append(("cashflow_waterfall", fig3))
     
     # Chart 4: Key Performance Indicators (Gauge Charts)
@@ -438,7 +546,13 @@ def create_charts(results: dict, config, projection_15yr: List[dict]) -> List[go
             }
         }
     ))
-    fig4a.update_layout(height=300, margin=dict(l=20, r=20, t=40, b=20))
+    fig4a.update_layout(
+        height=320,
+        margin=dict(l=20, r=20, t=50, b=20),
+        font=template['font'],
+        paper_bgcolor='#ffffff',
+        plot_bgcolor='#ffffff'
+    )
     charts.append(("kpi_cap_rate", fig4a))
     
     fig4b = go.Figure(go.Indicator(
@@ -464,7 +578,13 @@ def create_charts(results: dict, config, projection_15yr: List[dict]) -> List[go
             }
         }
     ))
-    fig4b.update_layout(height=300, margin=dict(l=20, r=20, t=40, b=20))
+    fig4b.update_layout(
+        height=320,
+        margin=dict(l=20, r=20, t=50, b=20),
+        font=template['font'],
+        paper_bgcolor='#ffffff',
+        plot_bgcolor='#ffffff'
+    )
     charts.append(("kpi_cash_on_cash", fig4b))
     
     fig4c = go.Figure(go.Indicator(
@@ -490,7 +610,13 @@ def create_charts(results: dict, config, projection_15yr: List[dict]) -> List[go
             }
         }
     ))
-    fig4c.update_layout(height=300, margin=dict(l=20, r=20, t=40, b=20))
+    fig4c.update_layout(
+        height=320,
+        margin=dict(l=20, r=20, t=50, b=20),
+        font=template['font'],
+        paper_bgcolor='#ffffff',
+        plot_bgcolor='#ffffff'
+    )
     charts.append(("kpi_debt_coverage", fig4c))
     
     fig4d = go.Figure(go.Indicator(
@@ -516,7 +642,13 @@ def create_charts(results: dict, config, projection_15yr: List[dict]) -> List[go
             }
         }
     ))
-    fig4d.update_layout(height=300, margin=dict(l=20, r=20, t=40, b=20))
+    fig4d.update_layout(
+        height=320,
+        margin=dict(l=20, r=20, t=50, b=20),
+        font=template['font'],
+        paper_bgcolor='#ffffff',
+        plot_bgcolor='#ffffff'
+    )
     charts.append(("kpi_operating_expense", fig4d))
     
     # Chart 5: Operating Expenses Bar Chart
@@ -528,12 +660,29 @@ def create_charts(results: dict, config, projection_15yr: List[dict]) -> List[go
         text=[f"{v:,.0f}" for v in expense_values],
         textposition='auto',
     ))
-    fig5.update_layout(
-        title="Operating Expenses Breakdown",
-        xaxis_title="Expense Category",
-        yaxis_title="Amount (CHF)",
-        height=400,
+    fig5.update_traces(
+        marker=dict(
+            color=CHART_COLORS['info'],
+            line=dict(color='#ffffff', width=1.5),
+            opacity=0.85
+        ),
+        textfont=dict(size=11, color='#2c3e50'),
+        hovertemplate='<b>%{x}</b><br>Amount: %{y:,.0f} CHF<extra></extra>'
     )
+    layout_updates = template.copy()
+    layout_updates.update({
+        'title': {
+            'text': "Operating Expenses Breakdown",
+            'font': template['title_font'],
+            'x': template['title_x'],
+            'xanchor': template['title_xanchor'],
+            'pad': template['title_pad']
+        },
+        'xaxis_title': "Expense Category",
+        'yaxis_title': "Amount (CHF)",
+        'height': 450,
+    })
+    fig5.update_layout(**layout_updates)
     charts.append(("expenses_bar", fig5))
     
     # Chart 6: 15-Year Cash Flow Projection
@@ -547,25 +696,47 @@ def create_charts(results: dict, config, projection_15yr: List[dict]) -> List[go
         y=cash_flows,
         mode='lines+markers',
         name='Total Cash Flow',
-        line=dict(color='#3498db', width=3),
-        marker=dict(size=8),
+        line=dict(color=CHART_COLORS['info'], width=3.5, shape='spline'),
+        marker=dict(size=10, color=CHART_COLORS['info'], line=dict(color='#ffffff', width=2)),
+        fill='tozeroy',
+        fillcolor='rgba(52, 152, 219, 0.1)',
+        hovertemplate='<b>Total Cash Flow</b><br>Year: %{x}<br>Amount: %{y:,.0f} CHF<extra></extra>'
     ))
     fig6.add_trace(go.Scatter(
         x=years,
         y=cash_flows_per_owner,
         mode='lines+markers',
         name='Cash Flow per Owner',
-        line=dict(color='#2ecc71', width=3),
-        marker=dict(size=8),
+        line=dict(color=CHART_COLORS['success'], width=3.5, shape='spline'),
+        marker=dict(size=10, color=CHART_COLORS['success'], line=dict(color='#ffffff', width=2)),
+        fill='tozeroy',
+        fillcolor='rgba(46, 204, 113, 0.1)',
+        hovertemplate='<b>Cash Flow per Owner</b><br>Year: %{x}<br>Amount: %{y:,.0f} CHF<extra></extra>'
     ))
-    fig6.add_hline(y=0, line_dash="dash", line_color="gray", annotation_text="Break-even")
-    fig6.update_layout(
-        title="15-Year Cash Flow Projection",
-        xaxis_title="Year",
-        yaxis_title="Cash Flow (CHF)",
-        height=500,
-        hovermode='x unified',
+    fig6.add_hline(
+        y=0,
+        line_dash="dash",
+        line_color="#6c757d",
+        line_width=2,
+        annotation_text="Break-even",
+        annotation_position="right",
+        annotation_font_size=11
     )
+    layout_updates = template.copy()
+    layout_updates.update({
+        'title': {
+            'text': "15-Year Cash Flow Projection",
+            'font': template['title_font'],
+            'x': template['title_x'],
+            'xanchor': template['title_xanchor'],
+            'pad': template['title_pad']
+        },
+        'xaxis_title': "Year",
+        'yaxis_title': "Cash Flow (CHF)",
+        'height': 550,
+        'hovermode': 'x unified',
+    })
+    fig6.update_layout(**layout_updates)
     charts.append(("cashflow_15yr", fig6))
     
     # Chart 7: 15-Year Loan Balance and Debt Service
@@ -574,21 +745,53 @@ def create_charts(results: dict, config, projection_15yr: List[dict]) -> List[go
     
     fig7 = make_subplots(specs=[[{"secondary_y": True}]])
     fig7.add_trace(
-        go.Scatter(x=years, y=loan_balances, name="Remaining Loan Balance", line=dict(color='#e74c3c', width=3)),
+        go.Scatter(
+            x=years,
+            y=loan_balances,
+            name="Remaining Loan Balance",
+            line=dict(color=CHART_COLORS['danger'], width=3.5, shape='spline'),
+            marker=dict(size=8, color=CHART_COLORS['danger']),
+            fill='tozeroy',
+            fillcolor='rgba(231, 76, 60, 0.1)',
+            hovertemplate='<b>Loan Balance</b><br>Year: %{x}<br>Balance: %{y:,.0f} CHF<extra></extra>'
+        ),
         secondary_y=False,
     )
     fig7.add_trace(
-        go.Scatter(x=years, y=debt_services, name="Debt Service", line=dict(color='#f39c12', width=3)),
+        go.Scatter(
+            x=years,
+            y=debt_services,
+            name="Debt Service",
+            line=dict(color=CHART_COLORS['warning'], width=3.5, shape='spline'),
+            marker=dict(size=8, color=CHART_COLORS['warning']),
+            hovertemplate='<b>Debt Service</b><br>Year: %{x}<br>Service: %{y:,.0f} CHF<extra></extra>'
+        ),
         secondary_y=True,
     )
-    fig7.update_xaxes(title_text="Year")
-    fig7.update_yaxes(title_text="Loan Balance (CHF)", secondary_y=False)
-    fig7.update_yaxes(title_text="Debt Service (CHF)", secondary_y=True)
-    fig7.update_layout(
-        title="15-Year Loan Balance & Debt Service",
-        height=500,
-        hovermode='x unified',
+    fig7.update_xaxes(title_text="Year", **template['xaxis'])
+    fig7.update_yaxes(
+        title_text="Loan Balance (CHF)",
+        secondary_y=False,
+        **template['yaxis']
     )
+    fig7.update_yaxes(
+        title_text="Debt Service (CHF)",
+        secondary_y=True,
+        **template['yaxis']
+    )
+    layout_updates = template.copy()
+    layout_updates.update({
+        'title': {
+            'text': "15-Year Loan Balance & Debt Service",
+            'font': template['title_font'],
+            'x': template['title_x'],
+            'xanchor': template['title_xanchor'],
+            'pad': template['title_pad']
+        },
+        'height': 550,
+        'hovermode': 'x unified',
+    })
+    fig7.update_layout(**layout_updates)
     charts.append(("loan_15yr", fig7))
     
     # Chart 8: 15-Year Revenue vs Expenses
@@ -597,16 +800,50 @@ def create_charts(results: dict, config, projection_15yr: List[dict]) -> List[go
     noi = [y['net_operating_income'] for y in projection_15yr]
     
     fig8 = go.Figure()
-    fig8.add_trace(go.Scatter(x=years, y=revenues, mode='lines+markers', name='Gross Rental Income', line=dict(color='#2ecc71', width=3)))
-    fig8.add_trace(go.Scatter(x=years, y=expenses, mode='lines+markers', name='Operating Expenses', line=dict(color='#e74c3c', width=3)))
-    fig8.add_trace(go.Scatter(x=years, y=noi, mode='lines+markers', name='Net Operating Income', line=dict(color='#3498db', width=3)))
-    fig8.update_layout(
-        title="15-Year Revenue & Expenses Projection",
-        xaxis_title="Year",
-        yaxis_title="Amount (CHF)",
-        height=500,
-        hovermode='x unified',
-    )
+    fig8.add_trace(go.Scatter(
+        x=years,
+        y=revenues,
+        mode='lines+markers',
+        name='Gross Rental Income',
+        line=dict(color=CHART_COLORS['success'], width=3.5, shape='spline'),
+        marker=dict(size=9, color=CHART_COLORS['success'], line=dict(color='#ffffff', width=1.5)),
+        hovertemplate='<b>Gross Rental Income</b><br>Year: %{x}<br>Amount: %{y:,.0f} CHF<extra></extra>'
+    ))
+    fig8.add_trace(go.Scatter(
+        x=years,
+        y=expenses,
+        mode='lines+markers',
+        name='Operating Expenses',
+        line=dict(color=CHART_COLORS['danger'], width=3.5, shape='spline'),
+        marker=dict(size=9, color=CHART_COLORS['danger'], line=dict(color='#ffffff', width=1.5)),
+        hovertemplate='<b>Operating Expenses</b><br>Year: %{x}<br>Amount: %{y:,.0f} CHF<extra></extra>'
+    ))
+    fig8.add_trace(go.Scatter(
+        x=years,
+        y=noi,
+        mode='lines+markers',
+        name='Net Operating Income',
+        line=dict(color=CHART_COLORS['info'], width=3.5, shape='spline'),
+        marker=dict(size=9, color=CHART_COLORS['info'], line=dict(color='#ffffff', width=1.5)),
+        fill='tonexty',
+        fillcolor='rgba(52, 152, 219, 0.1)',
+        hovertemplate='<b>Net Operating Income</b><br>Year: %{x}<br>Amount: %{y:,.0f} CHF<extra></extra>'
+    ))
+    layout_updates = template.copy()
+    layout_updates.update({
+        'title': {
+            'text': "15-Year Revenue & Expenses Projection",
+            'font': template['title_font'],
+            'x': template['title_x'],
+            'xanchor': template['title_xanchor'],
+            'pad': template['title_pad']
+        },
+        'xaxis_title': "Year",
+        'yaxis_title': "Amount (CHF)",
+        'height': 550,
+        'hovermode': 'x unified',
+    })
+    fig8.update_layout(**layout_updates)
     charts.append(("revenue_expenses_15yr", fig8))
     
     return charts

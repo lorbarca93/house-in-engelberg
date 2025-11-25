@@ -205,22 +205,48 @@ def create_monte_carlo_charts(df: pd.DataFrame, stats: dict) -> list:
         x=df['irr_with_sale'],
         nbinsx=100,
         name='IRR Distribution',
-        marker_color='#2ecc71',
-        opacity=0.7
+        marker=dict(
+            color=CHART_COLORS['success'],
+            line=dict(color='#ffffff', width=1),
+            opacity=0.75
+        ),
+        hovertemplate='<b>IRR Range</b><br>Value: %{x:.2f}%<br>Frequency: %{y}<extra></extra>'
     ))
     
-    fig2.add_vline(x=stats['irr_with_sale']['mean'], line_dash="dash", line_color="red",
-                   annotation_text=f"Mean: {stats['irr_with_sale']['mean']:.2f}%")
-    fig2.add_vline(x=stats['irr_with_sale']['median'], line_dash="dash", line_color="green",
-                   annotation_text=f"Median: {stats['irr_with_sale']['median']:.2f}%")
-    
-    fig2.update_layout(
-        title="IRR (with Sale) Distribution - Monte Carlo Simulation",
-        xaxis_title="IRR (%)",
-        yaxis_title="Frequency",
-        height=500,
-        showlegend=False
+    fig2.add_vline(
+        x=stats['irr_with_sale']['mean'],
+        line_dash="dash",
+        line_color=CHART_COLORS['danger'],
+        line_width=2,
+        annotation_text=f"Mean: {stats['irr_with_sale']['mean']:.2f}%",
+        annotation_position="top",
+        annotation_font_size=11
     )
+    fig2.add_vline(
+        x=stats['irr_with_sale']['median'],
+        line_dash="dash",
+        line_color=CHART_COLORS['info'],
+        line_width=2,
+        annotation_text=f"Median: {stats['irr_with_sale']['median']:.2f}%",
+        annotation_position="top",
+        annotation_font_size=11
+    )
+    
+    layout_updates = template.copy()
+    layout_updates.update({
+        'title': {
+            'text': "IRR (with Sale) Distribution - Monte Carlo Simulation",
+            'font': template['title_font'],
+            'x': template['title_x'],
+            'xanchor': template['title_xanchor'],
+            'pad': template['title_pad']
+        },
+        'xaxis_title': "IRR (%)",
+        'yaxis_title': "Frequency",
+        'height': 550,
+        'showlegend': False
+    })
+    fig2.update_layout(**layout_updates)
     charts.append(("irr_distribution", fig2))
     
     # Chart 3: Cumulative Probability Distribution (NPV)
@@ -243,12 +269,24 @@ def create_monte_carlo_charts(df: pd.DataFrame, stats: dict) -> list:
     fig3.add_hline(y=10, line_dash="dash", line_color="orange",
                    annotation_text="10th Percentile")
     
-    fig3.update_layout(
-        title="NPV Cumulative Probability Distribution",
-        xaxis_title="NPV (CHF)",
-        yaxis_title="Probability (%)",
-        height=500
+    fig3.update_traces(
+        line=dict(color=CHART_COLORS['gradient_start'], width=3),
+        hovertemplate='<b>Cumulative Probability</b><br>NPV: %{x:,.0f} CHF<br>Probability: %{y:.1f}%<extra></extra>'
     )
+    layout_updates = template.copy()
+    layout_updates.update({
+        'title': {
+            'text': "NPV Cumulative Probability Distribution",
+            'font': template['title_font'],
+            'x': template['title_x'],
+            'xanchor': template['title_xanchor'],
+            'pad': template['title_pad']
+        },
+        'xaxis_title': "NPV (CHF)",
+        'yaxis_title': "Probability (%)",
+        'height': 550
+    })
+    fig3.update_layout(**layout_updates)
     charts.append(("npv_cumulative", fig3))
     
     # Chart 4: Scatter Plot - Occupancy vs Daily Rate (colored by NPV)
@@ -271,13 +309,29 @@ def create_monte_carlo_charts(df: pd.DataFrame, stats: dict) -> list:
         name='Simulations'
     ))
     
-    fig4.update_layout(
-        title="NPV Sensitivity: Occupancy Rate vs Daily Rate",
-        xaxis_title="Occupancy Rate (%)",
-        yaxis_title="Daily Rate (CHF)",
-        height=500,
-        showlegend=False
+    fig4.update_traces(
+        marker=dict(
+            size=6,
+            opacity=0.6,
+            line=dict(width=0.5, color='rgba(255, 255, 255, 0.3)')
+        ),
+        hovertemplate='<b>Simulation</b><br>Occupancy: %{x:.1f}%<br>Daily Rate: %{y:.0f} CHF<br>%{text}<extra></extra>'
     )
+    layout_updates = template.copy()
+    layout_updates.update({
+        'title': {
+            'text': "NPV Sensitivity: Occupancy Rate vs Daily Rate",
+            'font': template['title_font'],
+            'x': template['title_x'],
+            'xanchor': template['title_xanchor'],
+            'pad': template['title_pad']
+        },
+        'xaxis_title': "Occupancy Rate (%)",
+        'yaxis_title': "Daily Rate (CHF)",
+        'height': 550,
+        'showlegend': False
+    })
+    fig4.update_layout(**layout_updates)
     charts.append(("occupancy_daily_scatter", fig4))
     
     # Chart 5: Scatter Plot - Interest Rate vs Management Fee (colored by NPV)
@@ -300,13 +354,29 @@ def create_monte_carlo_charts(df: pd.DataFrame, stats: dict) -> list:
         name='Simulations'
     ))
     
-    fig5_scatter.update_layout(
-        title="NPV Sensitivity: Interest Rate vs Management Fee Rate",
-        xaxis_title="Interest Rate (%)",
-        yaxis_title="Management Fee Rate (%)",
-        height=500,
-        showlegend=False
+    fig5_scatter.update_traces(
+        marker=dict(
+            size=6,
+            opacity=0.6,
+            line=dict(width=0.5, color='rgba(255, 255, 255, 0.3)')
+        ),
+        hovertemplate='<b>Simulation</b><br>Interest Rate: %{x:.2f}%<br>Management Fee: %{y:.1f}%<br>%{text}<extra></extra>'
     )
+    layout_updates = template.copy()
+    layout_updates.update({
+        'title': {
+            'text': "NPV Sensitivity: Interest Rate vs Management Fee Rate",
+            'font': template['title_font'],
+            'x': template['title_x'],
+            'xanchor': template['title_xanchor'],
+            'pad': template['title_pad']
+        },
+        'xaxis_title': "Interest Rate (%)",
+        'yaxis_title': "Management Fee Rate (%)",
+        'height': 550,
+        'showlegend': False
+    })
+    fig5_scatter.update_layout(**layout_updates)
     charts.append(("interest_management_scatter", fig5_scatter))
     
     # Chart 6: Box Plot - NPV by Parameter Quartiles
