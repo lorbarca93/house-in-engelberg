@@ -22,6 +22,80 @@ from simulation import (
 from datetime import datetime
 from typing import Dict, List, Tuple
 
+# Professional color palette for charts
+CHART_COLORS = {
+    'primary': '#1a1a2e',
+    'secondary': '#0f3460',
+    'success': '#2ecc71',
+    'danger': '#e74c3c',
+    'warning': '#f39c12',
+    'info': '#3498db',
+    'purple': '#9b59b6',
+    'orange': '#e67e22',
+    'teal': '#1abc9c',
+    'gradient_start': '#667eea',
+    'gradient_end': '#764ba2',
+}
+
+# Professional chart template
+def get_chart_template():
+    """Returns a professional chart template configuration."""
+    return {
+        'font': {
+            'family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+            'size': 12,
+            'color': '#2c3e50'
+        },
+        'title_font': {
+            'size': 18,
+            'color': '#1a1a2e',
+            'family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto'
+        },
+        'title_x': 0.05,
+        'title_xanchor': 'left',
+        'title_pad': {'t': 10, 'b': 20},
+        'xaxis': {
+            'showgrid': True,
+            'gridcolor': '#e8ecef',
+            'gridwidth': 1,
+            'showline': True,
+            'linecolor': '#dee2e6',
+            'linewidth': 1,
+            'title': {'font': {'size': 13, 'color': '#495057'}}
+        },
+        'yaxis': {
+            'showgrid': True,
+            'gridcolor': '#e8ecef',
+            'gridwidth': 1,
+            'showline': True,
+            'linecolor': '#dee2e6',
+            'linewidth': 1,
+            'title': {'font': {'size': 13, 'color': '#495057'}}
+        },
+        'plot_bgcolor': '#ffffff',
+        'paper_bgcolor': '#ffffff',
+        'hovermode': 'closest',
+        'hoverlabel': {
+            'bgcolor': 'rgba(26, 26, 46, 0.9)',
+            'font_size': 12,
+            'font_family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto',
+            'font_color': '#ffffff',
+            'bordercolor': '#1a1a2e'
+        },
+        'legend': {
+            'bgcolor': 'rgba(255, 255, 255, 0.9)',
+            'bordercolor': '#dee2e6',
+            'borderwidth': 1,
+            'font': {'size': 11, 'color': '#495057'},
+            'orientation': 'h',
+            'yanchor': 'bottom',
+            'y': 1.02,
+            'xanchor': 'right',
+            'x': 1
+        },
+        'margin': {'l': 60, 'r': 20, 't': 70, 'b': 50}
+    }
+
 
 def sensitivity_occupancy_rate(base_config: BaseCaseConfig, min_rate: float = 0.30, max_rate: float = 0.70, steps: int = 9) -> pd.DataFrame:
     """Analyze sensitivity to occupancy rate (30% to 70%)."""
@@ -895,9 +969,9 @@ def calculate_sensitivity_metrics(all_sensitivities: Dict[str, pd.DataFrame], ba
     }
 
 
-def generate_sensitivity_impact_table(cap_rate_data, cash_on_cash_data, npv_data, irr_data, sensitivities, sensitivity_info) -> str:
+def generate_sensitivity_impact_table(monthly_cf_data, cap_rate_data, cash_on_cash_data, npv_data, irr_data, sensitivities, sensitivity_info) -> str:
     """
-    Generate a comprehensive table showing all sensitivity impacts (IRR, NPV, Cap Rate, Cash-on-Cash Return).
+    Generate a comprehensive table showing all sensitivity impacts (Monthly Cash Flow, IRR, NPV, Cap Rate, Cash-on-Cash Return).
     """
     # Create a dictionary to collect all sensitivity data
     all_sens_data = {}
@@ -917,6 +991,8 @@ def generate_sensitivity_impact_table(cap_rate_data, cash_on_cash_data, npv_data
             'range_max': '',
             'range_base': '',
             'description': '',
+            'monthly_cf_worst': None,
+            'monthly_cf_best': None,
             'cap_rate_worst': None,
             'cap_rate_best': None,
             'coc_worst': None,
@@ -934,6 +1010,12 @@ def generate_sensitivity_impact_table(cap_rate_data, cash_on_cash_data, npv_data
             sens_entry['range_max'] = info.get('max', 'N/A')
             sens_entry['range_base'] = info.get('base', 'N/A')
             sens_entry['description'] = info.get('what_it_evaluates', '')
+        
+        # Get Monthly Cash Flow data (practical metric)
+        monthly_cf_entry = next((data for name, data in monthly_cf_data if name == sens_name), None)
+        if monthly_cf_entry:
+            sens_entry['monthly_cf_worst'] = monthly_cf_entry.get('worst_impact', 0)
+            sens_entry['monthly_cf_best'] = monthly_cf_entry.get('best_impact', 0)
         
         # Get Cap Rate data (unlevered)
         cap_rate_entry = next((data for name, data in cap_rate_data if name == sens_name), None)
@@ -984,6 +1066,7 @@ def generate_sensitivity_impact_table(cap_rate_data, cash_on_cash_data, npv_data
                     <tr style="background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%); color: white;">
                     <th style="padding: 15px; text-align: left; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2);">Sensitivity Factor</th>
                     <th style="padding: 15px; text-align: left; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2);">Range Tested</th>
+                    <th style="padding: 15px; text-align: center; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2);" colspan="2">Monthly CF Impact (CHF)</th>
                     <th style="padding: 15px; text-align: center; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2);" colspan="2">Cap Rate Impact (pp)</th>
                     <th style="padding: 15px; text-align: center; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2);" colspan="2">Cash-on-Cash Impact (pp)</th>
                     <th style="padding: 15px; text-align: center; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2);" colspan="2">NPV Impact (CHF)</th>
@@ -992,6 +1075,10 @@ def generate_sensitivity_impact_table(cap_rate_data, cash_on_cash_data, npv_data
                 <tr style="background: #e8ecef; color: #495057;">
                     <th style="padding: 10px 15px; border-right: 1px solid #dee2e6;"></th>
                     <th style="padding: 10px 15px; border-right: 1px solid #dee2e6;"></th>
+                    <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Worst</th>
+                    <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Best</th>
+                    <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Worst</th>
+                    <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Best</th>
                     <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Worst</th>
                     <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Best</th>
                     <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Worst</th>
@@ -1008,6 +1095,10 @@ def generate_sensitivity_impact_table(cap_rate_data, cash_on_cash_data, npv_data
     for sens in sorted_sens:
         # Format range with clear indication of extremes
         range_str = f"<strong>Min:</strong> {sens['range_min']} | <strong>Max:</strong> {sens['range_max']}<br><small style='color: #6c757d;'>(Base Case: {sens['range_base']})</small>"
+        
+        # Format Monthly Cash Flow
+        monthly_cf_worst_str = f"<span style='color: #e74c3c; font-weight: 600;'>{sens['monthly_cf_worst']:,.0f} CHF</span>" if sens['monthly_cf_worst'] is not None else "<span style='color: #999;'>N/A</span>"
+        monthly_cf_best_str = f"<span style='color: #2ecc71; font-weight: 600;'>{sens['monthly_cf_best']:,.0f} CHF</span>" if sens['monthly_cf_best'] is not None else "<span style='color: #999;'>N/A</span>"
         
         # Format Cap Rate
         cap_rate_worst_str = f"<span style='color: #e74c3c; font-weight: 600;'>{sens['cap_rate_worst']:.2f} pp</span>" if sens['cap_rate_worst'] is not None else "<span style='color: #999;'>N/A</span>"
@@ -1029,7 +1120,9 @@ def generate_sensitivity_impact_table(cap_rate_data, cash_on_cash_data, npv_data
                     <tr style="border-bottom: 1px solid #e8ecef;">
                         <td style="padding: 15px; font-weight: 600; color: #1a1a2e; border-right: 1px solid #e8ecef;">{sens['name']}</td>
                         <td style="padding: 15px; color: #495057; border-right: 1px solid #e8ecef; font-size: 0.9em;">{range_str}</td>
-                        <td style="padding: 15px; text-align: center; border-right: 1px solid #e8ecef;">{cap_rate_worst_str}</td>
+                        <td style="padding: 15px; text-align: center; border-right: 1px solid #e8ecef;">{monthly_cf_worst_str}</td>
+                        <td style="padding: 15px; text-align: center; border-right: 1px solid #dee2e6;">{monthly_cf_best_str}</td>
+                        <td style="padding: 15px; text-align: center; border-right: 1px solid #dee2e6;">{cap_rate_worst_str}</td>
                         <td style="padding: 15px; text-align: center; border-right: 1px solid #dee2e6;">{cap_rate_best_str}</td>
                         <td style="padding: 15px; text-align: center; border-right: 1px solid #dee2e6;">{coc_worst_str}</td>
                         <td style="padding: 15px; text-align: center; border-right: 1px solid #dee2e6;">{coc_best_str}</td>
@@ -1185,6 +1278,10 @@ def generate_summary_charts(metrics: Dict, base_config: BaseCaseConfig, all_sens
     base_metrics = metrics['base_case']
     sensitivities = metrics['sensitivities']
     
+    # Calculate MONTHLY CASH FLOW PER OWNER impact for each sensitivity
+    # Monthly Cash Flow = Annual Cash Flow per Owner / 12
+    # This is the practical metric showing how much each participant needs to pay or receives monthly
+    monthly_cash_flow_data = []
     # Calculate CAP RATE (unlevered) impact for each sensitivity
     # Cap Rate = NOI / Purchase Price (industry standard unlevered metric)
     cap_rate_data = []
@@ -1198,6 +1295,8 @@ def generate_summary_charts(metrics: Dict, base_config: BaseCaseConfig, all_sens
         base_purchase_price = base_config.financing.purchase_price
         base_equity = base_result['equity_total']  # Initial equity investment
         base_cf_after_debt = base_result['cash_flow_after_debt_service']  # Levered cash flow
+        base_cf_per_owner = base_result['cash_flow_per_owner']  # Annual cash flow per owner
+        base_monthly_cf_per_owner = base_cf_per_owner / 12.0  # Monthly cash flow per owner
         
         # Base case metrics
         base_cap_rate = (base_noi / base_purchase_price) * 100  # Cap Rate (unlevered)
@@ -1213,6 +1312,32 @@ def generate_summary_charts(metrics: Dict, base_config: BaseCaseConfig, all_sens
             
             best_cf_after_debt = df.loc[best_idx, 'Cash Flow After Debt (CHF)']
             worst_cf_after_debt = df.loc[worst_idx, 'Cash Flow After Debt (CHF)']
+            
+            # Get cash flow per owner for best and worst cases
+            if 'Cash Flow per Owner (CHF)' in df.columns:
+                best_cf_per_owner = df.loc[best_idx, 'Cash Flow per Owner (CHF)']
+                worst_cf_per_owner = df.loc[worst_idx, 'Cash Flow per Owner (CHF)']
+            else:
+                # Calculate from total cash flow
+                best_cf_per_owner = best_cf_after_debt / base_config.financing.num_owners
+                worst_cf_per_owner = worst_cf_after_debt / base_config.financing.num_owners
+            
+            # Calculate monthly cash flow per owner
+            best_monthly_cf = best_cf_per_owner / 12.0
+            worst_monthly_cf = worst_cf_per_owner / 12.0
+            
+            # Impact relative to base case (in CHF per month)
+            monthly_impact_best = best_monthly_cf - base_monthly_cf_per_owner
+            monthly_impact_worst = worst_monthly_cf - base_monthly_cf_per_owner
+            
+            # Store Monthly Cash Flow data
+            monthly_cash_flow_data.append((sens_name, {
+                'best_impact': monthly_impact_best,
+                'worst_impact': monthly_impact_worst,
+                'best_monthly_cf': best_monthly_cf,
+                'worst_monthly_cf': worst_monthly_cf,
+                'base_monthly_cf': base_monthly_cf_per_owner
+            }))
             
             # Get debt service from base case (assume constant for sensitivity)
             base_debt_service = base_result['debt_service']
@@ -1269,12 +1394,120 @@ def generate_summary_charts(metrics: Dict, base_config: BaseCaseConfig, all_sens
     # Sort by range and take top 10
     npv_data = sorted(npv_data, key=lambda x: x[2], reverse=True)[:10]
     irr_data = sorted(irr_data, key=lambda x: x[2], reverse=True)[:10]
+    monthly_cash_flow_data = sorted(monthly_cash_flow_data, key=lambda x: max(abs(x[1]['best_impact']), abs(x[1]['worst_impact'])), reverse=True)[:10]
     cap_rate_data = sorted(cap_rate_data, key=lambda x: max(abs(x[1]['best_impact']), abs(x[1]['worst_impact'])), reverse=True)[:10]
     cash_on_cash_data = sorted(cash_on_cash_data, key=lambda x: max(abs(x[1]['best_impact']), abs(x[1]['worst_impact'])), reverse=True)[:10]
     
     charts_html = []
     
-    # 0. Tornado Chart for Cap Rate (Unlevered) - FIRST CHART
+    # 0. Tornado Chart for Monthly Cash Flow per Owner - FIRST CHART (Most Practical)
+    # Monthly Cash Flow = Annual Cash Flow per Owner / 12
+    # Shows how much each participant needs to pay (negative) or receives (positive) monthly
+    if monthly_cash_flow_data:
+        monthly_cf_categories = [name for name, _ in monthly_cash_flow_data]
+        monthly_cf_categories = monthly_cf_categories[::-1]
+        
+        monthly_cf_positive = [data['best_impact'] for _, data in monthly_cash_flow_data[::-1]]
+        monthly_cf_negative = [data['worst_impact'] for _, data in monthly_cash_flow_data[::-1]]
+        
+        # Prepare hover text with range information
+        monthly_cf_hover_negative = []
+        monthly_cf_hover_positive = []
+        for name, data in monthly_cash_flow_data[::-1]:
+            sens_info = sensitivity_info.get(name, {})
+            min_val = sens_info.get('min', 'N/A')
+            max_val = sens_info.get('max', 'N/A')
+            base_val = sens_info.get('base', 'N/A')
+            
+            # Get actual parameter values if available
+            sens_data = sensitivities.get(name, {})
+            worst_param = sens_data.get('worst_param_value', None)
+            best_param = sens_data.get('best_param_value', None)
+            
+            if worst_param is not None:
+                worst_display = f"{worst_param:.1f}" if isinstance(worst_param, float) else str(worst_param)
+                min_val = worst_display
+            if best_param is not None:
+                best_display = f"{best_param:.1f}" if isinstance(best_param, float) else str(best_param)
+                max_val = best_display
+            
+            # Format hover text for Monthly Cash Flow
+            hover_text_neg = f"<b>{name}</b><br>"
+            hover_text_neg += f"Parameter Range: {sens_info.get('min', 'N/A')} to {sens_info.get('max', 'N/A')}<br>"
+            hover_text_neg += f"Base Case: {base_val}<br>"
+            hover_text_neg += f"Worst Case Parameter: {min_val}<br>"
+            hover_text_neg += f"Monthly Impact: %{{value:,.0f}} CHF<br>"
+            hover_text_neg += f"Base Monthly CF: {data['base_monthly_cf']:,.0f} CHF<br>"
+            hover_text_neg += f"Worst Monthly CF: {data['worst_monthly_cf']:,.0f} CHF<br>"
+            hover_text_neg += f"<small>Annual: {data['worst_monthly_cf']*12:,.0f} CHF</small>"
+            
+            hover_text_pos = f"<b>{name}</b><br>"
+            hover_text_pos += f"Parameter Range: {sens_info.get('min', 'N/A')} to {sens_info.get('max', 'N/A')}<br>"
+            hover_text_pos += f"Base Case: {base_val}<br>"
+            hover_text_pos += f"Best Case Parameter: {max_val}<br>"
+            hover_text_pos += f"Monthly Impact: %{{value:,.0f}} CHF<br>"
+            hover_text_pos += f"Base Monthly CF: {data['base_monthly_cf']:,.0f} CHF<br>"
+            hover_text_pos += f"Best Monthly CF: {data['best_monthly_cf']:,.0f} CHF<br>"
+            hover_text_pos += f"<small>Annual: {data['best_monthly_cf']*12:,.0f} CHF</small>"
+            
+            monthly_cf_hover_negative.append(hover_text_neg)
+            monthly_cf_hover_positive.append(hover_text_pos)
+        
+        fig_tornado_monthly_cf = go.Figure()
+        
+        # Negative impacts (left side, red) - money they need to pay
+        fig_tornado_monthly_cf.add_trace(go.Bar(
+            name="Worst Case Impact",
+            y=monthly_cf_categories,
+            x=monthly_cf_negative,
+            orientation='h',
+            marker_color='#e74c3c',
+            hovertemplate=monthly_cf_hover_negative,
+            text=[f"{x:,.0f}" for x in monthly_cf_negative],
+            textposition='outside'
+        ))
+        
+        # Positive impacts (right side, green) - money they receive
+        fig_tornado_monthly_cf.add_trace(go.Bar(
+            name="Best Case Impact",
+            y=monthly_cf_categories,
+            x=monthly_cf_positive,
+            orientation='h',
+            marker_color='#2ecc71',
+            hovertemplate=monthly_cf_hover_positive,
+            text=[f"{x:,.0f}" for x in monthly_cf_positive],
+            textposition='outside'
+        ))
+        
+        template = get_chart_template()
+        layout_updates = template.copy()
+        layout_updates.update({
+            'title': {
+                'text': "Tornado Chart: Monthly Cash Flow per Owner Impact by Sensitivity Factor",
+                'font': template['title_font'],
+                'x': template['title_x'],
+                'xanchor': template['title_xanchor'],
+                'pad': template['title_pad']
+            },
+            'xaxis_title': "Monthly Cash Flow Impact (CHF per month)",
+            'yaxis_title': "Sensitivity Factor",
+            'height': 550,
+            'barmode': 'relative',
+            'showlegend': True,
+            'xaxis': dict(
+                zeroline=True,
+                zerolinewidth=2,
+                zerolinecolor='#495057',
+                showgrid=True,
+                gridcolor=template['xaxis']['gridcolor'],
+                gridwidth=template['xaxis']['gridwidth']
+            )
+        })
+        fig_tornado_monthly_cf.update_layout(**layout_updates)
+        
+        charts_html.append(f'<div class="chart-container"><h3 style="margin-bottom: 20px; color: var(--primary);">Monthly Cash Flow per Owner Sensitivity Analysis</h3><p style="margin-bottom: 20px; color: #555; line-height: 1.7;">This chart shows the <strong>monthly cash flow impact</strong> for each of the four participants in the investment. This is the most practical metric, showing how much money each owner will need to <strong>pay monthly</strong> (negative values, left side in red) or will <strong>receive monthly</strong> (positive values, right side in green) under different scenarios. The monthly cash flow is calculated as the annual cash flow per owner divided by 12 months.<br><br><strong>Red bars (left)</strong> show worst-case scenarios where owners need to contribute money monthly to keep the investment running. <strong>Green bars (right)</strong> show best-case scenarios where owners receive monthly cash distributions.<br><br><strong>Hover over each bar</strong> to see the exact parameter values tested (minimum and maximum extremes), the monthly cash flow amounts, and the annual equivalent.</p>{fig_tornado_monthly_cf.to_html(include_plotlyjs="cdn", div_id="tornadoMonthlyCF")}</div>')
+    
+    # 1. Tornado Chart for Cap Rate (Unlevered) - SECOND CHART
     # Cap Rate = NOI / Purchase Price (industry standard unlevered metric)
     if cap_rate_data:
         cap_rate_categories = [name for name, _ in cap_rate_data]
@@ -1324,36 +1557,30 @@ def generate_summary_charts(metrics: Dict, base_config: BaseCaseConfig, all_sens
             cap_rate_hover_negative.append(hover_text_neg)
             cap_rate_hover_positive.append(hover_text_pos)
         
-        fig_tornado_coc = go.Figure()
+        fig_tornado_cap_rate = go.Figure()
         
-        # Negative impact bar (extends left from zero) - ALWAYS show even if zero
-        fig_tornado_coc.add_trace(go.Bar(
-            y=coc_categories,
-            x=[v if v < 0 else 0 for v in coc_negative],  # Show 0 if positive
+        # Negative impacts (left side, red)
+        fig_tornado_cap_rate.add_trace(go.Bar(
+            name="Worst Case Impact",
+            y=cap_rate_categories,
+            x=cap_rate_negative,
             orientation='h',
-            name='Worst Case Impact',
             marker_color='#e74c3c',
-            text=[f"{abs(v):.2f}%" if v < 0 else "" for v in coc_negative],
-            textposition='outside',
-            textfont=dict(color='#e74c3c', size=10),
-            base=0,
-            hovertemplate='%{customdata}<extra></extra>',
-            customdata=coc_hover_negative
+            hovertemplate=cap_rate_hover_negative,
+            text=[f"{x:.2f} pp" for x in cap_rate_negative],
+            textposition='outside'
         ))
         
-        # Positive impact bar (extends right from zero) - ALWAYS show even if zero
-        fig_tornado_coc.add_trace(go.Bar(
-            y=coc_categories,
-            x=[v if v > 0 else 0 for v in coc_positive],  # Show 0 if negative
+        # Positive impacts (right side, green)
+        fig_tornado_cap_rate.add_trace(go.Bar(
+            name="Best Case Impact",
+            y=cap_rate_categories,
+            x=cap_rate_positive,
             orientation='h',
-            name='Best Case Impact',
             marker_color='#2ecc71',
-            text=[f"{v:.2f}%" if v > 0 else "" for v in coc_positive],
-            textposition='outside',
-            textfont=dict(color='#2ecc71', size=10),
-            base=0,
-            hovertemplate='%{customdata}<extra></extra>',
-            customdata=coc_hover_positive
+            hovertemplate=cap_rate_hover_positive,
+            text=[f"{x:.2f} pp" for x in cap_rate_positive],
+            textposition='outside'
         ))
         
         template = get_chart_template()
@@ -1689,6 +1916,7 @@ def generate_summary_charts(metrics: Dict, base_config: BaseCaseConfig, all_sens
     
     # Generate comprehensive sensitivity impact table (sensitivity_info already retrieved above)
     sensitivity_table_html = generate_sensitivity_impact_table(
+        monthly_cash_flow_data,
         cap_rate_data,
         cash_on_cash_data, 
         npv_data, 
