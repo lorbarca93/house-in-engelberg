@@ -170,6 +170,11 @@ def create_base_case_config() -> BaseCaseConfig:
     DO NOT create alternative base case configurations in other scripts.
     Always use this function and then apply variations using apply_sensitivity().
     
+    Calibrated to real Engelberg Airbnb analytics:
+    - Average annual revenue: 46,000 CHF
+    - Average occupancy rate: 63%
+    - Average nightly rate: 200 CHF
+    
     Engelberg has three distinct seasons:
     1. Winter Peak (Dec-Mar): Ski season, highest rates and occupancy
     2. Summer Peak (Jun-Sep): Hiking and mountain activities
@@ -211,23 +216,24 @@ def create_base_case_config() -> BaseCaseConfig:
     rentable_summer = summer_nights - owner_nights_summer
     rentable_offpeak = offpeak_nights - owner_nights_offpeak
     
-    # Engelberg-specific seasonal parameters (based on Swiss mountain resort data)
-    # Updated to average 50% overall occupancy
+    # Engelberg-specific seasonal parameters (calibrated to Airbnb analytics)
+    # Target: 63% overall occupancy, 200 CHF average nightly rate, ~46,000 CHF annual revenue
+    # Based on real Engelberg Airbnb data: 63% occupancy, 200 CHF/night average, 46k CHF/year revenue
     # Winter Peak: High demand, premium rates
     winter_season = SeasonalParams(
         name="Winter Peak (Ski Season)",
         months=winter_months,
-        occupancy_rate=0.60,  # 60% occupancy during ski season (reduced from 75%)
-        average_daily_rate=380.0,  # Premium rates: 350-450 CHF typical for Engelberg
+        occupancy_rate=0.75,  # 75% occupancy during ski season (peak demand)
+        average_daily_rate=250.0,  # Premium rates during ski season
         nights_in_season=rentable_winter
     )
     
-    # Summer Peak: Good demand, moderate-high rates
+    # Summer Peak: Good demand, moderate rates
     summer_season = SeasonalParams(
         name="Summer Peak (Hiking Season)",
         months=summer_months,
-        occupancy_rate=0.50,  # 50% occupancy during summer (reduced from 65%)
-        average_daily_rate=320.0,  # Good rates: 280-360 CHF typical
+        occupancy_rate=0.65,  # 65% occupancy during summer (good demand)
+        average_daily_rate=200.0,  # Moderate rates during summer
         nights_in_season=rentable_summer
     )
     
@@ -235,8 +241,8 @@ def create_base_case_config() -> BaseCaseConfig:
     offpeak_season = SeasonalParams(
         name="Off-Peak (Shoulder Seasons)",
         months=offpeak_months,
-        occupancy_rate=0.40,  # 40% occupancy during shoulder seasons (reduced from 45%)
-        average_daily_rate=240.0,  # Discounted rates: 200-280 CHF
+        occupancy_rate=0.50,  # 50% occupancy during shoulder seasons
+        average_daily_rate=150.0,  # Discounted rates during off-peak
         nights_in_season=rentable_offpeak
     )
     
@@ -251,8 +257,8 @@ def create_base_case_config() -> BaseCaseConfig:
     rental = RentalParams(
         owner_nights_per_person=5,    # five nights per owner (distributed across seasons)
         num_owners=num_owners,
-        occupancy_rate=0.60,          # legacy - not used when seasons are provided
-        average_daily_rate=280.0,     # legacy - not used when seasons are provided
+        occupancy_rate=0.63,          # legacy - not used when seasons are provided (calibrated to Airbnb analytics)
+        average_daily_rate=200.0,     # legacy - not used when seasons are provided (calibrated to Airbnb analytics)
         seasons=[winter_season, summer_season, offpeak_season]  # Seasonal breakdown
     )
 
