@@ -16,22 +16,24 @@ A professional-grade toolkit for analysing co-ownership rental investments in En
    ```
 2. Run the desired analysis:
    ```bash
-   python analysis_base_case.py         # Base case KPI dashboard
-   python analysis_sensitivity.py       # Tornado tables & parameter write-ups
-   python analysis_monte_carlo.py       # Probabilistic risk view
-   python analysis_alternative_scenarios.py  # Ownership & pricing lab
-   python analysis_validation.py        # Automated checks + QA dashboard
+   python analysis_base_case.py              # Base case KPI dashboard
+   python analysis_sensitivity.py            # Tornado tables & parameter write-ups
+   python analysis_monte_carlo.py            # Probabilistic risk view
+   python analysis_alternative_scenarios.py # Ownership & pricing lab
+   python analysis_validation.py             # Automated checks + QA dashboard
+   python analysis_portal.py                 # Unified summary dashboard
    ```
 
 ## Key Reports
 
-| Script | Purpose | HTML Output |
-| --- | --- | --- |
-| `analysis_base_case.py` | Executive dashboard, KPI gauges, 15-year projection | `output/report_base_case.html` |
-| `analysis_sensitivity.py` | Tornado charts plus parameter-specific tables | `output/report_sensitivity.html` |
-| `analysis_monte_carlo.py` | Distribution plots, statistics, correlation grids | `output/report_monte_carlo.html` |
+| Script                              | Purpose                                                     | HTML Output                                                              |
+| ----------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `analysis_base_case.py`             | Executive dashboard, KPI gauges, 15-year projection         | `output/report_base_case.html`                                           |
+| `analysis_sensitivity.py`           | Tornado charts plus parameter-specific tables               | `output/report_sensitivity.html`                                         |
+| `analysis_monte_carlo.py`           | Distribution plots, statistics, correlation grids           | `output/report_monte_carlo.html`                                         |
 | `analysis_alternative_scenarios.py` | 3/5-owner cases, lower purchase prices, scenario comparison | `output/report_scenario_*.html`, `output/report_scenarios_overview.html` |
-| `analysis_validation.py` | Automated regression tests and monitoring dashboard | `output/report_validation.html` |
+| `analysis_validation.py`            | Automated regression tests and monitoring dashboard         | `output/report_validation.html`                                          |
+| `analysis_portal.py`                | Unified summary dashboard combining all analyses           | `output/report_portal.html`                                              |
 
 All reports share a compact visual system (fonts, colour palette, hover styles) for a cohesive experience.
 
@@ -52,16 +54,19 @@ Adjustments to assumptions should be made in `create_base_case_config()` inside 
 
 ```
 .
-├── analysis_base_case.py           # Base case dashboard generator
-├── analysis_sensitivity.py         # Sensitivity toolkit + report builder
-├── analysis_monte_carlo.py         # Monte Carlo simulation + report
+├── analysis_base_case.py              # Base case dashboard generator
+├── analysis_sensitivity.py            # Sensitivity toolkit + report builder
+├── analysis_monte_carlo.py            # Monte Carlo simulation + report
 ├── analysis_alternative_scenarios.py  # Ownership & pricing scenario lab
-├── analysis_validation.py          # Automated calculations QA + dashboard
-├── simulation.py                   # Data classes + shared financial logic
-├── scripts/                        # Helper PowerShell utilities
-├── output/                         # Generated HTML reports (gitignored)
-├── CHANGELOG.md                    # Detailed implementation history
-└── README.md                       # Project guide (this file)
+├── analysis_validation.py             # Automated calculations QA + dashboard
+├── analysis_portal.py                 # Unified summary dashboard
+├── simulation.py                      # Data classes + shared financial logic
+├── scripts/                           # Helper PowerShell utilities
+│   └── push_to_github.ps1             # GitHub push helper script
+├── output/                            # Generated HTML reports (gitignored)
+├── markdown_archive/                   # Legacy documentation
+├── CHANGELOG.md                       # Detailed implementation history
+└── README.md                          # Project guide (this file)
 ```
 
 ## Notes
@@ -70,5 +75,3 @@ Adjustments to assumptions should be made in `create_base_case_config()` inside 
 - Tests can be launched via `analysis_validation.py`. The script runs 24+ checks and updates `output/report_validation.html`.
 - Legacy documentation lives under `markdown_archive/` for historical reference. Some files may mention deprecated script names; the active naming scheme is `analysis_*.py` and `report_*.html`.
 
----
-*Last updated: Test push to verify GitHub integration*
