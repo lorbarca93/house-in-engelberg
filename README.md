@@ -69,3 +69,6 @@ Adjustments to assumptions should be made in `create_base_case_config()` inside 
 - Excel exports have been disabled to keep the repository light-weight; HTML reports are the single source of deliverables.
 - Tests can be launched via `analysis_validation.py`. The script runs 24+ checks and updates `output/report_validation.html`.
 - Legacy documentation lives under `markdown_archive/` for historical reference. Some files may mention deprecated script names; the active naming scheme is `analysis_*.py` and `report_*.html`.
+
+---
+*Last updated: Test push to verify GitHub integration*
