@@ -9,7 +9,25 @@ Creates a unified HTML dashboard summarizing all analyses:
 
 import os
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List
+
+# Import shared layout functions
+try:
+    from analysis_sensitivity import (
+        generate_top_toolbar,
+        generate_sidebar_navigation,
+        generate_shared_layout_css,
+        generate_shared_layout_js
+    )
+except ImportError:
+    # Fallback: define functions locally if import fails
+    def generate_top_toolbar(report_title: str, back_link: str = "index.html", subtitle: str = "") -> str:
+        return f'''<div class="top-toolbar"><div class="toolbar-left"><a href="{back_link}" class="toolbar-btn"><i class="fas fa-home"></i> <span class="toolbar-btn-text">Home</span></a></div><div class="toolbar-center"><h1 class="toolbar-title">{report_title}</h1>{f'<p class="toolbar-subtitle">{subtitle}</p>' if subtitle else ''}</div><div class="toolbar-right"></div></div>'''
+    def generate_sidebar_navigation(sections): 
+        nav_items = ''.join([f'<li><a href="#{s.get("id","")}" class="sidebar-item" data-section="{s.get("id","")}"><i class="{s.get("icon","fas fa-circle")}"></i><span class="sidebar-item-text">{s.get("title","")}</span></a></li>' for s in sections])
+        return f'<nav class="sidebar"><div class="sidebar-header"><h3><i class="fas fa-bars"></i> Navigation</h3></div><ul class="sidebar-nav">{nav_items}</ul></nav>'
+    def generate_shared_layout_css(): return '''.layout-container{display:flex;flex-direction:column;min-height:100vh;background:#f5f7fa}.top-toolbar{position:fixed;top:0;left:0;right:0;height:60px;background:var(--gradient-1);color:white;display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:1000;box-shadow:0 2px 8px rgba(0,0,0,0.15)}.toolbar-left,.toolbar-right{display:flex;align-items:center;gap:15px}.toolbar-center{flex:1;text-align:center}.toolbar-title{font-size:1.3em;font-weight:700;margin:0;color:white}.toolbar-subtitle{font-size:0.85em;margin:0;opacity:0.9}.toolbar-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:rgba(255,255,255,0.2);color:white;text-decoration:none;border-radius:6px;font-size:0.9em;font-weight:600;transition:all 0.2s ease;border:1px solid rgba(255,255,255,0.3)}.toolbar-btn:hover{background:rgba(255,255,255,0.3);transform:translateY(-1px)}.sidebar{position:fixed;left:0;top:60px;width:250px;height:calc(100vh - 60px);background:white;box-shadow:2px 0 8px rgba(0,0,0,0.1);overflow-y:auto;z-index:999;transition:transform 0.3s ease}.sidebar-header{padding:20px;background:var(--primary);color:white;border-bottom:1px solid rgba(255,255,255,0.1)}.sidebar-header h3{font-size:1.1em;font-weight:600;margin:0;display:flex;align-items:center;gap:10px}.sidebar-nav{list-style:none;padding:0;margin:0}.sidebar-nav li{margin:0}.sidebar-item{display:flex;align-items:center;gap:12px;padding:15px 20px;color:#495057;text-decoration:none;border-left:3px solid transparent;transition:all 0.2s ease;font-size:0.9em}.sidebar-item:hover{background:#f8f9fa;color:var(--primary);border-left-color:var(--primary)}.sidebar-item.active{background:#e7f3ff;color:var(--primary);border-left-color:var(--primary);font-weight:600}.sidebar-item i{width:20px;text-align:center;font-size:0.9em}.sidebar-item-text{flex:1}.main-content{margin-left:250px;margin-top:60px;padding:30px 40px;background:white;min-height:calc(100vh - 60px)}.section{scroll-margin-top:80px}@media (max-width:768px){.sidebar{transform:translateX(-100%);width:250px}.sidebar.open{transform:translateX(0)}.main-content{margin-left:0}.toolbar-btn-text{display:none}.toolbar-title{font-size:1.1em}}.sidebar::-webkit-scrollbar{width:6px}.sidebar::-webkit-scrollbar-track{background:#f1f1f1}.sidebar::-webkit-scrollbar-thumb{background:#888;border-radius:3px}.sidebar::-webkit-scrollbar-thumb:hover{background:#555}'''
+    def generate_shared_layout_js(): return '''<script>(function(){document.querySelectorAll('.sidebar-item').forEach(item=>{item.addEventListener('click',function(e){e.preventDefault();const targetId=this.getAttribute('href').substring(1);const targetElement=document.getElementById(targetId);if(targetElement){const offset=80;const elementPosition=targetElement.getBoundingClientRect().top;const offsetPosition=elementPosition+window.pageYOffset-offset;window.scrollTo({top:offsetPosition,behavior:'smooth'});updateActiveSection(targetId)}})});function updateActiveSection(activeId){document.querySelectorAll('.sidebar-item').forEach(item=>{item.classList.remove('active');if(item.getAttribute('data-section')===activeId){item.classList.add('active')}})}const observerOptions={root:null,rootMargin:'-20% 0px -70% 0px',threshold:0};const observer=new IntersectionObserver(function(entries){entries.forEach(entry=>{if(entry.isIntersecting){const sectionId=entry.target.id;if(sectionId){updateActiveSection(sectionId)}}})},observerOptions);document.querySelectorAll('.section[id], h2[id], h3[id]').forEach(section=>{observer.observe(section)})})();</script>''', Optional
 import pandas as pd
 import numpy as np
 
@@ -117,6 +135,24 @@ def get_monte_carlo_summary() -> Dict:
     irr_p90 = df['irr_with_sale'].quantile(0.90)
     prob_positive_irr = (df['irr_with_sale'] > 0).sum() / len(df) * 100
     
+    # Get cap rate and monthly cash flow stats if available
+    cap_rate_stats = {}
+    monthly_cf_stats = {}
+    if 'cap_rate' in df.columns:
+        cap_rate_stats = {
+            'mean': df['cap_rate'].mean(),
+            'median': df['cap_rate'].median(),
+            'p10': df['cap_rate'].quantile(0.10),
+            'p90': df['cap_rate'].quantile(0.90)
+        }
+    if 'monthly_cash_flow_per_owner' in df.columns:
+        monthly_cf_stats = {
+            'mean': df['monthly_cash_flow_per_owner'].mean(),
+            'median': df['monthly_cash_flow_per_owner'].median(),
+            'p10': df['monthly_cash_flow_per_owner'].quantile(0.10),
+            'p90': df['monthly_cash_flow_per_owner'].quantile(0.90)
+        }
+    
     return {
         'mean_npv': stats['npv']['mean'],
         'median_npv': stats['npv']['median'],
@@ -130,7 +166,9 @@ def get_monte_carlo_summary() -> Dict:
         'p90_irr': irr_p90,
         'prob_positive_irr': prob_positive_irr,
         'mean_cash_flow': stats['annual_cash_flow']['mean'],
-        'median_cash_flow': stats['annual_cash_flow']['median']
+        'median_cash_flow': stats['annual_cash_flow']['median'],
+        'cap_rate': cap_rate_stats,
+        'monthly_cash_flow': monthly_cf_stats
     }
 
 
@@ -202,9 +240,26 @@ def generate_portal_html(
     sensitivity: Dict,
     monte_carlo: Dict,
     scenarios: List[Dict],
-    output_path: str = "output/report_portal.html"
+    output_path: str = "website/report_portal.html"
 ) -> str:
     """Generate unified portal HTML dashboard."""
+    
+    # Define sections for sidebar navigation
+    sections = [
+        {'id': 'overview', 'title': 'Overview', 'icon': 'fas fa-home'},
+        {'id': 'base-case', 'title': 'Base Case', 'icon': 'fas fa-chart-line'},
+        {'id': 'sensitivity', 'title': 'Sensitivity', 'icon': 'fas fa-chart-bar'},
+        {'id': 'monte-carlo', 'title': 'Monte Carlo', 'icon': 'fas fa-dice'},
+        {'id': 'scenarios', 'title': 'Scenarios', 'icon': 'fas fa-project-diagram'},
+    ]
+    
+    # Generate sidebar and toolbar
+    sidebar_html = generate_sidebar_navigation(sections)
+    toolbar_html = generate_top_toolbar(
+        report_title="Investment Analysis Portal",
+        back_link="index.html",
+        subtitle="Engelberg Property Investment - Unified Dashboard"
+    )
     
     html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -214,6 +269,8 @@ def generate_portal_html(
     <title>Engelberg Investment Analysis Portal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        {generate_shared_layout_css()}
+        
         * {{
             margin: 0;
             padding: 0;
@@ -242,12 +299,12 @@ def generate_portal_html(
         .header {{
             background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             color: white;
-            padding: 40px 80px;
+            padding: 40px 60px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }}
         
         .header h1 {{
-            font-size: 2.5em;
+            font-size: 2.2em;
             margin-bottom: 10px;
             font-weight: 700;
         }}
@@ -532,27 +589,31 @@ def generate_portal_html(
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1><i class="fas fa-chart-line"></i> Engelberg Investment Analysis Portal</h1>
-        <p>Comprehensive summary of all financial analyses • Generated {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
-    </div>
-    
-    <div class="container">
-        <div class="nav-tabs">
-            <button class="nav-tab active" onclick="showTab('base-case')">Base Case</button>
-            <button class="nav-tab" onclick="showTab('scenarios')">Alternative Scenarios</button>
-            <button class="nav-tab" onclick="showTab('sensitivity')">Sensitivity Analysis</button>
-            <button class="nav-tab" onclick="showTab('monte-carlo')">Monte Carlo</button>
+    <div class="layout-container">
+        {toolbar_html}
+        {sidebar_html}
+        <div class="main-content">
+        <div class="header" style="background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; padding: 40px 60px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 30px; border-radius: 8px;">
+            <h1><i class="fas fa-chart-line"></i> Engelberg Investment Analysis Portal</h1>
+            <p>Comprehensive summary of all financial analyses • Generated {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
         </div>
         
-        <!-- Base Case Tab -->
-        <div id="base-case" class="tab-content active">
-            <div class="section">
-                <h2><i class="fas fa-home"></i> Base Case Overview</h2>
+        <div class="container">
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="showTab('base-case')">Base Case</button>
+                <button class="nav-tab" onclick="showTab('scenarios')">Alternative Scenarios</button>
+                <button class="nav-tab" onclick="showTab('sensitivity')">Sensitivity Analysis</button>
+                <button class="nav-tab" onclick="showTab('monte-carlo')">Monte Carlo</button>
+            </div>
+            
+            <!-- Base Case Tab -->
+            <div id="base-case" class="tab-content active">
+                <div class="section" id="base-case">
+                    <h2><i class="fas fa-home"></i> Base Case Overview</h2>
                 
                 <div class="kpi-grid">
                     <div class="kpi-card {'positive' if base_case['cash_flow_per_owner'] >= 0 else 'negative'}">
-                        <div class="label">Monthly Cash Flow per Owner</div>
+                        <div class="label">Monthly Cash Flow per Investor</div>
                         <div class="value">{format_currency(base_case['monthly_cash_flow_per_owner'])}</div>
                         <div class="subvalue">Annual: {format_currency(base_case['cash_flow_per_owner'])}</div>
                     </div>
@@ -653,10 +714,10 @@ def generate_portal_html(
             </div>
         </div>
         
-        <!-- Alternative Scenarios Tab -->
-        <div id="scenarios" class="tab-content">
-            <div class="section">
-                <h2><i class="fas fa-exchange-alt"></i> Alternative Scenarios Comparison</h2>
+            <!-- Alternative Scenarios Tab -->
+            <div id="scenarios" class="tab-content">
+                <div class="section" id="scenarios">
+                    <h2><i class="fas fa-exchange-alt"></i> Alternative Scenarios Comparison</h2>
                 
                 <div class="comparison-grid">
                     <div class="scenario-card">
@@ -666,7 +727,7 @@ def generate_portal_html(
                             <span class="stat-value">{format_currency(base_case['purchase_price'])}</span>
                         </div>
                         <div class="stat-row">
-                            <span class="stat-label">Monthly CF per Owner</span>
+                            <span class="stat-label">Monthly CF per Investor</span>
                             <span class="stat-value {'positive' if base_case['monthly_cash_flow_per_owner'] >= 0 else 'negative'}">{format_currency(base_case['monthly_cash_flow_per_owner'])}</span>
                         </div>
                         <div class="stat-row">
@@ -686,7 +747,7 @@ def generate_portal_html(
                             <span class="stat-value">{format_currency(scenario['purchase_price'])}</span>
                         </div>
                         <div class="stat-row">
-                            <span class="stat-label">Monthly CF per Owner</span>
+                            <span class="stat-label">Monthly CF per Investor</span>
                             <span class="stat-value {'positive' if scenario['monthly_cash_flow_per_owner'] >= 0 else 'negative'}">{format_currency(scenario['monthly_cash_flow_per_owner'])}</span>
                         </div>
                         <div class="stat-row">
@@ -705,13 +766,16 @@ def generate_portal_html(
             </div>
         </div>
         
-        <!-- Sensitivity Analysis Tab -->
-        <div id="sensitivity" class="tab-content">
-            <div class="section">
-                <h2><i class="fas fa-sliders-h"></i> Sensitivity Analysis Summary</h2>
+            <!-- Sensitivity Analysis Tab -->
+            <div id="sensitivity" class="tab-content">
+                <div class="section" id="sensitivity">
+                    <h2><i class="fas fa-sliders-h"></i> Sensitivity Analysis Summary</h2>
                 <p style="margin-bottom: 25px; color: #555; line-height: 1.8;">
                     The following shows how key parameters impact cash flow. Each sensitivity tests a range of values to identify 
-                    which factors most significantly affect investment performance.
+                    which factors most significantly affect investment performance. The detailed sensitivity analysis includes 
+                    <strong>tornado charts</strong> showing the impact on <strong>monthly cash flow per investor</strong> and 
+                    <strong>cap rate</strong> (unlevered yield), providing clear visualization of which factors have the greatest 
+                    influence on investment returns.
                 </p>
 """
     
@@ -741,15 +805,15 @@ def generate_portal_html(
     
     html += """
                 <div class="link-box">
-                    <a href="report_sensitivity.html"><i class="fas fa-external-link-alt"></i> View Detailed Sensitivity Analysis with Tornado Charts</a>
+                    <a href="report_sensitivity.html"><i class="fas fa-external-link-alt"></i> View Detailed Sensitivity Analysis with Tornado Charts (Monthly Cash Flow per Investor & Cap Rate)</a>
                 </div>
             </div>
         </div>
         
-        <!-- Monte Carlo Tab -->
-        <div id="monte-carlo" class="tab-content">
-            <div class="section">
-                <h2><i class="fas fa-dice"></i> Monte Carlo Simulation Summary</h2>
+            <!-- Monte Carlo Tab -->
+            <div id="monte-carlo" class="tab-content">
+                <div class="section" id="monte-carlo">
+                    <h2><i class="fas fa-dice"></i> Monte Carlo Simulation Summary</h2>
                 <p style="margin-bottom: 25px; color: #555; line-height: 1.8;">
                     Probabilistic analysis based on 5,000 simulations with varying occupancy, rates, and costs. 
                     Shows the distribution of possible outcomes and risk metrics.
@@ -865,16 +929,62 @@ def generate_portal_html(
                             <td style="padding-left: 30px;">Median Annual Cash Flow</td>
                             <td>{format_currency(monte_carlo['median_cash_flow'])}</td>
                         </tr>
+                        {f'''
+                        <tr>
+                            <td><strong>Cap Rate Statistics (Unlevered)</strong></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 30px;">Mean Cap Rate</td>
+                            <td>{format_percent(monte_carlo['cap_rate']['mean'])}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 30px;">Median Cap Rate</td>
+                            <td>{format_percent(monte_carlo['cap_rate']['median'])}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 30px;">10th Percentile</td>
+                            <td>{format_percent(monte_carlo['cap_rate']['p10'])}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 30px;">90th Percentile</td>
+                            <td>{format_percent(monte_carlo['cap_rate']['p90'])}</td>
+                        </tr>
+                        ''' if monte_carlo.get('cap_rate') and monte_carlo['cap_rate'] else ''}
+                        {f'''
+                        <tr>
+                            <td><strong>Monthly Cash Flow per Investor Statistics</strong></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 30px;">Mean Monthly CF</td>
+                            <td>{format_currency(monte_carlo['monthly_cash_flow']['mean'])}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 30px;">Median Monthly CF</td>
+                            <td>{format_currency(monte_carlo['monthly_cash_flow']['median'])}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 30px;">10th Percentile</td>
+                            <td>{format_currency(monte_carlo['monthly_cash_flow']['p10'])}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 30px;">90th Percentile</td>
+                            <td>{format_currency(monte_carlo['monthly_cash_flow']['p90'])}</td>
+                        </tr>
+                        ''' if monte_carlo.get('monthly_cash_flow') and monte_carlo['monthly_cash_flow'] else ''}
                     </tbody>
                 </table>
                 
                 <div class="link-box">
-                    <a href="report_monte_carlo.html"><i class="fas fa-external-link-alt"></i> View Detailed Monte Carlo Report with Distributions</a>
+                    <a href="report_monte_carlo.html"><i class="fas fa-external-link-alt"></i> View Detailed Monte Carlo Report with Distributions (including Cap Rate & Monthly Cash Flow per Investor)</a>
                 </div>
             </div>
         </div>
+        </div>
     </div>
     
+    {generate_shared_layout_js()}
     <script>
         function showTab(tabName) {{
             // Hide all tabs
@@ -908,7 +1018,7 @@ def main():
     print()
     
     # Ensure output directory exists
-    os.makedirs("output", exist_ok=True)
+    os.makedirs("website", exist_ok=True)
     
     print("[*] Gathering base case summary...")
     base_case = get_base_case_summary()
@@ -925,7 +1035,7 @@ def main():
     print("[*] Generating portal HTML...")
     html = generate_portal_html(base_case, sensitivity, monte_carlo, scenarios)
     
-    output_path = "output/report_portal.html"
+    output_path = "website/report_portal.html"
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(html)
     

@@ -20,6 +20,24 @@ from simulation import (
 import analysis_base_case as base_case_report
 from typing import List, Dict
 
+# Import shared layout functions
+try:
+    from analysis_sensitivity import (
+        generate_top_toolbar,
+        generate_sidebar_navigation,
+        generate_shared_layout_css,
+        generate_shared_layout_js
+    )
+except ImportError:
+    # Fallback: define functions locally if import fails
+    def generate_top_toolbar(report_title: str, back_link: str = "index.html", subtitle: str = "") -> str:
+        return f'''<div class="top-toolbar"><div class="toolbar-left"><a href="{back_link}" class="toolbar-btn"><i class="fas fa-home"></i> <span class="toolbar-btn-text">Home</span></a></div><div class="toolbar-center"><h1 class="toolbar-title">{report_title}</h1>{f'<p class="toolbar-subtitle">{subtitle}</p>' if subtitle else ''}</div><div class="toolbar-right"></div></div>'''
+    def generate_sidebar_navigation(sections): 
+        nav_items = ''.join([f'<li><a href="#{s.get("id","")}" class="sidebar-item" data-section="{s.get("id","")}"><i class="{s.get("icon","fas fa-circle")}"></i><span class="sidebar-item-text">{s.get("title","")}</span></a></li>' for s in sections])
+        return f'<nav class="sidebar"><div class="sidebar-header"><h3><i class="fas fa-bars"></i> Navigation</h3></div><ul class="sidebar-nav">{nav_items}</ul></nav>'
+    def generate_shared_layout_css(): return '''.layout-container{display:flex;flex-direction:column;min-height:100vh;background:#f5f7fa}.top-toolbar{position:fixed;top:0;left:0;right:0;height:60px;background:var(--gradient-1);color:white;display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:1000;box-shadow:0 2px 8px rgba(0,0,0,0.15)}.toolbar-left,.toolbar-right{display:flex;align-items:center;gap:15px}.toolbar-center{flex:1;text-align:center}.toolbar-title{font-size:1.3em;font-weight:700;margin:0;color:white}.toolbar-subtitle{font-size:0.85em;margin:0;opacity:0.9}.toolbar-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:rgba(255,255,255,0.2);color:white;text-decoration:none;border-radius:6px;font-size:0.9em;font-weight:600;transition:all 0.2s ease;border:1px solid rgba(255,255,255,0.3)}.toolbar-btn:hover{background:rgba(255,255,255,0.3);transform:translateY(-1px)}.sidebar{position:fixed;left:0;top:60px;width:250px;height:calc(100vh - 60px);background:white;box-shadow:2px 0 8px rgba(0,0,0,0.1);overflow-y:auto;z-index:999;transition:transform 0.3s ease}.sidebar-header{padding:20px;background:var(--primary);color:white;border-bottom:1px solid rgba(255,255,255,0.1)}.sidebar-header h3{font-size:1.1em;font-weight:600;margin:0;display:flex;align-items:center;gap:10px}.sidebar-nav{list-style:none;padding:0;margin:0}.sidebar-nav li{margin:0}.sidebar-item{display:flex;align-items:center;gap:12px;padding:15px 20px;color:#495057;text-decoration:none;border-left:3px solid transparent;transition:all 0.2s ease;font-size:0.9em}.sidebar-item:hover{background:#f8f9fa;color:var(--primary);border-left-color:var(--primary)}.sidebar-item.active{background:#e7f3ff;color:var(--primary);border-left-color:var(--primary);font-weight:600}.sidebar-item i{width:20px;text-align:center;font-size:0.9em}.sidebar-item-text{flex:1}.main-content{margin-left:250px;margin-top:60px;padding:30px 40px;background:white;min-height:calc(100vh - 60px)}.section{scroll-margin-top:80px}@media (max-width:768px){.sidebar{transform:translateX(-100%);width:250px}.sidebar.open{transform:translateX(0)}.main-content{margin-left:0}.toolbar-btn-text{display:none}.toolbar-title{font-size:1.1em}}.sidebar::-webkit-scrollbar{width:6px}.sidebar::-webkit-scrollbar-track{background:#f1f1f1}.sidebar::-webkit-scrollbar-thumb{background:#888;border-radius:3px}.sidebar::-webkit-scrollbar-thumb:hover{background:#555}'''
+    def generate_shared_layout_js(): return '''<script>(function(){document.querySelectorAll('.sidebar-item').forEach(item=>{item.addEventListener('click',function(e){e.preventDefault();const targetId=this.getAttribute('href').substring(1);const targetElement=document.getElementById(targetId);if(targetElement){const offset=80;const elementPosition=targetElement.getBoundingClientRect().top;const offsetPosition=elementPosition+window.pageYOffset-offset;window.scrollTo({top:offsetPosition,behavior:'smooth'});updateActiveSection(targetId)}})});function updateActiveSection(activeId){document.querySelectorAll('.sidebar-item').forEach(item=>{item.classList.remove('active');if(item.getAttribute('data-section')===activeId){item.classList.add('active')}})}const observerOptions={root:null,rootMargin:'-20% 0px -70% 0px',threshold:0};const observer=new IntersectionObserver(function(entries){entries.forEach(entry=>{if(entry.isIntersecting){const sectionId=entry.target.id;if(sectionId){updateActiveSection(sectionId)}}})},observerOptions);document.querySelectorAll('.section[id], h2[id], h3[id]').forEach(section=>{observer.observe(section)})})();</script>'''
+
 
 def create_scenario_config(
     purchase_price: float,
@@ -123,7 +141,8 @@ def create_scenario_config(
         tourist_tax_per_person_per_night=base_config.expenses.tourist_tax_per_person_per_night,
         avg_guests_per_night=base_config.expenses.avg_guests_per_night,
         insurance_annual=base_config.expenses.insurance_annual,
-        utilities_annual=base_config.expenses.utilities_annual,
+        nubbing_costs_annual=base_config.expenses.nubbing_costs_annual,
+        electricity_internet_annual=base_config.expenses.electricity_internet_annual,
         maintenance_rate=base_config.expenses.maintenance_rate,
         property_value=purchase_price  # Use scenario purchase price
     )
@@ -166,7 +185,7 @@ def generate_scenario_report(config: BaseCaseConfig, scenario_name: str, scenari
         config,
         start_year=2026,
         inflation_rate=0.02,
-        property_appreciation_rate=0.02
+        property_appreciation_rate=0.025  # 2.5% property appreciation per year
     )
     
     # Calculate IRRs
@@ -188,7 +207,7 @@ def generate_scenario_report(config: BaseCaseConfig, scenario_name: str, scenari
     
     # Generate HTML report with scenario-specific title
     scenario_slug = scenario_name.lower().replace(" ", "_")
-    output_path = f"output/report_scenario_{scenario_slug}.html"
+    output_path = f"website/report_scenario_{scenario_slug}.html"
     print(f"[*] Generating HTML report: {output_path}")
     
     # Modify the HTML generation to include scenario info
@@ -207,7 +226,8 @@ def generate_scenario_report(config: BaseCaseConfig, scenario_name: str, scenari
     print(f"    Cash-on-Cash Return: {results['cash_on_cash_return_pct']:.2f}%")
     print(f"    Debt Coverage Ratio: {results['debt_coverage_ratio']:.2f}x")
     print(f"    IRR with Sale: {irr_results['irr_with_sale_pct']:.2f}%")
-    print(f"    Annual Cash Flow per Owner: {results['cash_flow_per_owner']:,.0f} CHF")
+    print(f"    Annual Cash Flow per Investor: {results['cash_flow_per_owner']:,.0f} CHF")
+    print(f"    Monthly Cash Flow per Investor: {results['cash_flow_per_owner'] / 12.0:,.0f} CHF")
     
     return {
         'scenario_name': scenario_name,
@@ -224,6 +244,20 @@ def generate_comparison_dashboard(scenario_reports: List[Dict]):
     print("Generating Comparison Dashboard")
     print(f"{'='*80}")
     
+    # Define sections for sidebar navigation
+    sections = [
+        {'id': 'key-metrics-comparison', 'title': 'Key Metrics Comparison', 'icon': 'fas fa-table'},
+        {'id': 'individual-scenario-reports', 'title': 'Individual Scenario Reports', 'icon': 'fas fa-file-alt'},
+    ]
+    
+    # Generate sidebar and toolbar
+    sidebar_html = generate_sidebar_navigation(sections)
+    toolbar_html = generate_top_toolbar(
+        report_title="Scenario Comparison Dashboard",
+        back_link="index.html",
+        subtitle="Compare different investment scenarios side by side"
+    )
+    
     # Create comparison HTML
     html = f"""
 <!DOCTYPE html>
@@ -234,10 +268,16 @@ def generate_comparison_dashboard(scenario_reports: List[Dict]):
     <title>Scenario Comparison Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        {generate_shared_layout_css()}
+        
         * {{
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+        }}
+        
+        :root {{
+            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }}
         
         body {{
@@ -409,14 +449,11 @@ def generate_comparison_dashboard(scenario_reports: List[Dict]):
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-chart-line"></i> Scenario Comparison Dashboard</h1>
-            <div class="subtitle">Compare different investment scenarios side by side</div>
-        </div>
-        
-        <div class="content">
-            <div class="section">
+    <div class="layout-container">
+        {toolbar_html}
+        {sidebar_html}
+        <div class="main-content">
+            <div class="section" id="key-metrics-comparison">
                 <h2><i class="fas fa-table"></i> Key Metrics Comparison</h2>
                 <table class="comparison-table">
                     <thead>
@@ -443,7 +480,8 @@ def generate_comparison_dashboard(scenario_reports: List[Dict]):
         ('Gross Rental Income', lambda r: f"{r['results']['gross_rental_income']:,.0f} CHF"),
         ('Net Operating Income', lambda r: f"{r['results']['net_operating_income']:,.0f} CHF"),
         ('Annual Cash Flow', lambda r: f"{r['results']['cash_flow_after_debt_service']:,.0f} CHF"),
-        ('Cash Flow per Owner', lambda r: f"{r['results']['cash_flow_per_owner']:,.0f} CHF"),
+        ('Cash Flow per Investor', lambda r: f"{r['results']['cash_flow_per_owner']:,.0f} CHF"),
+        ('Monthly Cash Flow per Investor', lambda r: f"{r['results']['cash_flow_per_owner'] / 12.0:,.0f} CHF"),
         ('Cap Rate', lambda r: f"{r['results']['cap_rate_pct']:.2f}%"),
         ('Cash-on-Cash Return', lambda r: f"{r['results']['cash_on_cash_return_pct']:.2f}%"),
         ('Debt Coverage Ratio', lambda r: f"{r['results']['debt_coverage_ratio']:.2f}x"),
@@ -460,7 +498,7 @@ def generate_comparison_dashboard(scenario_reports: List[Dict]):
             value = metric_func(report)
             # Add color coding for certain metrics
             if 'Cash Flow' in metric_name:
-                cash_flow = report['results'].get('cash_flow_after_debt_service', 0) if 'per Owner' not in metric_name else report['results'].get('cash_flow_per_owner', 0)
+                cash_flow = report['results'].get('cash_flow_after_debt_service', 0) if 'per Investor' not in metric_name else report['results'].get('cash_flow_per_owner', 0)
                 color_class = 'positive' if cash_flow >= 0 else 'negative'
                 html += f"<td class='metric-value {color_class}'>{value}</td>"
             else:
@@ -475,7 +513,7 @@ def generate_comparison_dashboard(scenario_reports: List[Dict]):
                 </table>
             </div>
             
-            <div class="section">
+            <div class="section" id="individual-scenario-reports">
                 <h2><i class="fas fa-file-alt"></i> Individual Scenario Reports</h2>
                 <div class="scenario-cards">
 """
@@ -515,8 +553,12 @@ def generate_comparison_dashboard(scenario_reports: List[Dict]):
                             <div class="metric-value">{irr['irr_with_sale_pct']:.2f}%</div>
                         </div>
                         <div class="metric">
-                            <div class="metric-label">Annual Cash Flow per Owner</div>
+                            <div class="metric-label">Annual Cash Flow per Investor</div>
                             <div class="metric-value {'positive' if results['cash_flow_per_owner'] >= 0 else 'negative'}">{results['cash_flow_per_owner']:,.0f} CHF</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Monthly Cash Flow per Investor</div>
+                            <div class="metric-value {'positive' if results['cash_flow_per_owner'] >= 0 else 'negative'}">{results['cash_flow_per_owner'] / 12.0:,.0f} CHF</div>
                         </div>
                         <a href="{filename}" class="scenario-link" target="_blank">
                             <i class="fas fa-external-link-alt"></i> View Full Report
@@ -529,17 +571,19 @@ def generate_comparison_dashboard(scenario_reports: List[Dict]):
             </div>
         </div>
         
-        <div class="footer">
-            <p>Generated by Engelberg Property Investment Simulation</p>
-            <p>Compare different scenarios to find the best investment structure</p>
+        <div class="footer" style="margin-top: 40px; padding: 30px; background: #f8f9fa; text-align: center; border-top: 1px solid #dee2e6;">
+            <p style="margin: 0; font-size: 0.9em; color: #6c757d;">Generated by Engelberg Property Investment Simulation</p>
+            <p style="margin: 5px 0 0 0; font-size: 0.85em; color: #6c757d;">Compare different scenarios to find the best investment structure</p>
+        </div>
         </div>
     </div>
+    {generate_shared_layout_js()}
 </body>
 </html>
-"""
+    """
     
     # Write comparison dashboard
-    output_path = "output/report_scenarios_overview.html"
+    output_path = "website/report_scenarios_overview.html"
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(html)
     
@@ -554,7 +598,7 @@ def main():
     print()
     
     # Ensure output directory exists
-    os.makedirs("output", exist_ok=True)
+    os.makedirs("website", exist_ok=True)
     
     # Get base configuration
     base_config = create_base_case_config()
@@ -656,7 +700,7 @@ def main():
     print(f"\nGenerated {len(scenario_reports)} scenario reports:")
     for report in scenario_reports:
         print(f"  - {report['scenario_name']}: {report['output_path']}")
-    print(f"\nComparison dashboard: output/report_scenarios_overview.html")
+    print(f"\nComparison dashboard: website/report_scenarios_overview.html")
     print("="*80)
 
 

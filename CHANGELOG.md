@@ -2,6 +2,174 @@
 
 All notable changes to the Engelberg Property Investment Simulation will be documented in this file.
 
+## [2025-11-26] - UI/UX Overhaul: Sidebar Navigation, Tornado Charts, and Terminology Updates
+
+### Prompt Context
+
+The user requested several major improvements to enhance the professional appearance and usability of all HTML reports:
+
+1. **Sidebar Navigation & Toolbar**: Add fixed sidebar navigation and top toolbar to all HTML reports for better navigation
+2. **Tornado Charts Enhancement**: Ensure tornado charts are clean and functional, and add cap rate and monthly cash flow per investor metrics
+3. **Terminology Consistency**: Update all references from "per Owner" to "per Investor" for clarity
+4. **Portal Updates**: Update the analysis portal to reflect new metrics and features
+5. **Alternative Scenario Reports**: Update all alternative scenario reports with consistent terminology and new metrics
+
+### Why These Changes Were Requested
+
+- **Navigation**: As reports became more complex with multiple sections, users needed better navigation to quickly jump between sections
+- **Professional Presentation**: Sidebar and toolbar provide a more professional, dashboard-like experience
+- **Tornado Charts**: Cap rate and monthly cash flow per investor are critical metrics that needed to be prominently displayed
+- **Terminology**: "Investor" is more accurate and professional than "Owner" for financial reporting
+- **Consistency**: All reports should use the same terminology and design language
+
+### Changes Implemented
+
+#### 1. Sidebar Navigation & Top Toolbar System
+
+- **Files**: All `analysis_*.py` files
+  - Created shared layout functions: `generate_top_toolbar()`, `generate_sidebar_navigation()`, `generate_shared_layout_css()`, `generate_shared_layout_js()`
+  - Implemented fixed sidebar (250px width) with section navigation
+  - Added fixed top toolbar (60px height) with "Back to Home" button
+  - Integrated smooth scrolling and active section highlighting using Intersection Observer API
+  - Added responsive design (sidebar collapses on mobile)
+
+- **Reports Updated**:
+  - `analysis_base_case.py` - Base case report
+  - `analysis_sensitivity.py` - Sensitivity analysis report
+  - `analysis_monte_carlo.py` - Monte Carlo simulation report
+  - `analysis_alternative_scenarios.py` - Scenario comparison dashboard
+  - `analysis_validation.py` - Validation report
+  - `analysis_portal.py` - Unified portal dashboard
+  - `website/index.html` - Homepage (toolbar only, no sidebar needed)
+
+- **Features**:
+  - Fixed sidebar with section navigation
+  - Active section highlighting as user scrolls
+  - Smooth scroll to sections on click
+  - "Back to Home" button in toolbar
+  - Responsive mobile design
+  - Consistent styling across all reports
+
+#### 2. Tornado Charts Enhancement
+
+- **File**: `analysis_sensitivity.py`
+  - Updated tornado chart titles and labels to use "per Investor" terminology
+  - Enhanced chart formatting:
+    - Improved margins and spacing
+    - White background for cleaner appearance
+    - Better grid lines and zero line visibility
+    - Enhanced hover tooltips with detailed parameter information
+  - Verified both tornado charts are functional:
+    - **Monthly Cash Flow per Investor**: Shows monthly impact in CHF per investor
+    - **Cap Rate (Unlevered)**: Shows cap rate impact in percentage points
+  - Charts now display with proper sorting by impact magnitude
+  - Interactive hover tooltips show parameter ranges and resulting values
+
+#### 3. Terminology Updates: "per Owner" → "per Investor"
+
+- **Files Updated**:
+  - `analysis_base_case.py`: Updated all HTML labels, chart titles, table headers
+  - `analysis_sensitivity.py`: Updated tornado chart labels and descriptions
+  - `analysis_alternative_scenarios.py`: Updated comparison dashboard and scenario cards
+  - `analysis_portal.py`: Updated portal metrics and descriptions
+  - `analysis_monte_carlo.py`: Already using correct terminology
+
+- **Changes**:
+  - "Cash Flow per Owner" → "Cash Flow per Investor"
+  - "Monthly Cash per Owner" → "Monthly Cash Flow per Investor"
+  - "Equity per Owner" → "Equity per Investor"
+  - Chart labels, table headers, KPI cards, and descriptions updated
+  - Print statements updated for consistency
+
+#### 4. Portal Updates
+
+- **File**: `analysis_portal.py`
+  - Updated terminology to "per Investor"
+  - Added description mentioning tornado charts for monthly cash flow per investor and cap rate
+  - Enhanced Monte Carlo section to include cap rate and monthly cash flow statistics (if available)
+  - Updated link text to reference new tornado chart features
+  - Added monthly cash flow per investor to scenario comparison cards
+
+#### 5. Alternative Scenario Reports Updates
+
+- **File**: `analysis_alternative_scenarios.py`
+  - Updated comparison dashboard terminology
+  - Added "Monthly Cash Flow per Investor" metric to comparison table
+  - Added monthly cash flow to scenario cards
+  - Updated section IDs for proper sidebar navigation
+  - Fixed CSS variable for gradient-1
+  - Individual scenario reports automatically updated via base case report function
+
+- **Reports Updated**:
+  - Comparison dashboard: `report_scenarios_overview.html`
+  - All 6 individual scenario reports (inherit updates from base case)
+
+#### 6. Homepage Updates
+
+- **File**: `website/index.html`
+  - Added top toolbar matching other reports
+  - Consistent gradient styling
+  - Responsive design improvements
+  - Enhanced card hover effects
+
+### Technical Implementation Details
+
+#### Shared Layout Functions
+
+All reports now use shared layout functions that can be imported from `analysis_sensitivity.py`:
+
+- `generate_top_toolbar(report_title, back_link, subtitle)`: Creates fixed toolbar HTML
+- `generate_sidebar_navigation(sections)`: Creates sidebar with section links
+- `generate_shared_layout_css()`: Returns CSS for layout components
+- `generate_shared_layout_js()`: Returns JavaScript for smooth scrolling and active highlighting
+
+#### Sidebar Navigation
+
+- Sections are defined with `id`, `title`, and optional `icon`
+- JavaScript uses Intersection Observer API to detect visible sections
+- Active section is highlighted in sidebar as user scrolls
+- Smooth scrolling with proper offset for fixed toolbar
+
+#### Tornado Charts
+
+- Monthly Cash Flow per Investor: Calculated as annual cash flow / 12
+- Cap Rate: Calculated as NOI / Purchase Price (unlevered metric)
+- Charts sorted by maximum absolute impact
+- Top 10 factors displayed
+- Red bars (left) = worst case, Green bars (right) = best case
+
+### Files Modified
+
+1. `analysis_base_case.py` - Terminology updates, sidebar/toolbar integration
+2. `analysis_sensitivity.py` - Tornado chart enhancements, sidebar/toolbar, terminology
+3. `analysis_monte_carlo.py` - Sidebar/toolbar integration
+4. `analysis_alternative_scenarios.py` - Terminology, metrics, sidebar/toolbar
+5. `analysis_validation.py` - Sidebar/toolbar integration, layout functions
+6. `analysis_portal.py` - Terminology, metrics, sidebar/toolbar
+7. `website/index.html` - Toolbar addition, styling improvements
+
+### Benefits
+
+- **Better Navigation**: Users can quickly jump to any section in long reports
+- **Professional Appearance**: Sidebar and toolbar give reports a modern dashboard feel
+- **Consistent Terminology**: "Investor" is more accurate and professional
+- **Enhanced Metrics**: Cap rate and monthly cash flow per investor prominently displayed
+- **Improved UX**: Smooth scrolling, active highlighting, responsive design
+- **Unified Design**: All reports share the same navigation system and styling
+
+### Testing Notes
+
+- All reports generate successfully with sidebar and toolbar
+- Navigation works correctly on all pages
+- "Back to Home" button functions on all reports
+- Tornado charts display correctly with proper formatting
+- Terminology is consistent across all reports
+- Responsive design works on mobile devices
+- Active section highlighting functions as expected
+- All links and navigation elements are functional
+
+---
+
 ## [2025-01-XX] - Base Case Update: Property Management Fee & 15-Year Projection
 
 ### Prompt Context

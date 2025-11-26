@@ -1,0 +1,1355 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Engelberg Property - Base Case Analysis</title>
+    <!-- ApexCharts Library -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        
+        /* Layout Container */
+        .layout-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background: #f5f7fa;
+        }
+        
+        /* Top Toolbar */
+        .top-toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--gradient-1);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        .toolbar-left, .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .toolbar-center {
+            flex: 1;
+            text-align: center;
+        }
+        
+        .toolbar-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            margin: 0;
+            color: white;
+        }
+        
+        .toolbar-subtitle {
+            font-size: 0.85em;
+            margin: 0;
+            opacity: 0.9;
+        }
+        
+        .toolbar-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        .toolbar-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-1px);
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 60px;
+            width: 250px;
+            height: calc(100vh - 60px);
+            background: white;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            z-index: 999;
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            background: var(--primary);
+            color: white;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar-header h3 {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .sidebar-nav {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .sidebar-nav li {
+            margin: 0;
+        }
+        
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px 20px;
+            color: #495057;
+            text-decoration: none;
+            border-left: 3px solid transparent;
+            transition: all 0.2s ease;
+            font-size: 0.9em;
+        }
+        
+        .sidebar-item:hover {
+            background: #f8f9fa;
+            color: var(--primary);
+            border-left-color: var(--primary);
+        }
+        
+        .sidebar-item.active {
+            background: #e7f3ff;
+            color: var(--primary);
+            border-left-color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .sidebar-item i {
+            width: 20px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+        
+        .sidebar-item-text {
+            flex: 1;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            margin-top: 60px;
+            padding: 30px 40px;
+            background: white;
+            min-height: calc(100vh - 60px);
+        }
+        
+        /* Section IDs for navigation */
+        .section {
+            scroll-margin-top: 80px;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 250px;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .toolbar-btn-text {
+                display: none;
+            }
+            
+            .toolbar-title {
+                font-size: 1.1em;
+            }
+        }
+        
+        /* Scrollbar styling for sidebar */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #1a1a2e;
+            --secondary: #0f3460;
+            --accent: #16213e;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --info: #17a2b8;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.15);
+            --shadow-lg: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            background: #0a0e27;
+            color: #2c3e50;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #ffffff;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: var(--gradient-1);
+            color: white;
+            padding: 40px 60px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            animation: float 20s infinite ease-in-out;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-30px, -30px) rotate(180deg); }
+        }
+        
+        .header h1 {
+            font-size: 2.2em;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header .subtitle {
+            font-size: 1.1em;
+            opacity: 0.95;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header .meta {
+            font-size: 0.9em;
+            opacity: 0.85;
+            margin-top: 12px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .content {
+            padding: 30px 40px;
+        }
+        
+        .dashboard {
+            padding: 30px 40px;
+            background: #f5f7fa;
+        }
+        
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .kpi-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            border-left: 3px solid var(--primary);
+        }
+        
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .kpi-card h3 {
+            font-size: 0.8em;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        
+        .kpi-card .value {
+            font-size: 2em;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+        
+        .kpi-card .value.positive {
+            color: var(--success);
+        }
+        
+        .kpi-card .value.negative {
+            color: var(--danger);
+        }
+        
+        .kpi-card .description {
+            font-size: 0.85em;
+            color: #868e96;
+            margin-top: 6px;
+        }
+        
+        .section {
+            padding: 30px 40px;
+            background: white;
+        }
+        
+        .section:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .section h2 {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--secondary);
+            letter-spacing: -0.5px;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 35px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .chart-container:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .chart-container.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .chart-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e8ecef;
+        }
+        
+        .chart-container > div {
+            width: 100%;
+        }
+        
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .summary-table th {
+            background: var(--gradient-1);
+            color: white;
+            padding: 18px 20px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .summary-table td {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e8ecef;
+            transition: background 0.2s;
+        }
+        
+        .summary-table tr:hover td {
+            background: #f8f9fa;
+        }
+        
+        .summary-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .footer {
+            background: var(--primary);
+            color: white;
+            padding: 40px 80px;
+            text-align: center;
+        }
+        
+        .positive {
+            color: var(--success);
+            font-weight: bold;
+        }
+        
+        .negative {
+            color: var(--danger);
+            font-weight: bold;
+        }
+        
+        .info-box {
+            background: linear-gradient(135deg, #e8f4f8 0%, #d1ecf1 100%);
+            border-left: 4px solid var(--info);
+            padding: 25px;
+            border-radius: 12px;
+            margin: 25px 0;
+        }
+        
+        .info-box.warning {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border-left-color: var(--warning);
+        }
+        
+        .info-box.success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border-left-color: var(--success);
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease-out;
+        }
+        
+        .scroll-reveal.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        @media (max-width: 1400px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-mountain"></i> Engelberg Property Investment</h1>
+            <div class="subtitle">Base Case Financial Analysis Dashboard</div>
+            <div class="meta">Generated on November 26, 2025 at 18:44:41</div>
+        </div>
+        
+        <!-- Dashboard Section -->
+        <div class="dashboard">
+            <div style="margin-bottom: 20px;">
+                <h2 style="font-size: 1.8em; margin: 0; color: var(--primary);">Executive Dashboard</h2>
+            </div>
+            
+            <!-- Key Metrics Grid - IRR and Return Metrics First -->
+            <div class="kpi-grid">
+                <div class="kpi-card scroll-reveal" style="border-left: 4px solid var(--success);">
+                    <h3><i class="fas fa-trending-up"></i> Equity IRR (with Sale)</h3>
+                    <div class="value positive">4.38%</div>
+                    <div class="description">Levered return on equity</div>
+                </div>
+                
+                <div class="kpi-card scroll-reveal" style="border-left: 4px solid var(--info);">
+                    <h3><i class="fas fa-chart-line"></i> Project IRR (Unlevered)</h3>
+                    <div class="value positive">2.51%</div>
+                    <div class="description">100% equity, with sale</div>
+                </div>
+                
+                <div class="kpi-card scroll-reveal" style="border-left: 4px solid var(--warning);">
+                    <h3><i class="fas fa-chart-pie"></i> Levered Cash-on-Cash</h3>
+                    <div class="value negative">-6.04%</div>
+                    <div class="description">Annual return on equity</div>
+                </div>
+                
+                <div class="kpi-card scroll-reveal">
+                    <h3><i class="fas fa-chart-area"></i> Equity IRR (no Sale)</h3>
+                    <div class="value positive">0.00%</div>
+                    <div class="description">Operating returns only</div>
+                </div>
+                
+                <div class="kpi-card scroll-reveal">
+                    <h3><i class="fas fa-chart-bar"></i> Project IRR (no Sale)</h3>
+                    <div class="value negative">-28.19%</div>
+                    <div class="description">Unlevered, operating only</div>
+                </div>
+                
+                <div class="kpi-card scroll-reveal">
+                    <h3><i class="fas fa-home"></i> Purchase Price</h3>
+                    <div class="value">1,300,000 CHF</div>
+                    <div class="description">Total property value</div>
+                </div>
+                
+                <div class="kpi-card scroll-reveal">
+                    <h3><i class="fas fa-chart-line"></i> Gross Rental Income</h3>
+                    <div class="value">44,258 CHF</div>
+                    <div class="description">Annual rental revenue</div>
+                </div>
+                
+                <div class="kpi-card scroll-reveal">
+                    <h3><i class="fas fa-coins"></i> Net Operating Income</h3>
+                    <div class="value">2,806 CHF</div>
+                    <div class="description">After operating expenses</div>
+                </div>
+                
+                <div class="kpi-card scroll-reveal">
+                    <h3><i class="fas fa-wallet"></i> Cash Flow After Debt</h3>
+                    <div class="value negative">-19,619 CHF</div>
+                    <div class="description">Annual cash flow</div>
+                </div>
+                
+                <div class="kpi-card scroll-reveal">
+                    <h3><i class="fas fa-user"></i> Cash Flow per Investor</h3>
+                    <div class="value negative">-3,924 CHF</div>
+                    <div class="description">Per investor per year</div>
+                </div>
+                
+                <div class="kpi-card scroll-reveal" style="border-left: 4px solid var(--info);">
+                    <h3><i class="fas fa-calendar-alt"></i> Monthly Cash Flow per Investor</h3>
+                    <div class="value negative">-327 CHF</div>
+                    <div class="description">Per owner per month</div>
+                </div>
+                
+                <div class="kpi-card scroll-reveal">
+                    <h3><i class="fas fa-percent"></i> Cap Rate</h3>
+                    <div class="value">0.22%</div>
+                    <div class="description">NOI / Property Value</div>
+                </div>
+                
+                <div class="kpi-card scroll-reveal">
+                    <h3><i class="fas fa-shield-alt"></i> Debt Coverage Ratio</h3>
+                    <div class="value">0.13</div>
+                    <div class="description">NOI / Debt Service</div>
+                </div>
+                
+                <div class="kpi-card scroll-reveal">
+                    <h3><i class="fas fa-building"></i> Final Property Value</h3>
+                    <div class="value">1,836,866 CHF</div>
+                    <div class="description">After 15 years (2% appreciation)</div>
+                </div>
+                
+                <div class="kpi-card scroll-reveal">
+                    <h3><i class="fas fa-key"></i> Equity per Investor</h3>
+                    <div class="value">65,000 CHF</div>
+                    <div class="description">Initial investment</div>
+                </div>
+            </div>
+            
+            <!-- Key Finding Box -->
+            <div class="info-box warning scroll-reveal">
+                <h3 style="margin-bottom: 15px; color: var(--primary);">
+                    <i class="fas fa-lightbulb"></i> Key Finding
+                </h3>
+                <p style="font-size: 1.1em; line-height: 1.8;">
+                    The base case scenario shows an annual cash flow of 
+                    <strong class="negative">-19,619 CHF</strong> 
+                    after debt service, which translates to 
+                    <strong class="negative">-3,924 CHF</strong> per owner per year.
+                    This negative cash flow means owners will need to contribute additional funds annually. However, this should be evaluated in the context of personal use value (5 nights per owner), potential property appreciation, and tax benefits.
+                </p>
+            </div>
+        </div>
+        
+        <!-- Charts Section -->
+        <div class="section" id="charts">
+            <h2><i class="fas fa-chart-bar"></i> Financial Visualizations</h2>
+            <div class="charts-grid">
+                
+    <!-- Revenue vs Expenses Chart -->
+    <div class="chart-container scroll-reveal">
+        <div class="chart-title"><i class="fas fa-chart-bar"></i> Revenue vs Expenses vs Debt Service</div>
+        <div id="revenueExpensesChart" style="min-height: 400px;"></div>
+    </div>
+    
+    <!-- Operating Expenses Pie Chart -->
+    <div class="chart-container scroll-reveal">
+        <div class="chart-title"><i class="fas fa-chart-pie"></i> Operating Expenses Breakdown</div>
+        <div id="expensesPieChart" style="min-height: 400px;"></div>
+    </div>
+    
+    <!-- Cash Flow Waterfall Chart -->
+    <div class="chart-container scroll-reveal">
+        <div class="chart-title"><i class="fas fa-water"></i> Cash Flow Waterfall</div>
+        <div id="waterfallChart" style="min-height: 400px;"></div>
+    </div>
+    
+    <!-- 15-Year Cash Flow Chart -->
+    <div class="chart-container full-width scroll-reveal">
+        <div class="chart-title"><i class="fas fa-chart-line"></i> 15-Year Cash Flow Projection</div>
+        <div id="cashflow15yrChart" style="min-height: 500px;"></div>
+    </div>
+    
+    <!-- 15-Year Loan Balance Chart -->
+    <div class="chart-container scroll-reveal">
+        <div class="chart-title"><i class="fas fa-credit-card"></i> Loan Balance & Debt Service</div>
+        <div id="loanChart" style="min-height: 500px;"></div>
+    </div>
+    
+    <!-- 15-Year Revenue & Expenses Chart -->
+    <div class="chart-container scroll-reveal">
+        <div class="chart-title"><i class="fas fa-chart-area"></i> Revenue & Expenses Projection</div>
+        <div id="revenueExpenses15yrChart" style="min-height: 500px;"></div>
+    </div>
+    
+    <!-- ApexCharts Initialization Script -->
+    <script>
+        // Wait for ApexCharts library to load
+        function initCharts() {
+            if (typeof ApexCharts === 'undefined') {
+                console.log('Waiting for ApexCharts library to load...');
+                setTimeout(initCharts, 100);
+                return;
+            }
+            
+            console.log('ApexCharts loaded, initializing charts...');
+            
+            // Currency formatter function
+            function formatCHF(val) {
+                return new Intl.NumberFormat('de-CH', {style: 'currency', currency: 'CHF', maximumFractionDigits: 0}).format(val);
+            }
+            
+            try {
+                // Chart 1: Revenue vs Expenses
+                var revenueExpensesOptions = {"chart": {"type": "bar", "height": 400, "toolbar": {"show": true}}, "plotOptions": {"bar": {"horizontal": false, "columnWidth": "60%", "dataLabels": {"position": "top"}}}, "dataLabels": {"enabled": true}, "series": [{"name": "Gross Rental Income", "data": [44257.5]}, {"name": "Operating Expenses", "data": [41451.18823529412]}, {"name": "Debt Service", "data": [22425.0]}], "xaxis": {"categories": ["Financial Summary"]}, "colors": ["#2ecc71", "#e74c3c", "#f39c12"], "title": {"text": "Revenue vs Expenses vs Debt Service", "align": "left", "style": {"fontSize": "18px", "fontWeight": "600"}}, "legend": {"position": "top"}};
+                revenueExpensesOptions.dataLabels.formatter = formatCHF;
+                revenueExpensesOptions.yaxis = revenueExpensesOptions.yaxis || {};
+                revenueExpensesOptions.yaxis.labels = {formatter: formatCHF};
+                revenueExpensesOptions.tooltip = {y: {formatter: formatCHF}};
+                var revenueExpensesChart = new ApexCharts(document.querySelector("#revenueExpensesChart"), revenueExpensesOptions);
+                revenueExpensesChart.render();
+                
+                // Chart 2: Operating Expenses Pie
+                var expensesPieOptions = {"chart": {"type": "donut", "height": 400, "toolbar": {"show": true}}, "labels": ["Property Management", "Cleaning", "Tourist Tax", "Insurance", "Nubbing Costs (Water, Heating)", "Electricity & Internet", "Maintenance Reserve"], "series": [8851.5, 10110.588235294119, 1289.1000000000001, 5200.0, 2000.0, 1000.0, 13000.0], "dataLabels": {"enabled": true}, "colors": ["#3498db", "#9b59b6", "#e67e22", "#1abc9c", "#f39c12", "#e74c3c"], "title": {"text": "Operating Expenses Breakdown", "align": "left", "style": {"fontSize": "18px", "fontWeight": "600"}}, "legend": {"position": "bottom"}};
+                expensesPieOptions.dataLabels.formatter = function(val, opts) {
+                    var label = opts.w.config.labels[opts.seriesIndex];
+                    var value = formatCHF(opts.w.globals.series[opts.seriesIndex]);
+                    var percent = opts.w.globals.seriesPercent[opts.seriesIndex][0].toFixed(1);
+                    return label + '\n' + value + ' (' + percent + '%)';
+                };
+                expensesPieOptions.tooltip = {y: {formatter: formatCHF}};
+                var expensesPieChart = new ApexCharts(document.querySelector("#expensesPieChart"), expensesPieOptions);
+                expensesPieChart.render();
+                
+                // Chart 3: Cash Flow Waterfall
+                var waterfallOptions = {"chart": {"type": "bar", "height": 400, "toolbar": {"show": true}}, "plotOptions": {"bar": {"horizontal": false, "columnWidth": "60%"}}, "dataLabels": {"enabled": true}, "series": [{"name": "Cash Flow", "data": [44257.5, -41451.18823529412, -22425.0, -19618.688235294117]}], "xaxis": {"categories": ["Gross Rental Income", "Operating Expenses", "Debt Service", "Cash Flow After Debt"]}, "colors": ["#3498db"], "title": {"text": "Cash Flow Waterfall", "align": "left", "style": {"fontSize": "18px", "fontWeight": "600"}}};
+                waterfallOptions.dataLabels.formatter = formatCHF;
+                waterfallOptions.yaxis = waterfallOptions.yaxis || {};
+                waterfallOptions.yaxis.labels = {formatter: formatCHF};
+                waterfallOptions.tooltip = {y: {formatter: formatCHF}};
+                var waterfallChart = new ApexCharts(document.querySelector("#waterfallChart"), waterfallOptions);
+                waterfallChart.render();
+                
+                // Chart 4: 15-Year Cash Flow
+                var cashflow15yrOptions = {"chart": {"type": "line", "height": 500, "toolbar": {"show": true}, "zoom": {"enabled": true}}, "stroke": {"curve": "smooth", "width": 3}, "markers": {"size": 5, "hover": {"size": 8}}, "series": [{"name": "Total Cash Flow", "data": [-19618.688235294117, -19500.811999999998, -19384.738240000006, -19270.5436298, -19158.307393021, -19048.11137877204, -18940.040140185374, -18834.181015172915, -18730.624209464804, -18629.46288199225, -18530.793232678683, -18434.714592705022, -18341.329517316197, -18250.74388123853, -18163.066976778704]}, {"name": "Cash Flow per Investor", "data": [-3923.7376470588233, -3900.1623999999997, -3876.947648000001, -3854.10872596, -3831.6614786042, -3809.622275754408, -3788.008028037075, -3766.836203034583, -3746.124841892961, -3725.8925763984503, -3706.158646535737, -3686.9429185410045, -3668.2659034632393, -3650.148776247706, -3632.613395355741]}], "xaxis": {"categories": ["2026", "2027", "2028", "2029", "2030", "2031", "2032", "2033", "2034", "2035", "2036", "2037", "2038", "2039", "2040"], "title": {"text": "Year"}}, "yaxis": {"title": {"text": "Cash Flow (CHF)"}}, "colors": ["#3498db", "#2ecc71"], "title": {"text": "15-Year Cash Flow Projection", "align": "left", "style": {"fontSize": "18px", "fontWeight": "600"}}, "legend": {"position": "top"}, "grid": {"borderColor": "#e7e7e7", "row": {"colors": ["#f3f3f3", "transparent"], "opacity": 0.5}}, "annotations": {"yaxis": [{"y": 0, "borderColor": "#999", "strokeDashArray": 5, "label": {"text": "Break-even", "style": {"color": "#999", "background": "#fff"}}}]}};
+                cashflow15yrOptions.yaxis = cashflow15yrOptions.yaxis || {};
+                cashflow15yrOptions.yaxis.labels = {formatter: formatCHF};
+                cashflow15yrOptions.tooltip = {y: {formatter: formatCHF}};
+                var cashflow15yrChart = new ApexCharts(document.querySelector("#cashflow15yrChart"), cashflow15yrOptions);
+                cashflow15yrChart.render();
+                
+                // Chart 5: 15-Year Loan Balance
+                var loanOptions = {"chart": {"type": "line", "height": 500, "toolbar": {"show": true}, "zoom": {"enabled": true}}, "stroke": {"curve": "smooth", "width": 3}, "markers": {"size": 5, "hover": {"size": 8}}, "series": [{"name": "Remaining Loan Balance", "data": [965250.0, 955500.0, 945750.0, 936000.0, 926250.0, 916500.0, 906750.0, 897000.0, 887250.0, 877500.0, 867750.0, 858000.0, 848250.0, 838500.0, 828750.0]}, {"name": "Debt Service", "data": [22425.0, 22298.25, 22171.5, 22044.75, 21918.0, 21791.25, 21664.5, 21537.75, 21411.0, 21284.25, 21157.5, 21030.75, 20904.0, 20777.25, 20650.5]}], "xaxis": {"categories": ["2026", "2027", "2028", "2029", "2030", "2031", "2032", "2033", "2034", "2035", "2036", "2037", "2038", "2039", "2040"], "title": {"text": "Year"}}, "yaxis": {"title": {"text": "Amount (CHF)"}}, "colors": ["#e74c3c", "#f39c12"], "title": {"text": "15-Year Loan Balance & Debt Service", "align": "left", "style": {"fontSize": "18px", "fontWeight": "600"}}, "legend": {"position": "top"}, "grid": {"borderColor": "#e7e7e7", "row": {"colors": ["#f3f3f3", "transparent"], "opacity": 0.5}}};
+                loanOptions.yaxis = loanOptions.yaxis || {};
+                loanOptions.yaxis.labels = {formatter: formatCHF};
+                loanOptions.tooltip = {y: {formatter: formatCHF}};
+                var loanChart = new ApexCharts(document.querySelector("#loanChart"), loanOptions);
+                loanChart.render();
+                
+                // Chart 6: 15-Year Revenue & Expenses
+                var revenueExpenses15yrOptions = {"chart": {"type": "line", "height": 500, "toolbar": {"show": true}, "zoom": {"enabled": true}}, "stroke": {"curve": "smooth", "width": 3}, "markers": {"size": 5, "hover": {"size": 8}}, "series": [{"name": "Gross Rental Income", "data": [44257.5, 45142.65, 46045.503, 46966.413060000006, 47905.741321199996, 48863.856147624, 49841.13327057648, 50837.955935988015, 51854.715054707776, 52891.80935580193, 53949.64554291797, 55028.63845377633, 56129.21122285186, 57251.7954473089, 58396.831356255076]}, {"name": "Operating Expenses", "data": [41451.18823529412, 42345.212, 43258.74124, 44192.206689800005, 45146.048714221, 46120.71752639604, 47116.673410761854, 48134.38695116093, 49174.33926417258, 50237.02223779418, 51322.93877559665, 52432.60304648135, 53566.54074016806, 54725.28932854743, 55909.39833303378]}, {"name": "Net Operating Income", "data": [2806.3117647058825, 2797.438000000002, 2786.761759999994, 2774.2063702000014, 2759.692606978999, 2743.1386212279613, 2724.459859814626, 2703.568984827085, 2680.375790535196, 2654.787118007749, 2626.706767321317, 2596.0354072949776, 2562.670482683803, 2526.50611876147, 2487.433023221296]}], "xaxis": {"categories": ["2026", "2027", "2028", "2029", "2030", "2031", "2032", "2033", "2034", "2035", "2036", "2037", "2038", "2039", "2040"], "title": {"text": "Year"}}, "yaxis": {"title": {"text": "Amount (CHF)"}}, "colors": ["#2ecc71", "#e74c3c", "#3498db"], "title": {"text": "15-Year Revenue & Expenses Projection", "align": "left", "style": {"fontSize": "18px", "fontWeight": "600"}}, "legend": {"position": "top"}, "grid": {"borderColor": "#e7e7e7", "row": {"colors": ["#f3f3f3", "transparent"], "opacity": 0.5}}};
+                revenueExpenses15yrOptions.yaxis = revenueExpenses15yrOptions.yaxis || {};
+                revenueExpenses15yrOptions.yaxis.labels = {formatter: formatCHF};
+                revenueExpenses15yrOptions.tooltip = {y: {formatter: formatCHF}};
+                var revenueExpenses15yrChart = new ApexCharts(document.querySelector("#revenueExpenses15yrChart"), revenueExpenses15yrOptions);
+                revenueExpenses15yrChart.render();
+            } catch (error) {
+                console.error('Error initializing charts:', error);
+            }
+        }
+        
+        // Initialize when both DOM and ApexCharts are ready
+        function startInit() {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function() {
+                    setTimeout(initCharts, 200); // Give library time to load
+                });
+            } else {
+                setTimeout(initCharts, 200); // Give library time to load
+            }
+        }
+        
+        // Start initialization
+        startInit();
+    </script>
+    
+            </div>
+        </div>
+        
+        <div class="content">
+            <!-- Executive Summary -->
+            <div class="section" id="executive-summary">
+                <h2><i class="fas fa-file-alt"></i> Executive Summary</h2>
+                <div style="background: #f8f9fa; padding: 25px; border-radius: 8px; margin-bottom: 20px; line-height: 1.8;">
+                    <p style="font-size: 1.1em; margin-bottom: 15px;">
+                        This analysis evaluates a <strong>CHF 1,300,000 CHF</strong> property purchase in <strong>Engelberg, Switzerland</strong>, 
+                        a picturesque mountain village at the foot of Mount Titlis. The investment is structured as a <strong>co-ownership arrangement</strong> 
+                        among <strong>5 friends</strong>, combining personal use with rental income generation.
+                    </p>
+                    <p style="font-size: 1.1em; margin-bottom: 15px;">
+                        Each owner will enjoy <strong>5 nights per year</strong> of personal use, while the remaining 
+                        <strong>340 nights</strong> are available for rental. With an assumed <strong>63% occupancy rate</strong> 
+                        and an average daily rate of <strong>200 CHF</strong>, the property is projected to generate 
+                        <strong>44,258 CHF</strong> in annual rental income.
+                    </p>
+                    <div style="background: #fff3cd; padding: 20px; border-left: 4px solid #ffc107; margin-top: 20px;">
+                        <p style="font-size: 1.05em; margin: 0;">
+                            <strong>Key Finding:</strong> The base case scenario shows an annual cash flow of 
+                            <strong class="negative">-19,619 CHF</strong> 
+                            after debt service, which translates to <strong class="negative">-3,924 CHF</strong> per owner per year. 
+                            This negative cash flow means owners will need to contribute additional funds annually to cover operating costs and debt service. However, this should be evaluated in the context of personal use value, potential property appreciation, and tax benefits.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Financial Summary -->
+            <div class="section" id="financial-summary">
+                <h2><i class="fas fa-file-invoice-dollar"></i> Financial Summary</h2>
+                <table class="summary-table">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Amount (CHF)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Revenue</strong></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 30px;">Gross Rental Income</td>
+                            <td>44,258 CHF</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Operating Expenses</strong></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 30px;">Property Management (includes Cleaning)</td>
+                            <td>8,852 CHF</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 30px;">Tourist Tax</td>
+                            <td>1,289 CHF</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 30px;">Insurance</td>
+                            <td>5,200 CHF</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 30px;">Nubbing Costs (Water, Heating)</td>
+                            <td>2,000 CHF</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 30px;">Electricity & Internet</td>
+                            <td>1,000 CHF</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 30px;">Maintenance Reserve</td>
+                            <td>13,000 CHF</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Total Operating Expenses</strong></td>
+                            <td><strong>41,451 CHF</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Net Operating Income</strong></td>
+                            <td><strong>2,806 CHF</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Debt Service</strong></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 30px;">Interest Payment</td>
+                            <td>12,675 CHF</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 30px;">Amortization Payment</td>
+                            <td>9,750 CHF</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Total Debt Service</strong></td>
+                            <td><strong>22,425 CHF</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Cash Flow After Debt Service</strong></td>
+                            <td><strong class="negative">-19,619 CHF</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Rental Performance Details -->
+            <div class="section">
+                <h2><i class="fas fa-bed"></i> Rental Performance Analysis</h2>
+                <div style="background: #f8f9fa; padding: 25px; border-radius: 8px; margin-bottom: 20px;">
+                    <p style="font-size: 1.05em; line-height: 1.8; margin-bottom: 15px;">
+                        The property offers <strong>340 rentable nights</strong> per year after accounting for 
+                        <strong>25 owner nights</strong> (5 nights × 5 owners). 
+                        With an <strong>overall occupancy rate of 63.2%</strong>, the property is expected to be rented for 
+                        <strong>215 nights</strong> annually.
+                    </p>
+                    <p style="font-size: 1.05em; line-height: 1.8;">
+                        At a weighted average daily rate of <strong>206 CHF</strong> and an average stay length of 
+                        <strong>2 nights</strong>, this translates to approximately 
+                        <strong>126 guest stays</strong> per year, generating 
+                        <strong>44,258 CHF</strong> in gross rental income.
+                    </p>
+                </div>
+                
+                <!-- Seasonal Breakdown -->
+                
+                <div style="background: #e8f4f8; padding: 20px; border-radius: 8px; margin-top: 15px; border-left: 3px solid #17a2b8;">
+                    <h3 style="color: #1a1a2e; margin-bottom: 15px; font-size: 1.1em;"><i class="fas fa-calendar-alt"></i> Seasonal Breakdown - Engelberg Tourism Patterns</h3>
+                    <p style="font-size: 0.95em; line-height: 1.6; margin-bottom: 15px;">
+                        Engelberg experiences distinct tourism seasons, each with different demand patterns and pricing:
+                    </p>
+                    <table class="summary-table" style="margin-top: 15px;">
+                        <thead>
+                            <tr>
+                                <th>Season</th>
+                                <th>Available Nights</th>
+                                <th>Rented Nights</th>
+                                <th>Occupancy Rate</th>
+                                <th>Daily Rate (CHF)</th>
+                                <th>Season Income (CHF)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            
+                            <tr>
+                                <td><strong>Winter Peak (Ski Season)</strong></td>
+                                <td>111</td>
+                                <td>83.2</td>
+                                <td>75.0%</td>
+                                <td>250</td>
+                                <td><strong>20,812 CHF</strong></td>
+                            </tr>
+            
+                            <tr>
+                                <td><strong>Summer Peak (Hiking Season)</strong></td>
+                                <td>114</td>
+                                <td>74.1</td>
+                                <td>65.0%</td>
+                                <td>200</td>
+                                <td><strong>14,820 CHF</strong></td>
+                            </tr>
+            
+                            <tr>
+                                <td><strong>Off-Peak (Shoulder Seasons)</strong></td>
+                                <td>115</td>
+                                <td>57.5</td>
+                                <td>50.0%</td>
+                                <td>150</td>
+                                <td><strong>8,625 CHF</strong></td>
+                            </tr>
+            
+                        </tbody>
+                    </table>
+                    <p style="font-size: 0.95em; line-height: 1.6; margin-top: 20px; color: #495057; font-style: italic;">
+                        <strong>Note:</strong> Winter Peak (Dec-Mar) represents the ski season with highest demand and premium rates. 
+                        Summer Peak (Jun-Sep) covers the hiking and mountain activities season. 
+                        Off-Peak periods (Apr-May, Oct-Nov) are shoulder seasons with lower demand and discounted rates.
+                    </p>
+                </div>
+        
+            </div>
+            
+            <!-- 15-Year Projection -->
+            <div class="section">
+                <h2 id="projection-15yr"><i class="fas fa-calendar-alt"></i> 15-Year Financial Projection</h2>
+                <div style="background: #f8f9fa; padding: 25px; border-radius: 8px; margin-bottom: 20px;">
+                    <p style="font-size: 1.05em; line-height: 1.8; margin-bottom: 15px;">
+                        The following projection shows the financial performance over 15 years starting from <strong>January 2026</strong>. 
+                        The analysis assumes the property is purchased in <strong>2026</strong> and tracks how the loan balance decreases 
+                        over time due to amortization, while interest payments decrease accordingly.
+                    </p>
+                    <p style="font-size: 1.05em; line-height: 1.8;">
+                        <strong>Key Assumptions:</strong>
+                    </p>
+                    <ul style="font-size: 1.05em; line-height: 1.8; margin-left: 20px;">
+                        <li><strong>Inflation:</strong> 2% per year applied to revenue and operating expenses</li>
+                        <li><strong>Property Appreciation:</strong> 2.5% per year (realistic for Swiss real estate)</li>
+                        <li>Occupancy rate and average daily rate remain constant</li>
+                        <li>Loan balance decreases by annual amortization amount each year</li>
+                    </ul>
+                </div>
+                <table class="summary-table">
+                    <thead>
+                        <tr>
+                            <th>Year</th>
+                            <th>Gross Rental Income</th>
+                            <th>Operating Expenses</th>
+                            <th>Net Operating Income</th>
+                            <th>Debt Service</th>
+                            <th>Cash Flow After Debt</th>
+                            <th>Cash Flow per Investor</th>
+                            <th>Remaining Loan Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        <tr>
+                            <td><strong>2026</strong></td>
+                            <td>44,258 CHF</td>
+                            <td>41,451 CHF</td>
+                            <td>2,806 CHF</td>
+                            <td>22,425 CHF</td>
+                            <td class="negative">-19,619 CHF</td>
+                            <td class="negative">-3,924 CHF</td>
+                            <td>965,250 CHF</td>
+                        </tr>
+                        
+                        <tr>
+                            <td><strong>2027</strong></td>
+                            <td>45,143 CHF</td>
+                            <td>42,345 CHF</td>
+                            <td>2,797 CHF</td>
+                            <td>22,298 CHF</td>
+                            <td class="negative">-19,501 CHF</td>
+                            <td class="negative">-3,900 CHF</td>
+                            <td>955,500 CHF</td>
+                        </tr>
+                        
+                        <tr>
+                            <td><strong>2028</strong></td>
+                            <td>46,046 CHF</td>
+                            <td>43,259 CHF</td>
+                            <td>2,787 CHF</td>
+                            <td>22,172 CHF</td>
+                            <td class="negative">-19,385 CHF</td>
+                            <td class="negative">-3,877 CHF</td>
+                            <td>945,750 CHF</td>
+                        </tr>
+                        
+                        <tr>
+                            <td><strong>2029</strong></td>
+                            <td>46,966 CHF</td>
+                            <td>44,192 CHF</td>
+                            <td>2,774 CHF</td>
+                            <td>22,045 CHF</td>
+                            <td class="negative">-19,271 CHF</td>
+                            <td class="negative">-3,854 CHF</td>
+                            <td>936,000 CHF</td>
+                        </tr>
+                        
+                        <tr>
+                            <td><strong>2030</strong></td>
+                            <td>47,906 CHF</td>
+                            <td>45,146 CHF</td>
+                            <td>2,760 CHF</td>
+                            <td>21,918 CHF</td>
+                            <td class="negative">-19,158 CHF</td>
+                            <td class="negative">-3,832 CHF</td>
+                            <td>926,250 CHF</td>
+                        </tr>
+                        
+                        <tr>
+                            <td><strong>2031</strong></td>
+                            <td>48,864 CHF</td>
+                            <td>46,121 CHF</td>
+                            <td>2,743 CHF</td>
+                            <td>21,791 CHF</td>
+                            <td class="negative">-19,048 CHF</td>
+                            <td class="negative">-3,810 CHF</td>
+                            <td>916,500 CHF</td>
+                        </tr>
+                        
+                        <tr>
+                            <td><strong>2032</strong></td>
+                            <td>49,841 CHF</td>
+                            <td>47,117 CHF</td>
+                            <td>2,724 CHF</td>
+                            <td>21,664 CHF</td>
+                            <td class="negative">-18,940 CHF</td>
+                            <td class="negative">-3,788 CHF</td>
+                            <td>906,750 CHF</td>
+                        </tr>
+                        
+                        <tr>
+                            <td><strong>2033</strong></td>
+                            <td>50,838 CHF</td>
+                            <td>48,134 CHF</td>
+                            <td>2,704 CHF</td>
+                            <td>21,538 CHF</td>
+                            <td class="negative">-18,834 CHF</td>
+                            <td class="negative">-3,767 CHF</td>
+                            <td>897,000 CHF</td>
+                        </tr>
+                        
+                        <tr>
+                            <td><strong>2034</strong></td>
+                            <td>51,855 CHF</td>
+                            <td>49,174 CHF</td>
+                            <td>2,680 CHF</td>
+                            <td>21,411 CHF</td>
+                            <td class="negative">-18,731 CHF</td>
+                            <td class="negative">-3,746 CHF</td>
+                            <td>887,250 CHF</td>
+                        </tr>
+                        
+                        <tr>
+                            <td><strong>2035</strong></td>
+                            <td>52,892 CHF</td>
+                            <td>50,237 CHF</td>
+                            <td>2,655 CHF</td>
+                            <td>21,284 CHF</td>
+                            <td class="negative">-18,629 CHF</td>
+                            <td class="negative">-3,726 CHF</td>
+                            <td>877,500 CHF</td>
+                        </tr>
+                        
+                        <tr>
+                            <td><strong>2036</strong></td>
+                            <td>53,950 CHF</td>
+                            <td>51,323 CHF</td>
+                            <td>2,627 CHF</td>
+                            <td>21,158 CHF</td>
+                            <td class="negative">-18,531 CHF</td>
+                            <td class="negative">-3,706 CHF</td>
+                            <td>867,750 CHF</td>
+                        </tr>
+                        
+                        <tr>
+                            <td><strong>2037</strong></td>
+                            <td>55,029 CHF</td>
+                            <td>52,433 CHF</td>
+                            <td>2,596 CHF</td>
+                            <td>21,031 CHF</td>
+                            <td class="negative">-18,435 CHF</td>
+                            <td class="negative">-3,687 CHF</td>
+                            <td>858,000 CHF</td>
+                        </tr>
+                        
+                        <tr>
+                            <td><strong>2038</strong></td>
+                            <td>56,129 CHF</td>
+                            <td>53,567 CHF</td>
+                            <td>2,563 CHF</td>
+                            <td>20,904 CHF</td>
+                            <td class="negative">-18,341 CHF</td>
+                            <td class="negative">-3,668 CHF</td>
+                            <td>848,250 CHF</td>
+                        </tr>
+                        
+                        <tr>
+                            <td><strong>2039</strong></td>
+                            <td>57,252 CHF</td>
+                            <td>54,725 CHF</td>
+                            <td>2,527 CHF</td>
+                            <td>20,777 CHF</td>
+                            <td class="negative">-18,251 CHF</td>
+                            <td class="negative">-3,650 CHF</td>
+                            <td>838,500 CHF</td>
+                        </tr>
+                        
+                        <tr>
+                            <td><strong>2040</strong></td>
+                            <td>58,397 CHF</td>
+                            <td>55,909 CHF</td>
+                            <td>2,487 CHF</td>
+                            <td>20,650 CHF</td>
+                            <td class="negative">-18,163 CHF</td>
+                            <td class="negative">-3,633 CHF</td>
+                            <td>828,750 CHF</td>
+                        </tr>
+                        
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- IRR Analysis -->
+            <div class="section">
+                <h2><i class="fas fa-calculator"></i> Internal Rate of Return (IRR) Analysis</h2>
+                <div class="info-box">
+                    <p style="font-size: 1.05em; line-height: 1.8; margin-bottom: 15px;">
+                        The Internal Rate of Return (IRR) measures the annualized return on the initial equity investment over the 15-year period. 
+                        Two scenarios are calculated:
+                    </p>
+                    <ul style="font-size: 1.05em; line-height: 1.8; margin-left: 20px; margin-bottom: 15px;">
+                        <li><strong>IRR with Sale:</strong> Includes annual cash flows plus proceeds from selling the property at the end of year 15</li>
+                        <li><strong>IRR without Sale:</strong> Considers only annual cash flows, assuming the property is held indefinitely</li>
+                    </ul>
+                </div>
+                <table class="summary-table">
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Initial Equity Investment per Investor</strong></td>
+                            <td>65,000 CHF</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Final Property Value (Year 15)</strong></td>
+                            <td>1,836,866 CHF</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Final Loan Balance (Year 15)</strong></td>
+                            <td>828,750 CHF</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Net Sale Proceeds per Investor</strong></td>
+                            <td>201,623 CHF</td>
+                        </tr>
+                        <tr>
+                            <td><strong>IRR (with Sale at Year 15)</strong></td>
+                            <td><strong style="font-size: 1.2em; color: #2ecc71;">4.38%</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>IRR (without Sale)</strong></td>
+                            <td><strong style="font-size: 1.2em; color: #3498db;">0.00%</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="info-box" style="margin-top: 20px;">
+                    <p style="font-size: 1.05em; line-height: 1.8; margin: 0;">
+                        <strong>Note:</strong> The IRR calculations include inflation (2% per year) and property appreciation (2.5% per year). 
+                        The IRR with sale scenario assumes the property is sold at the end of year 15 at the appreciated value, 
+                        with proceeds distributed after paying off the remaining loan balance.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Investment Insights -->
+            <div class="section">
+                <h2><i class="fas fa-lightbulb"></i> Investment Insights & Considerations</h2>
+                <div style="background: #f8f9fa; padding: 25px; border-radius: 8px;">
+                    <h3 style="color: #667eea; margin-bottom: 15px; font-size: 1.3em;">Financial Metrics</h3>
+                    <ul style="line-height: 2; font-size: 1.05em; margin-bottom: 25px;">
+                        <li><strong>Cap Rate:</strong> 0.22% - This represents the return on the total property value based on net operating income.</li>
+                        <li><strong>Cash-on-Cash Return:</strong> -6.04% - This shows the return on the equity investment (65,000 CHF per owner).</li>
+                        <li><strong>Debt Coverage Ratio:</strong> 0.13 - This ratio indicates that net operating income does not fully cover debt service, requiring additional owner contributions.</li>
+                        <li><strong>Operating Expense Ratio:</strong> 93.66% - Operating expenses represent this percentage of gross rental income.</li>
+                    </ul>
+                    
+                    <h3 style="color: #667eea; margin-bottom: 15px; font-size: 1.3em; margin-top: 30px;">Key Considerations</h3>
+                    <ul style="line-height: 2; font-size: 1.05em;">
+                        <li><strong>Personal Use Value:</strong> Each owner receives 5 nights per year of personal use, which should be valued when evaluating the total return on investment.</li>
+                        <li><strong>Property Appreciation:</strong> Swiss mountain properties have historically shown strong appreciation potential, which is not captured in this cash flow analysis.</li>
+                        <li><strong>Tax Benefits:</strong> Property ownership in Switzerland may offer tax deductions for interest payments and depreciation that could improve the after-tax return.</li>
+                        <li><strong>Occupancy Sensitivity:</strong> The 63% occupancy rate is a key assumption. Higher occupancy could significantly improve cash flow.</li>
+                        <li><strong>Co-ownership Structure:</strong> The arrangement allows for shared costs and responsibilities while maintaining personal access to the property.</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Assumptions -->
+            <div class="section">
+                <h2 id="key-assumptions"><i class="fas fa-cog"></i> Key Assumptions</h2>
+                <table class="summary-table">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Financing</strong></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 30px;">Loan-to-Value Ratio</td>
+                            <td>75.0%</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 30px;">Interest Rate</td>
+                            <td>1.30%</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 30px;">Amortization Rate</td>
+                            <td>1.0%</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 30px;">Number of Owners</td>
+                            <td>5</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Rental</strong></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 30px;">Owner Nights per Person</td>
+                            <td>5</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 30px;">Occupancy Rate</td>
+                            <td>63.0%</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 30px;">Average Daily Rate</td>
+                            <td>200 CHF</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Expenses</strong></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 30px;">Property Management Fee Rate (includes Cleaning)</td>
+                            <td>20.0%</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 30px;">Average Length of Stay</td>
+                            <td>1.7 nights</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p style="font-size: 1.1em; margin-bottom: 10px;">Engelberg Property Investment Analysis</p>
+            <p style="opacity: 0.8;">This report was generated automatically by the Engelberg Property Investment Simulation</p>
+        </div>
+    </div>
+    
+    <script>
+        // Advanced JavaScript for interactivity and animations
+        (function() {
+            // Scroll reveal animation
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('revealed');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+            
+            // Observe all scroll-reveal elements
+            document.querySelectorAll('.scroll-reveal').forEach(el => {
+                observer.observe(el);
+            });
+            
+            // Smooth scroll for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+        })();
+    </script>
+</body>
+</html>
+    

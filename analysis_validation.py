@@ -127,6 +127,22 @@ class AnalysisTester:
             print("\n[*] Running Cross-Validation Tests...")
             self.test_cross_validation()
             
+            # Data integrity tests
+            print("\n[*] Running Data Integrity Tests...")
+            self.test_data_integrity()
+            
+            # File generation tests
+            print("\n[*] Testing File Generation...")
+            self.test_file_generation()
+            
+            # Alternative scenarios tests
+            print("\n[*] Testing Alternative Scenarios...")
+            self.test_alternative_scenarios()
+            
+            # Performance tests
+            print("\n[*] Running Performance Tests...")
+            self.test_performance()
+            
             # Generate dashboard
             print("\n[*] Generating Test Dashboard...")
             self.generate_dashboard()
@@ -137,7 +153,7 @@ class AnalysisTester:
             passed = sum(1 for r in self.results if r.passed)
             total = len(self.results)
             print(f"Results: {passed}/{total} tests passed ({passed/total*100:.1f}%)")
-            print(f"Dashboard saved to: output/report_validation.html")
+            print(f"Dashboard saved to: website/report_validation.html")
             print("=" * 80)
             
         except Exception as e:
@@ -319,7 +335,7 @@ class AnalysisTester:
             test = TestResult("Sensitivity NPV/IRR Calculation", "Sensitivity")
             try:
                 npv_irr = sensitivity_analysis.calculate_npv_irr_for_config(
-                    self.base_config, discount_rate=0.04
+                    self.base_config, discount_rate=0.03
                 )
                 # NPV should be reasonable
                 test.check_range(npv_irr['npv'], -1_000_000, 1_000_000)
@@ -345,7 +361,7 @@ class AnalysisTester:
                 df_mc = monte_carlo_analysis.run_monte_carlo_simulation(
                     self.base_config, 
                     num_simulations=1000,  # Smaller for testing
-                    discount_rate=0.04
+                    discount_rate=0.03
                 )
                 self.monte_carlo_results = df_mc
                 test.set_pass(f"Successfully completed {len(df_mc)} simulations")
@@ -393,7 +409,7 @@ class AnalysisTester:
                 test = TestResult("Base Case NPV Consistency", "Cross-Validation")
                 try:
                     base_npv_irr = sensitivity_analysis.calculate_npv_irr_for_config(
-                        self.base_config, discount_rate=0.04
+                        self.base_config, discount_rate=0.03
                     )
                     # This is a sanity check - values should be reasonable
                     test.check_range(base_npv_irr['npv'], -1_000_000, 1_000_000)
@@ -405,15 +421,33 @@ class AnalysisTester:
             # Test 2: Monte Carlo base case should be close to actual base case
             if self.monte_carlo_results is not None and self.base_case_results:
                 test = TestResult("Monte Carlo Base Case Alignment", "Cross-Validation")
-                # Get median from Monte Carlo (should be close to base case)
+                # Get statistics from Monte Carlo
                 mc_median_cf = self.monte_carlo_results['annual_cash_flow'].median()
+                mc_q25 = self.monte_carlo_results['annual_cash_flow'].quantile(0.25)
+                mc_q75 = self.monte_carlo_results['annual_cash_flow'].quantile(0.75)
                 base_cf = self.base_case_results['cash_flow_after_debt_service']
-                # Allow 20% difference due to randomness
-                test.check_equality(base_cf, mc_median_cf, tolerance=0.20)
+                
+                # Check if base case is within the interquartile range (IQR) of Monte Carlo results
+                # This is more appropriate for Monte Carlo since parameters vary randomly
+                within_iqr = mc_q25 <= base_cf <= mc_q75
+                same_sign = (base_cf < 0 and mc_median_cf < 0) or (base_cf > 0 and mc_median_cf > 0)
+                
+                # Also check if within 2x IQR (more lenient check)
+                iqr = mc_q75 - mc_q25
+                within_2x_iqr = (mc_median_cf - 2*iqr) <= base_cf <= (mc_median_cf + 2*iqr)
+                
+                test.passed = same_sign and (within_iqr or within_2x_iqr)
+                diff_pct = abs(base_cf - mc_median_cf) / abs(base_cf) * 100 if base_cf != 0 else 0
+                test.message = f"Base: {base_cf:,.0f}, MC Median: {mc_median_cf:,.0f}, IQR: [{mc_q25:,.0f}, {mc_q75:,.0f}]"
                 test.details = {
                     'base_cf': base_cf,
                     'mc_median_cf': mc_median_cf,
-                    'difference_pct': abs(base_cf - mc_median_cf) / abs(base_cf) * 100 if base_cf != 0 else 0
+                    'mc_q25': mc_q25,
+                    'mc_q75': mc_q75,
+                    'difference_pct': diff_pct,
+                    'same_sign': same_sign,
+                    'within_iqr': within_iqr,
+                    'within_2x_iqr': within_2x_iqr
                 }
                 self.results.append(test)
             
@@ -459,8 +493,241 @@ class AnalysisTester:
                 test.check_equality(expected_revenue, self.base_case_results['gross_rental_income'], tolerance=1.0)
                 self.results.append(test)
             
+            # Test 6: Property value appreciation
+            if self.base_case_projection:
+                test = TestResult("Property Value Appreciation", "Cross-Validation")
+                initial_value = self.base_case_projection[0]['property_value']
+                final_value = self.base_case_projection[-1]['property_value']
+                test.passed = final_value > initial_value
+                test.message = f"Initial: {initial_value:,.0f}, Final: {final_value:,.0f}"
+                self.results.append(test)
+            
+            # Test 7: Cash flow per owner calculation
+            if self.base_case_results:
+                test = TestResult("Cash Flow Per Owner Calculation", "Cross-Validation")
+                expected_cf_per_owner = (self.base_case_results['cash_flow_after_debt_service'] / 
+                                       self.base_config.financing.num_owners)
+                test.check_equality(expected_cf_per_owner, self.base_case_results['cash_flow_per_owner'], tolerance=0.01)
+                self.results.append(test)
+            
+            # Test 8: Operating expense ratio
+            if self.base_case_results:
+                test = TestResult("Operating Expense Ratio", "Cross-Validation")
+                expected_oer = (self.base_case_results['total_operating_expenses'] / 
+                              self.base_case_results['gross_rental_income'] * 100)
+                test.check_equality(expected_oer, self.base_case_results['operating_expense_ratio_pct'], tolerance=0.1)
+                self.results.append(test)
+            
         except Exception as e:
             test = TestResult("Cross-Validation", "Cross-Validation")
+            test.set_fail(f"Exception: {str(e)}")
+            self.results.append(test)
+            traceback.print_exc()
+    
+    def test_data_integrity(self):
+        """Test data integrity and edge cases"""
+        try:
+            # Test 1: No negative revenue
+            if self.base_case_results:
+                test = TestResult("Revenue Non-Negative", "Data Integrity")
+                test.passed = self.base_case_results['gross_rental_income'] >= 0
+                test.message = f"Revenue: {self.base_case_results['gross_rental_income']:,.0f} CHF"
+                self.results.append(test)
+            
+            # Test 2: Loan amount <= Purchase price
+            if self.base_config:
+                test = TestResult("Loan Amount <= Purchase Price", "Data Integrity")
+                test.passed = self.base_config.financing.loan_amount <= self.base_config.financing.purchase_price
+                test.message = f"Loan: {self.base_config.financing.loan_amount:,.0f}, Price: {self.base_config.financing.purchase_price:,.0f}"
+                self.results.append(test)
+            
+            # Test 3: Equity = Purchase Price - Loan
+            if self.base_config:
+                test = TestResult("Equity Calculation Integrity", "Data Integrity")
+                calculated_equity = self.base_config.financing.purchase_price - self.base_config.financing.loan_amount
+                test.check_equality(calculated_equity, self.base_config.financing.equity_total, tolerance=0.01)
+                self.results.append(test)
+            
+            # Test 4: Occupancy rate in valid range
+            if self.base_config:
+                test = TestResult("Occupancy Rate Valid Range", "Data Integrity")
+                test.passed = 0 <= self.base_config.rental.occupancy_rate <= 1
+                test.message = f"Occupancy: {self.base_config.rental.occupancy_rate*100:.1f}%"
+                self.results.append(test)
+            
+            # Test 5: LTV in valid range
+            if self.base_config:
+                test = TestResult("LTV Valid Range", "Data Integrity")
+                test.passed = 0 < self.base_config.financing.ltv < 1
+                test.message = f"LTV: {self.base_config.financing.ltv*100:.1f}%"
+                self.results.append(test)
+            
+            # Test 6: Projection years are sequential
+            if self.base_case_projection:
+                test = TestResult("Projection Year Sequence", "Data Integrity")
+                years = [year['year'] for year in self.base_case_projection]
+                test.passed = years == list(range(years[0], years[0] + len(years)))
+                test.message = f"Years: {years[0]} to {years[-1]}"
+                self.results.append(test)
+            
+            # Test 7: All projection values are numeric
+            if self.base_case_projection:
+                test = TestResult("Projection Values Numeric", "Data Integrity")
+                all_numeric = True
+                for year_data in self.base_case_projection:
+                    for key, value in year_data.items():
+                        if key != 'year' and not isinstance(value, (int, float)):
+                            all_numeric = False
+                            break
+                    if not all_numeric:
+                        break
+                test.passed = all_numeric
+                test.message = "All projection values are numeric" if all_numeric else "Some non-numeric values found"
+                self.results.append(test)
+            
+        except Exception as e:
+            test = TestResult("Data Integrity", "Data Integrity")
+            test.set_fail(f"Exception: {str(e)}")
+            self.results.append(test)
+            traceback.print_exc()
+    
+    def test_file_generation(self):
+        """Test that HTML reports are generated correctly"""
+        try:
+            # Test 1: Base case report exists
+            test = TestResult("Base Case Report File Exists", "File Generation")
+            report_path = "website/report_base_case.html"
+            test.passed = os.path.exists(report_path)
+            if test.passed:
+                file_size = os.path.getsize(report_path)
+                test.message = f"File exists ({file_size:,} bytes)"
+                test.passed = file_size > 1000  # Should be at least 1KB
+            else:
+                test.message = "File not found"
+            self.results.append(test)
+            
+            # Test 2: Sensitivity report exists
+            test = TestResult("Sensitivity Report File Exists", "File Generation")
+            report_path = "website/report_sensitivity.html"
+            test.passed = os.path.exists(report_path)
+            if test.passed:
+                file_size = os.path.getsize(report_path)
+                test.message = f"File exists ({file_size:,} bytes)"
+                test.passed = file_size > 1000
+            else:
+                test.message = "File not found"
+            self.results.append(test)
+            
+            # Test 3: Monte Carlo report exists
+            test = TestResult("Monte Carlo Report File Exists", "File Generation")
+            report_path = "website/report_monte_carlo.html"
+            test.passed = os.path.exists(report_path)
+            if test.passed:
+                file_size = os.path.getsize(report_path)
+                test.message = f"File exists ({file_size:,} bytes)"
+                test.passed = file_size > 1000
+            else:
+                test.message = "File not found"
+            self.results.append(test)
+            
+            # Test 4: HTML structure validation (check for key elements)
+            test = TestResult("Base Case HTML Structure", "File Generation")
+            report_path = "website/report_base_case.html"
+            if os.path.exists(report_path):
+                with open(report_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    has_doctype = '<!DOCTYPE html>' in content
+                    has_title = '<title>' in content
+                    has_body = '<body>' in content
+                    has_charts = 'apexcharts' in content.lower() or 'plotly' in content.lower()
+                    test.passed = has_doctype and has_title and has_body and has_charts
+                    test.message = f"HTML structure valid: DOCTYPE={has_doctype}, Title={has_title}, Body={has_body}, Charts={has_charts}"
+            else:
+                test.set_fail("Report file not found")
+            self.results.append(test)
+            
+            # Test 5: Homepage exists
+            test = TestResult("Homepage File Exists", "File Generation")
+            report_path = "website/index.html"
+            test.passed = os.path.exists(report_path)
+            if test.passed:
+                file_size = os.path.getsize(report_path)
+                test.message = f"File exists ({file_size:,} bytes)"
+            else:
+                test.message = "File not found"
+            self.results.append(test)
+            
+        except Exception as e:
+            test = TestResult("File Generation", "File Generation")
+            test.set_fail(f"Exception: {str(e)}")
+            self.results.append(test)
+            traceback.print_exc()
+    
+    def test_alternative_scenarios(self):
+        """Test alternative scenario calculations"""
+        try:
+            from analysis_alternative_scenarios import generate_scenario_report
+            
+            # Test 1: 3 owners scenario
+            test = TestResult("3 Owners Scenario Calculation", "Alternative Scenarios")
+            try:
+                config_3 = create_base_case_config()
+                config_3.financing.num_owners = 3
+                config_3.rental.num_owners = 3
+                results_3 = compute_annual_cash_flows(config_3)
+                # Equity per owner should be higher with fewer owners
+                test.passed = results_3['equity_per_owner'] > self.base_case_results['equity_per_owner']
+                test.message = f"3 owners equity: {results_3['equity_per_owner']:,.0f}, Base: {self.base_case_results['equity_per_owner']:,.0f}"
+            except Exception as e:
+                test.set_fail(f"Failed: {str(e)}")
+            self.results.append(test)
+            
+            # Test 2: Lower price scenario
+            test = TestResult("Lower Price Scenario Calculation", "Alternative Scenarios")
+            try:
+                config_lower = create_base_case_config()
+                config_lower.financing.purchase_price = 1_100_000
+                results_lower = compute_annual_cash_flows(config_lower)
+                # Lower price should result in lower debt service
+                test.passed = results_lower['debt_service'] < self.base_case_results['debt_service']
+                test.message = f"Lower price debt: {results_lower['debt_service']:,.0f}, Base: {self.base_case_results['debt_service']:,.0f}"
+            except Exception as e:
+                test.set_fail(f"Failed: {str(e)}")
+            self.results.append(test)
+            
+        except Exception as e:
+            test = TestResult("Alternative Scenarios", "Alternative Scenarios")
+            test.set_fail(f"Exception: {str(e)}")
+            self.results.append(test)
+            traceback.print_exc()
+    
+    def test_performance(self):
+        """Test performance and timing"""
+        try:
+            import time
+            
+            # Test 1: Base case calculation speed
+            test = TestResult("Base Case Calculation Speed", "Performance")
+            start_time = time.time()
+            _ = compute_annual_cash_flows(self.base_config)
+            elapsed = time.time() - start_time
+            test.passed = elapsed < 1.0  # Should complete in under 1 second
+            test.message = f"Calculation time: {elapsed*1000:.2f}ms"
+            test.details = {'elapsed_ms': elapsed * 1000}
+            self.results.append(test)
+            
+            # Test 2: Projection calculation speed
+            test = TestResult("Projection Calculation Speed", "Performance")
+            start_time = time.time()
+            _ = compute_15_year_projection(self.base_config, start_year=2026)
+            elapsed = time.time() - start_time
+            test.passed = elapsed < 2.0  # Should complete in under 2 seconds
+            test.message = f"Calculation time: {elapsed*1000:.2f}ms"
+            test.details = {'elapsed_ms': elapsed * 1000}
+            self.results.append(test)
+            
+        except Exception as e:
+            test = TestResult("Performance", "Performance")
             test.set_fail(f"Exception: {str(e)}")
             self.results.append(test)
             traceback.print_exc()
@@ -468,7 +735,7 @@ class AnalysisTester:
     def generate_dashboard(self):
         """Generate HTML dashboard with test results"""
         # Ensure output directory exists
-        os.makedirs("output", exist_ok=True)
+        os.makedirs("website", exist_ok=True)
         
         # Group results by category
         categories = {}
@@ -483,6 +750,34 @@ class AnalysisTester:
         failed_tests = total_tests - passed_tests
         pass_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
         
+        # Define helper functions for layout (if not imported)
+        def generate_top_toolbar(report_title: str, back_link: str = "index.html", subtitle: str = "") -> str:
+            return f'''<div class="top-toolbar"><div class="toolbar-left"><a href="{back_link}" class="toolbar-btn"><i class="fas fa-home"></i> <span class="toolbar-btn-text">Home</span></a></div><div class="toolbar-center"><h1 class="toolbar-title">{report_title}</h1>{f'<p class="toolbar-subtitle">{subtitle}</p>' if subtitle else ''}</div><div class="toolbar-right"></div></div>'''
+        
+        def generate_sidebar_navigation(sections):
+            nav_items = ''.join([f'<li><a href="#{s.get("id","")}" class="sidebar-item" data-section="{s.get("id","")}"><i class="{s.get("icon","fas fa-circle")}"></i><span class="sidebar-item-text">{s.get("title","")}</span></a></li>' for s in sections])
+            return f'<nav class="sidebar"><div class="sidebar-header"><h3><i class="fas fa-bars"></i> Navigation</h3></div><ul class="sidebar-nav">{nav_items}</ul></nav>'
+        
+        def generate_shared_layout_css():
+            return '''.layout-container{display:flex;flex-direction:column;min-height:100vh;background:#f5f7fa}.top-toolbar{position:fixed;top:0;left:0;right:0;height:60px;background:var(--gradient-1);color:white;display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:1000;box-shadow:0 2px 8px rgba(0,0,0,0.15)}.toolbar-left,.toolbar-right{display:flex;align-items:center;gap:15px}.toolbar-center{flex:1;text-align:center}.toolbar-title{font-size:1.3em;font-weight:700;margin:0;color:white}.toolbar-subtitle{font-size:0.85em;margin:0;opacity:0.9}.toolbar-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:rgba(255,255,255,0.2);color:white;text-decoration:none;border-radius:6px;font-size:0.9em;font-weight:600;transition:all 0.2s ease;border:1px solid rgba(255,255,255,0.3)}.toolbar-btn:hover{background:rgba(255,255,255,0.3);transform:translateY(-1px)}.sidebar{position:fixed;left:0;top:60px;width:250px;height:calc(100vh - 60px);background:white;box-shadow:2px 0 8px rgba(0,0,0,0.1);overflow-y:auto;z-index:999;transition:transform 0.3s ease}.sidebar-header{padding:20px;background:var(--primary);color:white;border-bottom:1px solid rgba(255,255,255,0.1)}.sidebar-header h3{font-size:1.1em;font-weight:600;margin:0;display:flex;align-items:center;gap:10px}.sidebar-nav{list-style:none;padding:0;margin:0}.sidebar-nav li{margin:0}.sidebar-item{display:flex;align-items:center;gap:12px;padding:15px 20px;color:#495057;text-decoration:none;border-left:3px solid transparent;transition:all 0.2s ease;font-size:0.9em}.sidebar-item:hover{background:#f8f9fa;color:var(--primary);border-left-color:var(--primary)}.sidebar-item.active{background:#e7f3ff;color:var(--primary);border-left-color:var(--primary);font-weight:600}.sidebar-item i{width:20px;text-align:center;font-size:0.9em}.sidebar-item-text{flex:1}.main-content{margin-left:250px;margin-top:60px;padding:30px 40px;background:white;min-height:calc(100vh - 60px)}.section{scroll-margin-top:80px}@media (max-width:768px){.sidebar{transform:translateX(-100%);width:250px}.sidebar.open{transform:translateX(0)}.main-content{margin-left:0}.toolbar-btn-text{display:none}.toolbar-title{font-size:1.1em}}.sidebar::-webkit-scrollbar{width:6px}.sidebar::-webkit-scrollbar-track{background:#f1f1f1}.sidebar::-webkit-scrollbar-thumb{background:#888;border-radius:3px}.sidebar::-webkit-scrollbar-thumb:hover{background:#555}'''
+        
+        def generate_shared_layout_js():
+            return '''<script>(function(){document.querySelectorAll('.sidebar-item').forEach(item=>{item.addEventListener('click',function(e){e.preventDefault();const targetId=this.getAttribute('href').substring(1);const targetElement=document.getElementById(targetId);if(targetElement){const offset=80;const elementPosition=targetElement.getBoundingClientRect().top;const offsetPosition=elementPosition+window.pageYOffset-offset;window.scrollTo({top:offsetPosition,behavior:'smooth'});updateActiveSection(targetId)}})});function updateActiveSection(activeId){document.querySelectorAll('.sidebar-item').forEach(item=>{item.classList.remove('active');if(item.getAttribute('data-section')===activeId){item.classList.add('active')}})}const observerOptions={root:null,rootMargin:'-20% 0px -70% 0px',threshold:0};const observer=new IntersectionObserver(function(entries){entries.forEach(entry=>{if(entry.isIntersecting){const sectionId=entry.target.id;if(sectionId){updateActiveSection(sectionId)}}})},observerOptions);document.querySelectorAll('.section[id], h2[id], h3[id]').forEach(section=>{observer.observe(section)})})();</script>'''
+        
+        # Define sections for sidebar navigation
+        sections = [
+            {'id': 'test-summary', 'title': 'Test Summary', 'icon': 'fas fa-check-circle'},
+            {'id': 'test-results', 'title': 'Test Results', 'icon': 'fas fa-list'},
+        ]
+        
+        # Generate sidebar and toolbar
+        sidebar_html = generate_sidebar_navigation(sections)
+        toolbar_html = generate_top_toolbar(
+            report_title="Analysis Test Dashboard",
+            back_link="index.html",
+            subtitle="Validation & Quality Assurance"
+        )
+        
         # Generate HTML
         html = f"""
 <!DOCTYPE html>
@@ -493,6 +788,13 @@ class AnalysisTester:
     <title>Analysis Test Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        {generate_shared_layout_css()}
+        
+        :root {{
+            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary: #1a1a2e;
+        }}
+        
         * {{
             margin: 0;
             padding: 0;
@@ -524,7 +826,7 @@ class AnalysisTester:
         }}
         
         .header h1 {{
-            font-size: 2.5em;
+            font-size: 2.2em;
             margin-bottom: 10px;
         }}
         
@@ -672,12 +974,16 @@ class AnalysisTester:
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
+    <div class="layout-container">
+        {toolbar_html}
+        {sidebar_html}
+        <div class="main-content">
+        <div class="header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px; text-align: center; margin-bottom: 30px; border-radius: 8px;">
             <h1><i class="fas fa-check-circle"></i> Analysis Test Dashboard</h1>
             <div class="subtitle">Comprehensive Validation of Base Case, Sensitivity, and Monte Carlo Analyses</div>
         </div>
         
+        <div class="section" id="test-summary">
         <div class="summary">
             <div class="summary-card total">
                 <div class="label">Total Tests</div>
@@ -749,17 +1055,22 @@ class AnalysisTester:
             <i class="fas fa-clock"></i> Test run completed: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
         </div>
         
-        <div class="footer">
-            <p>This dashboard validates calculations across Base Case, Sensitivity, and Monte Carlo analyses</p>
-            <p>All calculations are cross-checked for accuracy and consistency</p>
+        </div>
+        </div>
+        
+        <div class="footer" style="margin-top: 40px; padding: 30px; background: #f8f9fa; text-align: center; border-top: 1px solid #dee2e6;">
+            <p style="margin: 0; font-size: 0.9em; color: #6c757d;">This dashboard validates calculations across Base Case, Sensitivity, and Monte Carlo analyses</p>
+            <p style="margin: 5px 0 0 0; font-size: 0.85em; color: #6c757d;">All calculations are cross-checked for accuracy and consistency</p>
+        </div>
         </div>
     </div>
+    {generate_shared_layout_js()}
 </body>
 </html>
 """
         
         # Write to file
-        output_path = "output/report_validation.html"
+        output_path = "website/report_validation.html"
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(html)
         

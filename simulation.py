@@ -121,14 +121,15 @@ class RentalParams:
 
 @dataclass
 class ExpenseParams:
-    property_management_fee_rate: float  # share of gross rental revenue, for example 0.25
-    cleaning_cost_per_stay: float       # CHF
-    average_length_of_stay: float       # nights per stay
+    property_management_fee_rate: float  # share of gross rental revenue, 20% (can vary 15-30% in sensitivities)
+    cleaning_cost_per_stay: float       # CHF per stay, 80 CHF (can vary 60-130 CHF in sensitivities)
+    average_length_of_stay: float       # nights per stay, 1.7
     tourist_tax_per_person_per_night: float  # CHF
     avg_guests_per_night: float
-    insurance_annual: float             # CHF
-    utilities_annual: float             # CHF
-    maintenance_rate: float             # percent of property value per year
+    insurance_annual: float             # CHF, 0.4% of property value
+    nubbing_costs_annual: float         # CHF, shared expenses for shared parts (water, heating)
+    electricity_internet_annual: float  # CHF, electricity and internet
+    maintenance_rate: float             # percent of property value per year, 1%
     property_value: float               # CHF
 
     def property_management_cost(self, gross_rental_income: float) -> float:
@@ -263,14 +264,15 @@ def create_base_case_config() -> BaseCaseConfig:
     )
 
     expenses = ExpenseParams(
-        property_management_fee_rate=0.20,  # twenty percent of gross rental income (cleaning is separate)
-        cleaning_cost_per_stay=80.0,        # cleaning cost per stay (variable with occupancy and nights)
-        average_length_of_stay=1.7,         # 1.7 nights per stay (reduced from 2.0)
+        property_management_fee_rate=0.20,  # 20% of gross rental income (can vary 15-30% in sensitivities)
+        cleaning_cost_per_stay=80.0,        # 80 CHF per stay (can vary 60-130 CHF in sensitivities)
+        average_length_of_stay=1.7,         # 1.7 nights per stay
         tourist_tax_per_person_per_night=3.0,
         avg_guests_per_night=2.0,
-        insurance_annual=1_000.0,
-        utilities_annual=3_000.0,
-        maintenance_rate=0.01,             # one percent of property value per year
+        insurance_annual=purchase_price * 0.004,  # 0.4% of property value
+        nubbing_costs_annual=2_000.0,      # Shared expenses for shared parts (water, heating)
+        electricity_internet_annual=1_000.0,  # Electricity and internet
+        maintenance_rate=0.01,             # 1% of property value per year
         property_value=purchase_price
     )
 
@@ -313,15 +315,17 @@ def compute_annual_cash_flows(config: BaseCaseConfig) -> Dict[str, float]:
     
     tourist_tax = e.tourist_tax(rented_nights)
     insurance = e.insurance_annual
-    utilities = e.utilities_annual
+    nubbing_costs = e.nubbing_costs_annual
+    electricity_internet = e.electricity_internet_annual
     maintenance_reserve = e.maintenance_reserve
 
     total_operating_expenses = (
         property_management_cost
-        + cleaning_cost  # Include cleaning cost if it's separate
+        + cleaning_cost  # Separate cleaning cost (80 CHF per stay, can vary 60-130)
         + tourist_tax
         + insurance
-        + utilities
+        + nubbing_costs  # Shared expenses (water, heating)
+        + electricity_internet  # Electricity and internet
         + maintenance_reserve
     )
 
@@ -355,7 +359,8 @@ def compute_annual_cash_flows(config: BaseCaseConfig) -> Dict[str, float]:
         "cleaning_cost": cleaning_cost,
         "tourist_tax": tourist_tax,
         "insurance": insurance,
-        "utilities": utilities,
+        "nubbing_costs": nubbing_costs,
+        "electricity_internet": electricity_internet,
         "maintenance_reserve": maintenance_reserve,
         "total_operating_expenses": total_operating_expenses,
         
@@ -399,7 +404,7 @@ def compute_annual_cash_flows(config: BaseCaseConfig) -> Dict[str, float]:
 
 
 def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026, 
-                               inflation_rate: float = 0.02, property_appreciation_rate: float = 0.01) -> List[Dict[str, any]]:
+                               inflation_rate: float = 0.02, property_appreciation_rate: float = 0.025) -> List[Dict[str, any]]:
     """
     Compute 15-year projection of cash flows and financial metrics.
     
@@ -408,7 +413,7 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
     - Loan amount decreases each year due to amortization
     - Interest is calculated on remaining loan balance
     - Inflation applied to revenue and variable expenses (default 2%)
-    - Property appreciation applied annually (default 1%)
+    - Property appreciation applied annually (default 2.5% - realistic for Swiss real estate)
     
     Returns a list of dictionaries, one for each year.
     """
@@ -424,7 +429,8 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
     base_cleaning = base_result.get('cleaning_cost', 0.0)  # Get cleaning cost if separate
     base_tourist_tax = base_result['tourist_tax']  # Tourist tax from base result
     base_insurance = base_result['insurance']
-    base_utilities = base_result['utilities']
+    base_nubbing_costs = base_result['nubbing_costs']
+    base_electricity_internet = base_result['electricity_internet']
     base_maintenance = base_result['maintenance_reserve']
     
     # Pre-calculate inflation and appreciation factors for efficiency
@@ -442,20 +448,22 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
         cleaning_cost = base_cleaning * inflation_factor  # Cleaning is variable, inflates with occupancy/revenue
         tourist_tax = base_tourist_tax * inflation_factor
         
-        # Fixed expenses (insurance, utilities) also inflate
+        # Fixed expenses (insurance, nubbing costs, electricity/internet) also inflate
         insurance = base_insurance * inflation_factor
-        utilities = base_utilities * inflation_factor
+        nubbing_costs = base_nubbing_costs * inflation_factor
+        electricity_internet = base_electricity_internet * inflation_factor
         
-        # Maintenance reserve based on appreciated property value
+        # Maintenance reserve based on appreciated property value (1% of current property value)
         current_property_value = config.financing.purchase_price * appreciation_factor
         maintenance_reserve = current_property_value * config.expenses.maintenance_rate
         
         total_operating_expenses = (
             property_management_cost +
-            cleaning_cost +  # Include cleaning cost if it's separate
+            cleaning_cost +  # Separate cleaning cost (80 CHF per stay, can vary 60-130)
             tourist_tax +
             insurance +
-            utilities +
+            nubbing_costs +  # Shared expenses (water, heating)
+            electricity_internet +  # Electricity and internet
             maintenance_reserve
         )
         
@@ -635,12 +643,17 @@ def compute_detailed_expenses(config: BaseCaseConfig) -> Dict[str, float]:
     gross_rental_income = r.gross_rental_income
     rented_nights = r.rented_nights
     
+    # Calculate cleaning cost if separate
+    cleaning_cost = e.cleaning_cost(rented_nights) if e.cleaning_cost_per_stay > 0 else 0.0
+    
     return {
-        "Property Management (incl. Cleaning)": e.property_management_cost(gross_rental_income),
+        "Property Management": e.property_management_cost(gross_rental_income),  # 20% (can vary 15-30%)
+        "Cleaning": cleaning_cost,  # 80 CHF per stay (can vary 60-130)
         "Tourist Tax": e.tourist_tax(rented_nights),
-        "Insurance": e.insurance_annual,
-        "Utilities": e.utilities_annual,
-        "Maintenance Reserve": e.maintenance_reserve,
+        "Insurance": e.insurance_annual,  # 0.4% of property value
+        "Nubbing Costs (Water, Heating)": e.nubbing_costs_annual,
+        "Electricity & Internet": e.electricity_internet_annual,
+        "Maintenance Reserve": e.maintenance_reserve,  # 1% of property value
     }
 
 
@@ -741,7 +754,8 @@ def apply_sensitivity(
         tourist_tax_per_person_per_night=base_config.expenses.tourist_tax_per_person_per_night,
         avg_guests_per_night=base_config.expenses.avg_guests_per_night,
         insurance_annual=base_config.expenses.insurance_annual,
-        utilities_annual=base_config.expenses.utilities_annual,
+        nubbing_costs_annual=base_config.expenses.nubbing_costs_annual,
+        electricity_internet_annual=base_config.expenses.electricity_internet_annual,
         maintenance_rate=base_config.expenses.maintenance_rate,
         property_value=base_config.expenses.property_value
     )

@@ -17,6 +17,128 @@ from simulation import (
 )
 from datetime import datetime
 import os
+from typing import List, Dict
+
+# Import shared layout functions from sensitivity analysis
+# Note: These could be moved to a shared module in the future
+try:
+    from analysis_sensitivity import (
+        generate_top_toolbar,
+        generate_sidebar_navigation,
+        generate_shared_layout_css,
+        generate_shared_layout_js
+    )
+except ImportError:
+    # Fallback: define functions locally if import fails
+    def generate_top_toolbar(report_title: str, back_link: str = "index.html", subtitle: str = "") -> str:
+        return f'''
+        <div class="top-toolbar">
+            <div class="toolbar-left">
+                <a href="{back_link}" class="toolbar-btn" title="Back to Home">
+                    <i class="fas fa-home"></i> <span class="toolbar-btn-text">Home</span>
+                </a>
+            </div>
+            <div class="toolbar-center">
+                <h1 class="toolbar-title">{report_title}</h1>
+                {f'<p class="toolbar-subtitle">{subtitle}</p>' if subtitle else ''}
+            </div>
+            <div class="toolbar-right">
+            </div>
+        </div>
+        '''
+    
+    def generate_sidebar_navigation(sections: List[Dict[str, str]]) -> str:
+        nav_items = []
+        for section in sections:
+            section_id = section.get('id', '')
+            section_title = section.get('title', '')
+            section_icon = section.get('icon', 'fas fa-circle')
+            nav_items.append(f'''
+                <li>
+                    <a href="#{section_id}" class="sidebar-item" data-section="{section_id}">
+                        <i class="{section_icon}"></i>
+                        <span class="sidebar-item-text">{section_title}</span>
+                    </a>
+                </li>
+            ''')
+        return f'''
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-bars"></i> Navigation</h3>
+            </div>
+            <ul class="sidebar-nav">
+                {''.join(nav_items)}
+            </ul>
+        </nav>
+        '''
+    
+    def generate_shared_layout_css() -> str:
+        return '''
+        .layout-container { display: flex; flex-direction: column; min-height: 100vh; background: #f5f7fa; }
+        .top-toolbar { position: fixed; top: 0; left: 0; right: 0; height: 60px; background: var(--gradient-1); color: white; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+        .toolbar-left, .toolbar-right { display: flex; align-items: center; gap: 15px; }
+        .toolbar-center { flex: 1; text-align: center; }
+        .toolbar-title { font-size: 1.3em; font-weight: 700; margin: 0; color: white; }
+        .toolbar-subtitle { font-size: 0.85em; margin: 0; opacity: 0.9; }
+        .toolbar-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: rgba(255,255,255,0.2); color: white; text-decoration: none; border-radius: 6px; font-size: 0.9em; font-weight: 600; transition: all 0.2s ease; border: 1px solid rgba(255,255,255,0.3); }
+        .toolbar-btn:hover { background: rgba(255,255,255,0.3); transform: translateY(-1px); }
+        .sidebar { position: fixed; left: 0; top: 60px; width: 250px; height: calc(100vh - 60px); background: white; box-shadow: 2px 0 8px rgba(0,0,0,0.1); overflow-y: auto; z-index: 999; transition: transform 0.3s ease; }
+        .sidebar-header { padding: 20px; background: var(--primary); color: white; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-header h3 { font-size: 1.1em; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 10px; }
+        .sidebar-nav { list-style: none; padding: 0; margin: 0; }
+        .sidebar-nav li { margin: 0; }
+        .sidebar-item { display: flex; align-items: center; gap: 12px; padding: 15px 20px; color: #495057; text-decoration: none; border-left: 3px solid transparent; transition: all 0.2s ease; font-size: 0.9em; }
+        .sidebar-item:hover { background: #f8f9fa; color: var(--primary); border-left-color: var(--primary); }
+        .sidebar-item.active { background: #e7f3ff; color: var(--primary); border-left-color: var(--primary); font-weight: 600; }
+        .sidebar-item i { width: 20px; text-align: center; font-size: 0.9em; }
+        .sidebar-item-text { flex: 1; }
+        .main-content { margin-left: 250px; margin-top: 60px; padding: 30px 40px; background: white; min-height: calc(100vh - 60px); }
+        .section { scroll-margin-top: 80px; }
+        @media (max-width: 768px) { .sidebar { transform: translateX(-100%); width: 250px; } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; } .toolbar-btn-text { display: none; } .toolbar-title { font-size: 1.1em; } }
+        .sidebar::-webkit-scrollbar { width: 6px; } .sidebar::-webkit-scrollbar-track { background: #f1f1f1; } .sidebar::-webkit-scrollbar-thumb { background: #888; border-radius: 3px; } .sidebar::-webkit-scrollbar-thumb:hover { background: #555; }
+        '''
+    
+    def generate_shared_layout_js() -> str:
+        return '''
+        <script>
+        (function() {
+            document.querySelectorAll('.sidebar-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href').substring(1);
+                    const targetElement = document.getElementById(targetId);
+                    if (targetElement) {
+                        const offset = 80;
+                        const elementPosition = targetElement.getBoundingClientRect().top;
+                        const offsetPosition = elementPosition + window.pageYOffset - offset;
+                        window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                        updateActiveSection(targetId);
+                    }
+                });
+            });
+            function updateActiveSection(activeId) {
+                document.querySelectorAll('.sidebar-item').forEach(item => {
+                    item.classList.remove('active');
+                    if (item.getAttribute('data-section') === activeId) {
+                        item.classList.add('active');
+                    }
+                });
+            }
+            const observerOptions = { root: null, rootMargin: '-20% 0px -70% 0px', threshold: 0 };
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const sectionId = entry.target.id;
+                        if (sectionId) { updateActiveSection(sectionId); }
+                    }
+                });
+            }, observerOptions);
+            document.querySelectorAll('.section[id], h2[id], h3[id]').forEach(section => {
+                observer.observe(section);
+            });
+        })();
+        </script>
+        '''
 
 
 def export_to_excel(results: dict, config, projection_15yr: List[dict], irr_results: dict = None, output_path: str = "base_case_results.xlsx"):
@@ -129,7 +251,8 @@ def export_to_excel(results: dict, config, projection_15yr: List[dict], irr_resu
                 "  Property Management (includes Cleaning)",
                 "  Tourist Tax",
                 "  Insurance",
-                "  Utilities",
+                "  Nubbing Costs (Water, Heating)",
+                "  Electricity & Internet",
                 "  Maintenance Reserve",
                 "Total Operating Expenses",
                 "",
@@ -149,7 +272,8 @@ def export_to_excel(results: dict, config, projection_15yr: List[dict], irr_resu
                 results["property_management_cost"],
                 results["tourist_tax"],
                 results["insurance"],
-                results["utilities"],
+                results["nubbing_costs"],
+                results["electricity_internet"],
                 results["maintenance_reserve"],
                 results["total_operating_expenses"],
                 "",
@@ -274,7 +398,8 @@ def export_to_excel(results: dict, config, projection_15yr: List[dict], irr_resu
                 "Tourist Tax per Person per Night",
                 "Average Guests per Night",
                 "Insurance Annual",
-                "Utilities Annual",
+                "Nubbing Costs Annual",
+                "Electricity & Internet Annual",
                 "Maintenance Rate",
             ],
             "Value": [
@@ -292,7 +417,8 @@ def export_to_excel(results: dict, config, projection_15yr: List[dict], irr_resu
                 f"{config.expenses.tourist_tax_per_person_per_night:.0f} CHF",
                 f"{config.expenses.avg_guests_per_night:.1f}",
                 f"{config.expenses.insurance_annual:,.0f} CHF",
-                f"{config.expenses.utilities_annual:,.0f} CHF",
+                f"{config.expenses.nubbing_costs_annual:,.0f} CHF",
+                f"{config.expenses.electricity_internet_annual:,.0f} CHF",
                 f"{config.expenses.maintenance_rate*100:.1f}%",
             ]
         }
@@ -706,12 +832,12 @@ def create_charts(results: dict, config, projection_15yr: List[dict]) -> List[go
         x=years,
         y=cash_flows_per_owner,
         mode='lines+markers',
-        name='Cash Flow per Owner',
+        name='Cash Flow per Investor',
         line=dict(color=CHART_COLORS['success'], width=3.5, shape='spline'),
         marker=dict(size=10, color=CHART_COLORS['success'], line=dict(color='#ffffff', width=2)),
         fill='tozeroy',
         fillcolor='rgba(46, 204, 113, 0.1)',
-        hovertemplate='<b>Cash Flow per Owner</b><br>Year: %{x}<br>Amount: %{y:,.0f} CHF<extra></extra>'
+        hovertemplate='<b>Cash Flow per Investor</b><br>Year: %{x}<br>Amount: %{y:,.0f} CHF<extra></extra>'
     ))
     fig6.add_hline(
         y=0,
@@ -918,7 +1044,7 @@ def generate_apexcharts_html(results: dict, config, projection_15yr: List[dict])
             "name": "Total Cash Flow",
             "data": cash_flows
         }, {
-            "name": "Cash Flow per Owner",
+            "name": "Cash Flow per Investor",
             "data": cash_flows_per_owner
         }],
         "xaxis": {"categories": years, "title": {"text": "Year"}},
@@ -1113,7 +1239,7 @@ def generate_apexcharts_html(results: dict, config, projection_15yr: List[dict])
     return charts_html
 
 
-def generate_html_report(results: dict, config, charts: List, projection_15yr: List[dict], irr_results: dict, output_path: str = "output/report_base_case.html"):
+def generate_html_report(results: dict, config, charts: List, projection_15yr: List[dict], irr_results: dict, output_path: str = "website/report_base_case.html"):
     """Generate HTML report with charts, KPIs, 15-year projection, and IRRs."""
     
     # Format numbers for display
@@ -1125,6 +1251,23 @@ def generate_html_report(results: dict, config, charts: List, projection_15yr: L
     
     # Generate ApexCharts HTML
     charts_html = generate_apexcharts_html(results, config, projection_15yr)
+    
+    # Define sections for sidebar navigation
+    sections = [
+        {'id': 'executive-summary', 'title': 'Executive Summary', 'icon': 'fas fa-file-alt'},
+        {'id': 'financial-summary', 'title': 'Financial Summary', 'icon': 'fas fa-file-invoice-dollar'},
+        {'id': 'projection-15yr', 'title': '15-Year Projection', 'icon': 'fas fa-calendar-alt'},
+        {'id': 'key-assumptions', 'title': 'Key Assumptions', 'icon': 'fas fa-cog'},
+        {'id': 'charts', 'title': 'Charts & Visualizations', 'icon': 'fas fa-chart-line'},
+    ]
+    
+    # Generate sidebar and toolbar
+    sidebar_html = generate_sidebar_navigation(sections)
+    toolbar_html = generate_top_toolbar(
+        report_title="Base Case Analysis",
+        back_link="index.html",
+        subtitle="Engelberg Property Investment"
+    )
     
     # Helper function for seasonal breakdown HTML
     def generate_seasonal_breakdown_html(results_dict, format_func):
@@ -1146,9 +1289,9 @@ def generate_html_report(results: dict, config, charts: List, projection_15yr: L
         ])
         
         return f'''
-                <div style="background: #e8f4f8; padding: 25px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #17a2b8;">
-                    <h3 style="color: #1a1a2e; margin-bottom: 20px; font-size: 1.3em;"><i class="fas fa-calendar-alt"></i> Seasonal Breakdown - Engelberg Tourism Patterns</h3>
-                    <p style="font-size: 1.05em; line-height: 1.8; margin-bottom: 20px;">
+                <div style="background: #e8f4f8; padding: 20px; border-radius: 8px; margin-top: 15px; border-left: 3px solid #17a2b8;">
+                    <h3 style="color: #1a1a2e; margin-bottom: 15px; font-size: 1.1em;"><i class="fas fa-calendar-alt"></i> Seasonal Breakdown - Engelberg Tourism Patterns</h3>
+                    <p style="font-size: 0.95em; line-height: 1.6; margin-bottom: 15px;">
                         Engelberg experiences distinct tourism seasons, each with different demand patterns and pricing:
                     </p>
                     <table class="summary-table" style="margin-top: 15px;">
@@ -1187,6 +1330,8 @@ def generate_html_report(results: dict, config, charts: List, projection_15yr: L
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        {generate_shared_layout_css()}
+        
         * {{
             margin: 0;
             padding: 0;
@@ -1218,7 +1363,7 @@ def generate_html_report(results: dict, config, charts: List, projection_15yr: L
         }}
         
         .container {{
-            max-width: 1920px;
+            max-width: 1200px;
             margin: 0 auto;
             background: #ffffff;
             min-height: 100vh;
@@ -1227,7 +1372,7 @@ def generate_html_report(results: dict, config, charts: List, projection_15yr: L
         .header {{
             background: var(--gradient-1);
             color: white;
-            padding: 60px 80px;
+            padding: 40px 60px;
             position: relative;
             overflow: hidden;
         }}
@@ -1237,8 +1382,8 @@ def generate_html_report(results: dict, config, charts: List, projection_15yr: L
             position: absolute;
             top: -50%;
             right: -10%;
-            width: 500px;
-            height: 500px;
+            width: 400px;
+            height: 400px;
             background: rgba(255,255,255,0.1);
             border-radius: 50%;
             animation: float 20s infinite ease-in-out;
@@ -1250,95 +1395,77 @@ def generate_html_report(results: dict, config, charts: List, projection_15yr: L
         }}
         
         .header h1 {{
-            font-size: 3.5em;
+            font-size: 2.2em;
             font-weight: 700;
-            margin-bottom: 15px;
-            letter-spacing: -1px;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
             position: relative;
             z-index: 1;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }}
         
         .header .subtitle {{
-            font-size: 1.4em;
+            font-size: 1.1em;
             opacity: 0.95;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             position: relative;
             z-index: 1;
         }}
         
         .header .meta {{
-            font-size: 0.95em;
+            font-size: 0.9em;
             opacity: 0.85;
-            margin-top: 20px;
+            margin-top: 12px;
             position: relative;
             z-index: 1;
         }}
         
         .content {{
-            padding: 50px 80px;
+            padding: 30px 40px;
         }}
         
         .dashboard {{
-            padding: 50px 80px;
+            padding: 30px 40px;
             background: #f5f7fa;
         }}
         
         .kpi-grid {{
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-            margin-bottom: 50px;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
         }}
         
         .kpi-card {{
             background: white;
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: var(--shadow-md);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
             position: relative;
             overflow: hidden;
-            border-left: 4px solid var(--primary);
-        }}
-        
-        .kpi-card::before {{
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--gradient-1);
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.3s;
+            border-left: 3px solid var(--primary);
         }}
         
         .kpi-card:hover {{
-            transform: translateY(-8px);
-            box-shadow: var(--shadow-lg);
-        }}
-        
-        .kpi-card:hover::before {{
-            transform: scaleX(1);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
         }}
         
         .kpi-card h3 {{
-            font-size: 0.85em;
+            font-size: 0.8em;
             color: #6c757d;
             text-transform: uppercase;
-            letter-spacing: 1.2px;
-            margin-bottom: 15px;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
             font-weight: 600;
         }}
         
         .kpi-card .value {{
-            font-size: 2.5em;
+            font-size: 2em;
             font-weight: 700;
             color: var(--primary);
-            margin-bottom: 8px;
-            letter-spacing: -1px;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
         }}
         
         .kpi-card .value.positive {{
@@ -1350,13 +1477,13 @@ def generate_html_report(results: dict, config, charts: List, projection_15yr: L
         }}
         
         .kpi-card .description {{
-            font-size: 0.9em;
+            font-size: 0.85em;
             color: #868e96;
-            margin-top: 8px;
+            margin-top: 6px;
         }}
         
         .section {{
-            padding: 50px 80px;
+            padding: 30px 40px;
             background: white;
         }}
         
@@ -1365,7 +1492,7 @@ def generate_html_report(results: dict, config, charts: List, projection_15yr: L
         }}
         
         .section h2 {{
-            font-size: 2.2em;
+            font-size: 1.8em;
             font-weight: 700;
             color: var(--primary);
             margin-bottom: 30px;
@@ -1524,7 +1651,9 @@ def generate_html_report(results: dict, config, charts: List, projection_15yr: L
         
         <!-- Dashboard Section -->
         <div class="dashboard">
-            <h2 style="font-size: 2em; margin-bottom: 30px; color: var(--primary);">Executive Dashboard</h2>
+            <div style="margin-bottom: 20px;">
+                <h2 style="font-size: 1.8em; margin: 0; color: var(--primary);">Executive Dashboard</h2>
+            </div>
             
             <!-- Key Metrics Grid - IRR and Return Metrics First -->
             <div class="kpi-grid">
@@ -1583,13 +1712,13 @@ def generate_html_report(results: dict, config, charts: List, projection_15yr: L
                 </div>
                 
                 <div class="kpi-card scroll-reveal">
-                    <h3><i class="fas fa-user"></i> Cash Flow per Owner</h3>
+                    <h3><i class="fas fa-user"></i> Cash Flow per Investor</h3>
                     <div class="value {('positive' if results['cash_flow_per_owner'] >= 0 else 'negative')}">{format_currency(results['cash_flow_per_owner'])}</div>
-                    <div class="description">Per owner per year</div>
+                    <div class="description">Per investor per year</div>
                 </div>
                 
                 <div class="kpi-card scroll-reveal" style="border-left: 4px solid var(--info);">
-                    <h3><i class="fas fa-calendar-alt"></i> Monthly Cash per Owner</h3>
+                    <h3><i class="fas fa-calendar-alt"></i> Monthly Cash Flow per Investor</h3>
                     <div class="value {('positive' if results['cash_flow_per_owner'] >= 0 else 'negative')}">{format_currency(results['cash_flow_per_owner'] / 12)}</div>
                     <div class="description">Per owner per month</div>
                 </div>
@@ -1613,7 +1742,7 @@ def generate_html_report(results: dict, config, charts: List, projection_15yr: L
                 </div>
                 
                 <div class="kpi-card scroll-reveal">
-                    <h3><i class="fas fa-key"></i> Equity per Owner</h3>
+                    <h3><i class="fas fa-key"></i> Equity per Investor</h3>
                     <div class="value">{format_currency(results['equity_per_owner'])}</div>
                     <div class="description">Initial investment</div>
                 </div>
@@ -1635,7 +1764,7 @@ def generate_html_report(results: dict, config, charts: List, projection_15yr: L
         </div>
         
         <!-- Charts Section -->
-        <div class="section">
+        <div class="section" id="charts">
             <h2><i class="fas fa-chart-bar"></i> Financial Visualizations</h2>
             <div class="charts-grid">
                 {charts_html}
@@ -1644,7 +1773,7 @@ def generate_html_report(results: dict, config, charts: List, projection_15yr: L
         
         <div class="content">
             <!-- Executive Summary -->
-            <div class="section">
+            <div class="section" id="executive-summary">
                 <h2><i class="fas fa-file-alt"></i> Executive Summary</h2>
                 <div style="background: #f8f9fa; padding: 25px; border-radius: 8px; margin-bottom: 20px; line-height: 1.8;">
                     <p style="font-size: 1.1em; margin-bottom: 15px;">
@@ -1670,7 +1799,7 @@ def generate_html_report(results: dict, config, charts: List, projection_15yr: L
             </div>
             
             <!-- Financial Summary -->
-            <div class="section">
+            <div class="section" id="financial-summary">
                 <h2><i class="fas fa-file-invoice-dollar"></i> Financial Summary</h2>
                 <table class="summary-table">
                     <thead>
@@ -1705,8 +1834,12 @@ def generate_html_report(results: dict, config, charts: List, projection_15yr: L
                             <td>{format_currency(results['insurance'])}</td>
                         </tr>
                         <tr>
-                            <td style="padding-left: 30px;">Utilities</td>
-                            <td>{format_currency(results['utilities'])}</td>
+                            <td style="padding-left: 30px;">Nubbing Costs (Water, Heating)</td>
+                            <td>{format_currency(results['nubbing_costs'])}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 30px;">Electricity & Internet</td>
+                            <td>{format_currency(results['electricity_internet'])}</td>
                         </tr>
                         <tr>
                             <td style="padding-left: 30px;">Maintenance Reserve</td>
@@ -1768,7 +1901,7 @@ def generate_html_report(results: dict, config, charts: List, projection_15yr: L
             
             <!-- 15-Year Projection -->
             <div class="section">
-                <h2><i class="fas fa-calendar-alt"></i> 15-Year Financial Projection</h2>
+                <h2 id="projection-15yr"><i class="fas fa-calendar-alt"></i> 15-Year Financial Projection</h2>
                 <div style="background: #f8f9fa; padding: 25px; border-radius: 8px; margin-bottom: 20px;">
                     <p style="font-size: 1.05em; line-height: 1.8; margin-bottom: 15px;">
                         The following projection shows the financial performance over 15 years starting from <strong>January {projection_15yr[0]['year']}</strong>. 
@@ -1780,7 +1913,7 @@ def generate_html_report(results: dict, config, charts: List, projection_15yr: L
                     </p>
                     <ul style="font-size: 1.05em; line-height: 1.8; margin-left: 20px;">
                         <li><strong>Inflation:</strong> 2% per year applied to revenue and operating expenses</li>
-                        <li><strong>Property Appreciation:</strong> 2% per year (optimistic estimate)</li>
+                        <li><strong>Property Appreciation:</strong> 2.5% per year (realistic for Swiss real estate)</li>
                         <li>Occupancy rate and average daily rate remain constant</li>
                         <li>Loan balance decreases by annual amortization amount each year</li>
                     </ul>
@@ -1794,7 +1927,7 @@ def generate_html_report(results: dict, config, charts: List, projection_15yr: L
                             <th>Net Operating Income</th>
                             <th>Debt Service</th>
                             <th>Cash Flow After Debt</th>
-                            <th>Cash Flow per Owner</th>
+                            <th>Cash Flow per Investor</th>
                             <th>Remaining Loan Balance</th>
                         </tr>
                     </thead>
@@ -1837,7 +1970,7 @@ def generate_html_report(results: dict, config, charts: List, projection_15yr: L
                     </thead>
                     <tbody>
                         <tr>
-                            <td><strong>Initial Equity Investment per Owner</strong></td>
+                            <td><strong>Initial Equity Investment per Investor</strong></td>
                             <td>{format_currency(results['equity_per_owner'])}</td>
                         </tr>
                         <tr>
@@ -1849,7 +1982,7 @@ def generate_html_report(results: dict, config, charts: List, projection_15yr: L
                             <td>{format_currency(irr_results['final_loan_balance'])}</td>
                         </tr>
                         <tr>
-                            <td><strong>Net Sale Proceeds per Owner</strong></td>
+                            <td><strong>Net Sale Proceeds per Investor</strong></td>
                             <td>{format_currency(irr_results['sale_proceeds_per_owner'])}</td>
                         </tr>
                         <tr>
@@ -1864,7 +1997,7 @@ def generate_html_report(results: dict, config, charts: List, projection_15yr: L
                 </table>
                 <div class="info-box" style="margin-top: 20px;">
                     <p style="font-size: 1.05em; line-height: 1.8; margin: 0;">
-                        <strong>Note:</strong> The IRR calculations include inflation (2% per year) and property appreciation (1% per year). 
+                        <strong>Note:</strong> The IRR calculations include inflation (2% per year) and property appreciation (2.5% per year). 
                         The IRR with sale scenario assumes the property is sold at the end of year 15 at the appreciated value, 
                         with proceeds distributed after paying off the remaining loan balance.
                     </p>
@@ -1896,7 +2029,7 @@ def generate_html_report(results: dict, config, charts: List, projection_15yr: L
             
             <!-- Assumptions -->
             <div class="section">
-                <h2><i class="fas fa-cog"></i> Key Assumptions</h2>
+                <h2 id="key-assumptions"><i class="fas fa-cog"></i> Key Assumptions</h2>
                 <table class="summary-table">
                     <thead>
                         <tr>
@@ -2034,8 +2167,8 @@ def main():
     
     # Compute 15-year projection with inflation and appreciation
     print("[*] Computing 15-year projection (starting January 2026)...")
-    print("     Inflation: 2% per year | Property Appreciation: 2% per year")
-    projection_15yr = compute_15_year_projection(config, start_year=2026, inflation_rate=0.02, property_appreciation_rate=0.02)
+    print("     Inflation: 2% per year | Property Appreciation: 2.5% per year")
+    projection_15yr = compute_15_year_projection(config, start_year=2026, inflation_rate=0.02, property_appreciation_rate=0.025)  # 2.5% property appreciation per year
     
     # Calculate IRRs (Equity IRR and Project/Unlevered IRR)
     print("[*] Calculating IRRs (Equity IRR and Project/Unlevered IRR)...")
@@ -2067,10 +2200,12 @@ def main():
     
     print(f"\nOPERATING EXPENSES")
     print(f"  Total Operating Expenses:    {results['total_operating_expenses']:>15,.0f} CHF")
-    print(f"    - Property Management (incl. Cleaning): {results['property_management_cost']:>15,.0f} CHF")
+    print(f"    - Property Management:                   {results['property_management_cost']:>15,.0f} CHF")
+    print(f"    - Cleaning:                              {results['cleaning_cost']:>15,.0f} CHF")
     print(f"    - Tourist Tax:            {results['tourist_tax']:>15,.0f} CHF")
     print(f"    - Insurance:              {results['insurance']:>15,.0f} CHF")
-    print(f"    - Utilities:              {results['utilities']:>15,.0f} CHF")
+    print(f"    - Nubbing Costs:          {results['nubbing_costs']:>15,.0f} CHF")
+    print(f"    - Electricity & Internet: {results['electricity_internet']:>15,.0f} CHF")
     print(f"    - Maintenance Reserve:    {results['maintenance_reserve']:>15,.0f} CHF")
     
     print(f"\nNET OPERATING INCOME")
@@ -2117,9 +2252,9 @@ def main():
     # print("\n[*] Exporting results to Excel...")
     # export_to_excel(results, config, projection_15yr, irr_results)
     
-    # Ensure output directory exists
+    # Ensure website directory exists
     import os
-    os.makedirs("output", exist_ok=True)
+    os.makedirs("website", exist_ok=True)
     
     # Generate charts
     print("[*] Generating charts...")
@@ -2133,7 +2268,7 @@ def main():
     print("[+] Analysis complete!")
     print("=" * 70)
     # print(f"[+] Excel file: base_case_results.xlsx")  # Excel export disabled
-    print(f"[+] HTML report: output/report_base_case.html")
+    print(f"[+] HTML report: website/report_base_case.html")
     print("=" * 70)
 
 

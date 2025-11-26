@@ -8,6 +8,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 import numpy as np
+from scipy.interpolate import interp1d
 from simulation import (
     create_base_case_config,
     compute_annual_cash_flows,
@@ -206,7 +207,7 @@ def sensitivity_seasonality(base_config: BaseCaseConfig) -> pd.DataFrame:
         monthly_income = base_monthly_income * multiplier
         # Adjust expenses proportionally (some are fixed, some variable)
         variable_expenses = base_result['property_management_cost'] + base_result['tourist_tax']
-        fixed_expenses = base_result['insurance'] + base_result['utilities'] + base_result['maintenance_reserve']
+        fixed_expenses = base_result['insurance'] + base_result['nubbing_costs'] + base_result['electricity_internet'] + base_result['maintenance_reserve']
         
         monthly_variable = variable_expenses / 12 * multiplier
         monthly_fixed = fixed_expenses / 12
@@ -265,7 +266,8 @@ def sensitivity_platform_mix(base_config: BaseCaseConfig) -> pd.DataFrame:
             result['property_management_cost'] +
             result['tourist_tax'] +
             result['insurance'] +
-            result['utilities'] +
+            result['nubbing_costs'] +
+            result['electricity_internet'] +
             result['maintenance_reserve']
         )
         result['net_operating_income'] = total_gross_income - result['total_operating_expenses']
@@ -317,7 +319,8 @@ def sensitivity_cleaning_pass_through(base_config: BaseCaseConfig) -> pd.DataFra
         tourist_tax_per_person_per_night=base_config.expenses.tourist_tax_per_person_per_night,
         avg_guests_per_night=base_config.expenses.avg_guests_per_night,
         insurance_annual=base_config.expenses.insurance_annual,
-        utilities_annual=base_config.expenses.utilities_annual,
+        nubbing_costs_annual=base_config.expenses.nubbing_costs_annual,
+        electricity_internet_annual=base_config.expenses.electricity_internet_annual,
         maintenance_rate=base_config.expenses.maintenance_rate,
         property_value=base_config.expenses.property_value
     )
@@ -336,7 +339,8 @@ def sensitivity_cleaning_pass_through(base_config: BaseCaseConfig) -> pd.DataFra
         result_pass_through['property_management_cost'] +
         result_pass_through['tourist_tax'] +
         result_pass_through['insurance'] +
-        result_pass_through['utilities'] +
+        result_pass_through['nubbing_costs'] +
+        result_pass_through['electricity_internet'] +
         result_pass_through['maintenance_reserve']
     )
     result_pass_through['net_operating_income'] = result_pass_through['gross_rental_income'] - result_pass_through['total_operating_expenses']
@@ -387,7 +391,8 @@ def sensitivity_property_management_fee(base_config: BaseCaseConfig, min_rate: f
             tourist_tax_per_person_per_night=base_config.expenses.tourist_tax_per_person_per_night,
             avg_guests_per_night=base_config.expenses.avg_guests_per_night,
             insurance_annual=base_config.expenses.insurance_annual,
-            utilities_annual=base_config.expenses.utilities_annual,
+            nubbing_costs_annual=base_config.expenses.nubbing_costs_annual,
+            electricity_internet_annual=base_config.expenses.electricity_internet_annual,
             maintenance_rate=base_config.expenses.maintenance_rate,
             property_value=base_config.expenses.property_value
         )
@@ -425,7 +430,8 @@ def sensitivity_cleaning_cost(base_config: BaseCaseConfig, min_cost: float = 50,
             tourist_tax_per_person_per_night=base_config.expenses.tourist_tax_per_person_per_night,
             avg_guests_per_night=base_config.expenses.avg_guests_per_night,
             insurance_annual=base_config.expenses.insurance_annual,
-            utilities_annual=base_config.expenses.utilities_annual,
+            nubbing_costs_annual=base_config.expenses.nubbing_costs_annual,
+            electricity_internet_annual=base_config.expenses.electricity_internet_annual,
             maintenance_rate=base_config.expenses.maintenance_rate,
             property_value=base_config.expenses.property_value
         )
@@ -449,12 +455,22 @@ def sensitivity_cleaning_cost(base_config: BaseCaseConfig, min_cost: float = 50,
     return pd.DataFrame(results)
 
 
-def sensitivity_utilities(base_config: BaseCaseConfig, min_utilities: float = 2000, max_utilities: float = 4000, steps: int = 9) -> pd.DataFrame:
-    """Analyze sensitivity to utilities cost (2000 to 4000 CHF)."""
+def sensitivity_utilities(base_config: BaseCaseConfig, min_total: float = 2000, max_total: float = 4000, steps: int = 9) -> pd.DataFrame:
+    """Analyze sensitivity to total utilities cost (nubbing + electricity/internet, 2000 to 4000 CHF)."""
     results = []
-    utilities_range = np.linspace(min_utilities, max_utilities, steps)
+    total_utilities_range = np.linspace(min_total, max_total, steps)
     
-    for utilities in utilities_range:
+    # Split proportionally: 2/3 nubbing, 1/3 electricity/internet (based on base case 2000/1000)
+    base_nubbing = base_config.expenses.nubbing_costs_annual
+    base_electricity = base_config.expenses.electricity_internet_annual
+    base_total = base_nubbing + base_electricity
+    nubbing_ratio = base_nubbing / base_total if base_total > 0 else 2/3
+    electricity_ratio = base_electricity / base_total if base_total > 0 else 1/3
+    
+    for total_utilities in total_utilities_range:
+        nubbing_costs = total_utilities * nubbing_ratio
+        electricity_internet = total_utilities * electricity_ratio
+        
         new_expenses = ExpenseParams(
             property_management_fee_rate=base_config.expenses.property_management_fee_rate,
             cleaning_cost_per_stay=base_config.expenses.cleaning_cost_per_stay,
@@ -462,7 +478,8 @@ def sensitivity_utilities(base_config: BaseCaseConfig, min_utilities: float = 20
             tourist_tax_per_person_per_night=base_config.expenses.tourist_tax_per_person_per_night,
             avg_guests_per_night=base_config.expenses.avg_guests_per_night,
             insurance_annual=base_config.expenses.insurance_annual,
-            utilities_annual=utilities,
+            nubbing_costs_annual=nubbing_costs,
+            electricity_internet_annual=electricity_internet,
             maintenance_rate=base_config.expenses.maintenance_rate,
             property_value=base_config.expenses.property_value
         )
@@ -475,7 +492,9 @@ def sensitivity_utilities(base_config: BaseCaseConfig, min_utilities: float = 20
         
         result = compute_annual_cash_flows(new_config)
         results.append({
-            'Utilities Annual (CHF)': utilities,
+            'Total Utilities Annual (CHF)': total_utilities,
+            'Nubbing Costs (CHF)': nubbing_costs,
+            'Electricity & Internet (CHF)': electricity_internet,
             'Total Operating Expenses (CHF)': result['total_operating_expenses'],
             'Net Operating Income (CHF)': result['net_operating_income'],
             'Cash Flow After Debt (CHF)': result['cash_flow_after_debt_service'],
@@ -498,7 +517,8 @@ def sensitivity_maintenance_reserve(base_config: BaseCaseConfig, min_rate: float
             tourist_tax_per_person_per_night=base_config.expenses.tourist_tax_per_person_per_night,
             avg_guests_per_night=base_config.expenses.avg_guests_per_night,
             insurance_annual=base_config.expenses.insurance_annual,
-            utilities_annual=base_config.expenses.utilities_annual,
+            nubbing_costs_annual=base_config.expenses.nubbing_costs_annual,
+            electricity_internet_annual=base_config.expenses.electricity_internet_annual,
             maintenance_rate=rate,
             property_value=base_config.expenses.property_value
         )
@@ -793,13 +813,13 @@ def sensitivity_mortgage_type(base_config: BaseCaseConfig) -> pd.DataFrame:
     return pd.DataFrame(results)
 
 
-def calculate_npv_irr_for_config(config: BaseCaseConfig, discount_rate: float = 0.04) -> Dict[str, float]:
+def calculate_npv_irr_for_config(config: BaseCaseConfig, discount_rate: float = 0.03) -> Dict[str, float]:
     """
     Calculate NPV and IRR for a given configuration.
     
     Args:
         config: BaseCaseConfig to analyze
-        discount_rate: Discount rate for NPV calculation (default 4%)
+        discount_rate: Discount rate for NPV calculation (default 3% - realistic for real estate)
     
     Returns:
         Dictionary with NPV and IRR metrics
@@ -809,7 +829,7 @@ def calculate_npv_irr_for_config(config: BaseCaseConfig, discount_rate: float = 
     initial_equity = initial_result['equity_per_owner']
     
     # Calculate 15-year projection
-    projection = compute_15_year_projection(config, start_year=2026, inflation_rate=0.02, property_appreciation_rate=0.02)
+    projection = compute_15_year_projection(config, start_year=2026, inflation_rate=0.02, property_appreciation_rate=0.025)  # 2.5% property appreciation per year
     
     # Get final values
     final_property_value = projection[-1]['property_value']
@@ -848,6 +868,487 @@ def calculate_npv_irr_for_config(config: BaseCaseConfig, discount_rate: float = 
     }
 
 
+def generate_top_toolbar(report_title: str, back_link: str = "index.html", subtitle: str = "") -> str:
+    """
+    Generate top toolbar HTML with navigation and actions.
+    
+    Args:
+        report_title: Title of the report
+        back_link: Link to home/index page
+        subtitle: Optional subtitle
+    
+    Returns:
+        HTML string for top toolbar
+    """
+    return f'''
+    <div class="top-toolbar">
+        <div class="toolbar-left">
+            <a href="{back_link}" class="toolbar-btn" title="Back to Home">
+                <i class="fas fa-home"></i> <span class="toolbar-btn-text">Home</span>
+            </a>
+        </div>
+        <div class="toolbar-center">
+            <h1 class="toolbar-title">{report_title}</h1>
+            {f'<p class="toolbar-subtitle">{subtitle}</p>' if subtitle else ''}
+        </div>
+        <div class="toolbar-right">
+            <!-- Future toolbar actions can be added here -->
+        </div>
+    </div>
+    '''
+
+
+def generate_sidebar_navigation(sections: List[Dict[str, str]]) -> str:
+    """
+    Generate sidebar navigation HTML.
+    
+    Args:
+        sections: List of dictionaries with 'id', 'title', and optionally 'icon'
+    
+    Returns:
+        HTML string for sidebar navigation
+    """
+    nav_items = []
+    for section in sections:
+        section_id = section.get('id', '')
+        section_title = section.get('title', '')
+        section_icon = section.get('icon', 'fas fa-circle')
+        
+        nav_items.append(f'''
+            <li>
+                <a href="#{section_id}" class="sidebar-item" data-section="{section_id}">
+                    <i class="{section_icon}"></i>
+                    <span class="sidebar-item-text">{section_title}</span>
+                </a>
+            </li>
+        ''')
+    
+    return f'''
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-bars"></i> Navigation</h3>
+        </div>
+        <ul class="sidebar-nav">
+            {''.join(nav_items)}
+        </ul>
+    </nav>
+    '''
+
+
+def generate_shared_layout_css() -> str:
+    """
+    Generate shared CSS for sidebar and toolbar layout.
+    
+    Returns:
+        CSS string for layout components
+    """
+    return '''
+        /* Layout Container */
+        .layout-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background: #f5f7fa;
+        }
+        
+        /* Top Toolbar */
+        .top-toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--gradient-1);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        .toolbar-left, .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .toolbar-center {
+            flex: 1;
+            text-align: center;
+        }
+        
+        .toolbar-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            margin: 0;
+            color: white;
+        }
+        
+        .toolbar-subtitle {
+            font-size: 0.85em;
+            margin: 0;
+            opacity: 0.9;
+        }
+        
+        .toolbar-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        .toolbar-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-1px);
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 60px;
+            width: 250px;
+            height: calc(100vh - 60px);
+            background: white;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            z-index: 999;
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            background: var(--primary);
+            color: white;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar-header h3 {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .sidebar-nav {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .sidebar-nav li {
+            margin: 0;
+        }
+        
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px 20px;
+            color: #495057;
+            text-decoration: none;
+            border-left: 3px solid transparent;
+            transition: all 0.2s ease;
+            font-size: 0.9em;
+        }
+        
+        .sidebar-item:hover {
+            background: #f8f9fa;
+            color: var(--primary);
+            border-left-color: var(--primary);
+        }
+        
+        .sidebar-item.active {
+            background: #e7f3ff;
+            color: var(--primary);
+            border-left-color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .sidebar-item i {
+            width: 20px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+        
+        .sidebar-item-text {
+            flex: 1;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            margin-top: 60px;
+            padding: 30px 40px;
+            background: white;
+            min-height: calc(100vh - 60px);
+        }
+        
+        /* Section IDs for navigation */
+        .section {
+            scroll-margin-top: 80px;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 250px;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .toolbar-btn-text {
+                display: none;
+            }
+            
+            .toolbar-title {
+                font-size: 1.1em;
+            }
+        }
+        
+        /* Scrollbar styling for sidebar */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    '''
+
+
+def generate_shared_layout_js() -> str:
+    """
+    Generate shared JavaScript for sidebar and toolbar functionality.
+    
+    Returns:
+        JavaScript string for layout interactions
+    """
+    return '''
+    <script>
+        (function() {
+            // Smooth scroll to sections
+            document.querySelectorAll('.sidebar-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href').substring(1);
+                    const targetElement = document.getElementById(targetId);
+                    
+                    if (targetElement) {
+                        const offset = 80; // Account for fixed toolbar
+                        const elementPosition = targetElement.getBoundingClientRect().top;
+                        const offsetPosition = elementPosition + window.pageYOffset - offset;
+                        
+                        window.scrollTo({
+                            top: offsetPosition,
+                            behavior: 'smooth'
+                        });
+                        
+                        // Update active state
+                        updateActiveSection(targetId);
+                    }
+                });
+            });
+            
+            // Update active section based on scroll position
+            function updateActiveSection(activeId) {
+                document.querySelectorAll('.sidebar-item').forEach(item => {
+                    item.classList.remove('active');
+                    if (item.getAttribute('data-section') === activeId) {
+                        item.classList.add('active');
+                    }
+                });
+            }
+            
+            // Intersection Observer for auto-highlighting active section
+            const observerOptions = {
+                root: null,
+                rootMargin: '-20% 0px -70% 0px',
+                threshold: 0
+            };
+            
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const sectionId = entry.target.id;
+                        if (sectionId) {
+                            updateActiveSection(sectionId);
+                        }
+                    }
+                });
+            }, observerOptions);
+            
+            // Observe all sections with IDs
+            document.querySelectorAll('.section[id], h2[id], h3[id]').forEach(section => {
+                observer.observe(section);
+            });
+            
+            // Mobile sidebar toggle (if needed)
+            const sidebar = document.querySelector('.sidebar');
+            if (window.innerWidth <= 768) {
+                // Add mobile menu toggle if needed
+                // This can be enhanced with a hamburger menu button
+            }
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768) {
+                    sidebar.classList.remove('open');
+                }
+            });
+        })();
+    </script>
+    '''
+
+
+def calculate_break_even_points(all_sensitivities: Dict[str, pd.DataFrame], base_config: BaseCaseConfig) -> Dict[str, Dict[str, any]]:
+    """
+    Calculate break-even points for each sensitivity factor.
+    Break-even is defined as the parameter value where cash flow after debt service = 0.
+    
+    Returns:
+        Dictionary mapping sensitivity name to break-even information:
+        {
+            'break_even_value': parameter value at break-even,
+            'base_case_value': current base case value,
+            'margin_to_break_even': difference between base and break-even,
+            'margin_pct': margin as percentage of base,
+            'is_above_break_even': True if base case is above break-even (positive cash flow)
+        }
+    """
+    
+    base_result = compute_annual_cash_flows(base_config)
+    base_cf = base_result['cash_flow_after_debt_service']
+    
+    break_even_results = {}
+    
+    # Parameters that can have break-even points
+    break_even_params = [
+        'Occupancy Rate',
+        'Daily Rate', 
+        'Interest Rate',
+        'Loan-to-Value',
+        'Management Fee',
+        'Owner Nights'
+    ]
+    
+    for sens_name in break_even_params:
+        if sens_name not in all_sensitivities:
+            continue
+            
+        df = all_sensitivities[sens_name]
+        if 'Cash Flow After Debt (CHF)' not in df.columns:
+            continue
+        
+        param_col = df.columns[0]  # First column is the parameter
+        param_values = df[param_col].values
+        cash_flows = df['Cash Flow After Debt (CHF)'].values
+        
+        # Check if break-even exists in the tested range
+        min_cf = cash_flows.min()
+        max_cf = cash_flows.max()
+        
+        # Break-even exists if cash flow crosses zero
+        if min_cf <= 0 <= max_cf:
+            # Use interpolation to find exact break-even point
+            try:
+                # Sort by parameter value for interpolation
+                sorted_indices = np.argsort(param_values)
+                sorted_params = param_values[sorted_indices]
+                sorted_cfs = cash_flows[sorted_indices]
+                
+                # Create interpolation function
+                interp_func = interp1d(sorted_cfs, sorted_params, kind='linear', 
+                                     bounds_error=False, fill_value='extrapolate')
+                break_even_value = float(interp_func(0))
+                
+                # Get base case parameter value
+                # Note: base_result was already calculated at the start of the function
+                if sens_name == 'Occupancy Rate':
+                    # Get overall occupancy rate from results
+                    base_param = base_result.get('overall_occupancy_rate', base_config.rental.occupancy_rate) * 100
+                elif sens_name == 'Daily Rate':
+                    # Get weighted average daily rate from results
+                    base_param = base_result.get('average_daily_rate', 200.0)
+                elif sens_name == 'Interest Rate':
+                    base_param = base_config.financing.interest_rate * 100
+                elif sens_name == 'Loan-to-Value':
+                    base_param = base_config.financing.ltv * 100
+                elif sens_name == 'Management Fee':
+                    base_param = base_config.expenses.property_management_fee_rate * 100
+                elif sens_name == 'Owner Nights':
+                    base_param = base_config.rental.owner_nights_per_person * base_config.financing.num_owners
+                else:
+                    base_param = None
+                
+                if base_param is not None:
+                    margin = base_param - break_even_value
+                    margin_pct = (margin / break_even_value * 100) if break_even_value != 0 else 0
+                    is_above = base_param > break_even_value
+                    
+                    break_even_results[sens_name] = {
+                        'break_even_value': break_even_value,
+                        'base_case_value': base_param,
+                        'margin_to_break_even': margin,
+                        'margin_pct': margin_pct,
+                        'is_above_break_even': is_above,
+                        'break_even_exists': True
+                    }
+                else:
+                    break_even_results[sens_name] = {
+                        'break_even_exists': False,
+                        'reason': 'Base case parameter not found'
+                    }
+            except Exception as e:
+                break_even_results[sens_name] = {
+                    'break_even_exists': False,
+                    'reason': f'Interpolation error: {str(e)}'
+                }
+        else:
+            # Break-even doesn't exist in tested range
+            if min_cf > 0:
+                status = 'All tested values positive'
+            else:
+                status = 'All tested values negative'
+            
+            break_even_results[sens_name] = {
+                'break_even_exists': False,
+                'reason': status,
+                'min_cf_tested': min_cf,
+                'max_cf_tested': max_cf
+            }
+    
+    return break_even_results
+
+
 def calculate_sensitivity_metrics(all_sensitivities: Dict[str, pd.DataFrame], base_config: BaseCaseConfig) -> Dict[str, Dict[str, float]]:
     """
     Calculate NPV and IRR impact for each sensitivity by comparing best/worst scenarios to base case.
@@ -856,7 +1357,7 @@ def calculate_sensitivity_metrics(all_sensitivities: Dict[str, pd.DataFrame], ba
     Returns:
         Dictionary with base case metrics and sensitivity impacts (with both positive and negative impacts)
     """
-    discount_rate = 0.04  # 4% discount rate for NPV
+    discount_rate = 0.03  # 3% discount rate for NPV (realistic for real estate investments)
     
     # Calculate base case metrics
     print("  [*] Calculating base case NPV and IRR...")
@@ -963,10 +1464,1302 @@ def calculate_sensitivity_metrics(all_sensitivities: Dict[str, pd.DataFrame], ba
                 'worst_param_value': worst_param_val  # Store actual parameter value for worst case
             }
     
+    # Calculate ranking metrics
+    ranking_data = []
+    for sens_name, impacts in sensitivity_impacts.items():
+        # Calculate absolute impact range
+        npv_range = abs(impacts['npv_best_impact']) + abs(impacts['npv_worst_impact'])
+        irr_range = abs(impacts['irr_best_impact']) + abs(impacts['irr_worst_impact'])
+        
+        # Composite risk score (weighted combination)
+        # Higher score = more impactful/risky
+        composite_score = (
+            abs(impacts['npv_best_impact']) * 0.4 +  # NPV impact weight
+            abs(impacts['npv_worst_impact']) * 0.4 +
+            abs(impacts['irr_best_impact']) * 0.1 +  # IRR impact weight
+            abs(impacts['irr_worst_impact']) * 0.1
+        )
+        
+        ranking_data.append({
+            'sensitivity': sens_name,
+            'npv_range': npv_range,
+            'irr_range': irr_range,
+            'composite_score': composite_score,
+            'npv_best_impact': impacts['npv_best_impact'],
+            'npv_worst_impact': impacts['npv_worst_impact'],
+            'irr_best_impact': impacts['irr_best_impact'],
+            'irr_worst_impact': impacts['irr_worst_impact']
+        })
+    
+    # Sort by composite score (highest first)
+    ranking_data.sort(key=lambda x: x['composite_score'], reverse=True)
+    
+    # Add ranks
+    for i, item in enumerate(ranking_data):
+        item['rank'] = i + 1
+    
+    # Calculate statistical measures for each sensitivity
+    statistical_summary = calculate_statistical_summary(all_sensitivities, base_config, base_metrics)
+    
+    # Calculate elasticity metrics
+    elasticity_metrics = calculate_elasticity_metrics(all_sensitivities, base_config, base_metrics)
+    
     return {
         'base_case': base_metrics,
-        'sensitivities': sensitivity_impacts
+        'sensitivities': sensitivity_impacts,
+        'ranking': ranking_data,
+        'statistics': statistical_summary,
+        'elasticity': elasticity_metrics
     }
+
+
+def create_scenario_configs(base_config: BaseCaseConfig, all_sensitivities: Dict[str, pd.DataFrame], 
+                            metrics: Dict) -> Dict[str, BaseCaseConfig]:
+    """
+    Create scenario configurations (Optimistic, Pessimistic, Base).
+    
+    Args:
+        base_config: Base case configuration
+        all_sensitivities: Dictionary of sensitivity DataFrames
+        metrics: Metrics dictionary with ranking
+    
+    Returns:
+        Dictionary mapping scenario name to configuration
+    """
+    scenarios = {'Base': base_config}
+    
+    if 'ranking' not in metrics or not metrics['ranking']:
+        return scenarios
+    
+    # Get top 5 parameters by impact
+    top_5_params = metrics['ranking'][:5]
+    
+    # Create optimistic scenario (best values for top 5 parameters)
+    optimistic_config = base_config
+    for item in top_5_params:
+        sens_name = item['sensitivity']
+        if sens_name not in all_sensitivities:
+            continue
+        
+        df = all_sensitivities[sens_name]
+        if 'Cash Flow After Debt (CHF)' not in df.columns:
+            continue
+        
+        # Find best case parameter value
+        best_idx = df['Cash Flow After Debt (CHF)'].idxmax()
+        param_col = df.columns[0]
+        best_param_val = df.loc[best_idx, param_col]
+        
+        # Apply best case value
+        if sens_name == 'Occupancy Rate':
+            best_occ = best_param_val / 100.0 if best_param_val > 1.0 else best_param_val
+            optimistic_config = apply_sensitivity(optimistic_config, occupancy=best_occ)
+        elif sens_name == 'Daily Rate':
+            optimistic_config = apply_sensitivity(optimistic_config, daily_rate=best_param_val)
+        elif sens_name == 'Interest Rate':
+            best_int = best_param_val / 100.0 if best_param_val > 1.0 else best_param_val
+            optimistic_config = apply_sensitivity(optimistic_config, interest_rate=best_int)
+        elif sens_name == 'Management Fee':
+            best_mgmt = best_param_val / 100.0 if best_param_val > 1.0 else best_param_val
+            optimistic_config = apply_sensitivity(optimistic_config, management_fee=best_mgmt)
+        elif sens_name == 'Loan-to-Value':
+            best_ltv = best_param_val / 100.0 if best_param_val > 1.0 else best_param_val
+            new_financing = FinancingParams(
+                purchase_price=optimistic_config.financing.purchase_price,
+                ltv=best_ltv,
+                interest_rate=optimistic_config.financing.interest_rate,
+                amortization_rate=optimistic_config.financing.amortization_rate,
+                num_owners=optimistic_config.financing.num_owners
+            )
+            optimistic_config = BaseCaseConfig(
+                financing=new_financing,
+                rental=optimistic_config.rental,
+                expenses=optimistic_config.expenses
+            )
+    
+    scenarios['Optimistic'] = optimistic_config
+    
+    # Create pessimistic scenario (worst values for top 5 parameters)
+    pessimistic_config = base_config
+    for item in top_5_params:
+        sens_name = item['sensitivity']
+        if sens_name not in all_sensitivities:
+            continue
+        
+        df = all_sensitivities[sens_name]
+        if 'Cash Flow After Debt (CHF)' not in df.columns:
+            continue
+        
+        # Find worst case parameter value
+        worst_idx = df['Cash Flow After Debt (CHF)'].idxmin()
+        param_col = df.columns[0]
+        worst_param_val = df.loc[worst_idx, param_col]
+        
+        # Apply worst case value
+        if sens_name == 'Occupancy Rate':
+            worst_occ = worst_param_val / 100.0 if worst_param_val > 1.0 else worst_param_val
+            pessimistic_config = apply_sensitivity(pessimistic_config, occupancy=worst_occ)
+        elif sens_name == 'Daily Rate':
+            pessimistic_config = apply_sensitivity(pessimistic_config, daily_rate=worst_param_val)
+        elif sens_name == 'Interest Rate':
+            worst_int = worst_param_val / 100.0 if worst_param_val > 1.0 else worst_param_val
+            pessimistic_config = apply_sensitivity(pessimistic_config, interest_rate=worst_int)
+        elif sens_name == 'Management Fee':
+            worst_mgmt = worst_param_val / 100.0 if worst_param_val > 1.0 else worst_param_val
+            pessimistic_config = apply_sensitivity(pessimistic_config, management_fee=worst_mgmt)
+        elif sens_name == 'Loan-to-Value':
+            worst_ltv = worst_param_val / 100.0 if worst_param_val > 1.0 else worst_param_val
+            new_financing = FinancingParams(
+                purchase_price=pessimistic_config.financing.purchase_price,
+                ltv=worst_ltv,
+                interest_rate=pessimistic_config.financing.interest_rate,
+                amortization_rate=pessimistic_config.financing.amortization_rate,
+                num_owners=pessimistic_config.financing.num_owners
+            )
+            pessimistic_config = BaseCaseConfig(
+                financing=new_financing,
+                rental=pessimistic_config.rental,
+                expenses=pessimistic_config.expenses
+            )
+    
+    scenarios['Pessimistic'] = pessimistic_config
+    
+    return scenarios
+
+
+def analyze_scenarios(scenario_configs: Dict[str, BaseCaseConfig]) -> pd.DataFrame:
+    """
+    Analyze scenarios and return comparison DataFrame.
+    
+    Args:
+        scenario_configs: Dictionary mapping scenario name to configuration
+    
+    Returns:
+        DataFrame with scenario comparison
+    """
+    results = []
+    discount_rate = 0.03
+    
+    for scenario_name, config in scenario_configs.items():
+        # Calculate annual cash flows
+        annual_result = compute_annual_cash_flows(config)
+        
+        # Calculate 15-year projection
+        projection = compute_15_year_projection(config, start_year=2026, inflation_rate=0.02, property_appreciation_rate=0.025)
+        
+        # Calculate NPV and IRR
+        npv_irr = calculate_npv_irr_for_config(config, discount_rate)
+        
+        results.append({
+            'Scenario': scenario_name,
+            'Annual Cash Flow (CHF)': annual_result['cash_flow_after_debt_service'],
+            'NPV (CHF)': npv_irr['npv'],
+            'IRR (%)': npv_irr['irr_with_sale_pct'],
+            'IRR without Sale (%)': npv_irr['irr_without_sale_pct'],
+            'Cap Rate (%)': annual_result['cap_rate_pct'],
+            'Cash-on-Cash Return (%)': annual_result['cash_on_cash_return_pct'],
+            'Debt Coverage Ratio': annual_result['debt_coverage_ratio'],
+            'Initial Equity per Owner (CHF)': annual_result['equity_per_owner'],
+            'Total Cash Flow 15Y (CHF)': sum(year['cash_flow_per_owner'] for year in projection),
+            'Sale Proceeds per Owner (CHF)': npv_irr['sale_proceeds']
+        })
+    
+    return pd.DataFrame(results)
+
+
+def generate_scenario_analysis_html(scenario_configs: Dict[str, BaseCaseConfig], 
+                                   scenario_results: pd.DataFrame) -> str:
+    """
+    Generate HTML section for scenario analysis.
+    
+    Args:
+        scenario_configs: Dictionary of scenario configurations
+        scenario_results: DataFrame from analyze_scenarios()
+    
+    Returns:
+        HTML string for scenario analysis section
+    """
+    def format_currency(value):
+        return f"{value:,.0f} CHF"
+    
+    def format_percent(value):
+        return f"{value:.2f}%"
+    
+    # Create comparison table
+    table_rows = []
+    for _, row in scenario_results.iterrows():
+        scenario_name = row['Scenario']
+        color = '#28a745' if scenario_name == 'Optimistic' else '#dc3545' if scenario_name == 'Pessimistic' else '#6c757d'
+        
+        table_rows.append(f'''
+            <tr style="background: {color}15;">
+                <td><strong style="color: {color};">{scenario_name}</strong></td>
+                <td>{format_currency(row['Annual Cash Flow (CHF)'])}</td>
+                <td>{format_currency(row['NPV (CHF)'])}</td>
+                <td>{format_percent(row['IRR (%)'])}</td>
+                <td>{format_percent(row['IRR without Sale (%)'])}</td>
+                <td>{format_percent(row['Cap Rate (%)'])}</td>
+                <td>{format_percent(row['Cash-on-Cash Return (%)'])}</td>
+                <td>{row['Debt Coverage Ratio']:.2f}</td>
+            </tr>
+        ''')
+    
+    # Create comparison charts
+    fig_comparison = go.Figure()
+    
+    scenarios = scenario_results['Scenario'].tolist()
+    npv_values = scenario_results['NPV (CHF)'].tolist()
+    irr_values = scenario_results['IRR (%)'].tolist()
+    
+    fig_comparison.add_trace(go.Bar(
+        name='NPV (CHF)',
+        x=scenarios,
+        y=npv_values,
+        yaxis='y',
+        offsetgroup=1,
+        marker_color=['#28a745', '#6c757d', '#dc3545']
+    ))
+    
+    fig_comparison.add_trace(go.Bar(
+        name='IRR (%)',
+        x=scenarios,
+        y=irr_values,
+        yaxis='y2',
+        offsetgroup=2,
+        marker_color=['#28a745', '#6c757d', '#dc3545']
+    ))
+    
+    fig_comparison.update_layout(
+        title='Scenario Comparison: NPV and IRR',
+        xaxis_title='Scenario',
+        yaxis=dict(title='NPV (CHF)', side='left'),
+        yaxis2=dict(title='IRR (%)', side='right', overlaying='y'),
+        barmode='group',
+        height=500
+    )
+    
+    return f'''
+    <div class="section" id="scenario-analysis">
+        <h2><i class="fas fa-project-diagram"></i> Scenario Analysis</h2>
+        <div class="sensitivity-card">
+            <div class="intro-box" style="margin-bottom: 18px;">
+                <p style="margin-bottom: 10px; font-size: 0.9em; line-height: 1.6;">
+                    <strong>What is Scenario Analysis?</strong> This analysis combines multiple parameter changes to model realistic scenarios. 
+                    The <strong>Optimistic</strong> scenario uses the best values for the top 5 most impactful parameters. 
+                    The <strong>Pessimistic</strong> scenario uses the worst values for these same parameters. 
+                    The <strong>Base</strong> scenario represents the current assumptions.
+                </p>
+                <p style="margin-bottom: 0; font-size: 0.9em; line-height: 1.6;">
+                    <strong>Use Case:</strong> Scenario analysis helps understand the range of possible outcomes when multiple factors change simultaneously, 
+                    which is more realistic than one-way sensitivity analysis. It provides a framework for risk assessment and decision-making.
+                </p>
+            </div>
+            <div class="chart-container">
+                {fig_comparison.to_html(include_plotlyjs=False, div_id="scenario_comparison")}
+            </div>
+            <table class="summary-table" style="margin-top: 30px;">
+                <thead>
+                    <tr>
+                        <th>Scenario</th>
+                        <th>Annual Cash Flow</th>
+                        <th>NPV (15Y)</th>
+                        <th>IRR (with Sale)</th>
+                        <th>IRR (without Sale)</th>
+                        <th>Cap Rate</th>
+                        <th>Cash-on-Cash Return</th>
+                        <th>Debt Coverage Ratio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {''.join(table_rows)}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    '''
+
+
+def identify_critical_thresholds(all_sensitivities: Dict[str, pd.DataFrame], base_config: BaseCaseConfig) -> Dict[str, Dict]:
+    """
+    Identify critical thresholds for financial viability.
+    
+    Returns:
+        Dictionary mapping threshold type to threshold information:
+        {
+            'threshold_value': parameter value at threshold,
+            'base_case_value': current base case value,
+            'safety_margin': difference between base and threshold,
+            'safety_margin_pct': margin as percentage,
+            'status': 'Safe', 'Warning', 'Critical'
+        }
+    """
+    base_result = compute_annual_cash_flows(base_config)
+    base_cf = base_result['cash_flow_after_debt_service']
+    
+    thresholds = {}
+    
+    # Minimum occupancy for positive cash flow
+    if 'Occupancy Rate' in all_sensitivities:
+        df = all_sensitivities['Occupancy Rate']
+        if 'Cash Flow After Debt (CHF)' in df.columns:
+            positive_cf = df[df['Cash Flow After Debt (CHF)'] > 0]
+            if len(positive_cf) > 0:
+                min_occ = positive_cf['Occupancy Rate (%)'].min()
+                base_occ = base_result.get('overall_occupancy_rate', base_config.rental.occupancy_rate) * 100
+                margin = base_occ - min_occ
+                margin_pct = (margin / min_occ * 100) if min_occ > 0 else 0
+                
+                if margin_pct < 10:
+                    status = 'Critical'
+                elif margin_pct < 25:
+                    status = 'Warning'
+                else:
+                    status = 'Safe'
+                
+                thresholds['Minimum Occupancy'] = {
+                    'threshold_value': min_occ,
+                    'base_case_value': base_occ,
+                    'safety_margin': margin,
+                    'safety_margin_pct': margin_pct,
+                    'status': status,
+                    'unit': '%'
+                }
+    
+    # Break-even daily rate
+    if 'Daily Rate' in all_sensitivities:
+        df = all_sensitivities['Daily Rate']
+        if 'Cash Flow After Debt (CHF)' in df.columns:
+            # Find where cash flow crosses zero
+            positive_cf = df[df['Cash Flow After Debt (CHF)'] > 0]
+            if len(positive_cf) > 0:
+                min_rate = positive_cf['Average Daily Rate (CHF)'].min()
+                base_rate = base_result.get('average_daily_rate', 200.0)
+                margin = base_rate - min_rate
+                margin_pct = (margin / min_rate * 100) if min_rate > 0 else 0
+                
+                if margin_pct < 10:
+                    status = 'Critical'
+                elif margin_pct < 25:
+                    status = 'Warning'
+                else:
+                    status = 'Safe'
+                
+                thresholds['Minimum Daily Rate'] = {
+                    'threshold_value': min_rate,
+                    'base_case_value': base_rate,
+                    'safety_margin': margin,
+                    'safety_margin_pct': margin_pct,
+                    'status': status,
+                    'unit': 'CHF'
+                }
+    
+    # Maximum interest rate before negative returns
+    if 'Interest Rate' in all_sensitivities:
+        df = all_sensitivities['Interest Rate']
+        if 'Cash Flow After Debt (CHF)' in df.columns:
+            positive_cf = df[df['Cash Flow After Debt (CHF)'] > 0]
+            if len(positive_cf) > 0:
+                max_rate = positive_cf['Interest Rate (%)'].max()
+                base_rate = base_config.financing.interest_rate * 100
+                margin = max_rate - base_rate
+                margin_pct = (margin / base_rate * 100) if base_rate > 0 else 0
+                
+                if margin_pct < 10:
+                    status = 'Critical'
+                elif margin_pct < 25:
+                    status = 'Warning'
+                else:
+                    status = 'Safe'
+                
+                thresholds['Maximum Interest Rate'] = {
+                    'threshold_value': max_rate,
+                    'base_case_value': base_rate,
+                    'safety_margin': margin,
+                    'safety_margin_pct': margin_pct,
+                    'status': status,
+                    'unit': '%'
+                }
+    
+    # Maximum management fee before negative cash flow
+    if 'Management Fee' in all_sensitivities:
+        df = all_sensitivities['Management Fee']
+        if 'Cash Flow After Debt (CHF)' in df.columns:
+            positive_cf = df[df['Cash Flow After Debt (CHF)'] > 0]
+            if len(positive_cf) > 0:
+                max_fee = positive_cf['Management Fee (%)'].max()
+                base_fee = base_config.expenses.property_management_fee_rate * 100
+                margin = max_fee - base_fee
+                margin_pct = (margin / base_fee * 100) if base_fee > 0 else 0
+                
+                if margin_pct < 10:
+                    status = 'Critical'
+                elif margin_pct < 25:
+                    status = 'Warning'
+                else:
+                    status = 'Safe'
+                
+                thresholds['Maximum Management Fee'] = {
+                    'threshold_value': max_fee,
+                    'base_case_value': base_fee,
+                    'safety_margin': margin,
+                    'safety_margin_pct': margin_pct,
+                    'status': status,
+                    'unit': '%'
+                }
+    
+    return thresholds
+
+
+def generate_critical_thresholds_html(thresholds: Dict[str, Dict]) -> str:
+    """
+    Generate HTML section for critical thresholds analysis.
+    
+    Args:
+        thresholds: Dictionary from identify_critical_thresholds()
+    
+    Returns:
+        HTML string for critical thresholds section
+    """
+    if not thresholds:
+        return ''
+    
+    def format_number(value, unit):
+        if unit == '%':
+            return f"{value:.2f}%"
+        elif unit == 'CHF':
+            return f"{value:,.0f} CHF"
+        else:
+            return f"{value:.2f} {unit}"
+    
+    table_rows = []
+    for threshold_name, data in thresholds.items():
+        status = data['status']
+        threshold_val = data['threshold_value']
+        base_val = data['base_case_value']
+        margin = data['safety_margin']
+        margin_pct = data['safety_margin_pct']
+        unit = data.get('unit', '')
+        
+        if status == 'Critical':
+            status_color = '#dc3545'
+            status_icon = '🔴'
+        elif status == 'Warning':
+            status_color = '#ffc107'
+            status_icon = '🟡'
+        else:
+            status_color = '#28a745'
+            status_icon = '🟢'
+        
+        table_rows.append(f'''
+            <tr>
+                <td><strong>{threshold_name}</strong></td>
+                <td>{format_number(threshold_val, unit)}</td>
+                <td>{format_number(base_val, unit)}</td>
+                <td style="color: {status_color}; font-weight: 600;">{status_icon} {status}</td>
+                <td>{format_number(margin, unit)}</td>
+                <td>{margin_pct:.1f}%</td>
+            </tr>
+        ''')
+    
+    return f'''
+    <div class="section" id="critical-thresholds">
+        <h2><i class="fas fa-exclamation-triangle"></i> Critical Thresholds</h2>
+        <div class="sensitivity-card">
+            <div class="intro-box" style="margin-bottom: 18px;">
+                <p style="margin-bottom: 10px; font-size: 0.9em; line-height: 1.6;">
+                    <strong>What are Critical Thresholds?</strong> Critical thresholds identify the parameter values at which the investment transitions 
+                    from viable to non-viable (e.g., positive to negative cash flow). These thresholds help identify safety margins and risk levels.
+                </p>
+                <p style="margin-bottom: 0; font-size: 0.9em; line-height: 1.6;">
+                    <strong>Safety Status:</strong> <strong>Safe</strong> indicates a comfortable margin (>25%) from threshold. 
+                    <strong>Warning</strong> indicates moderate margin (10-25%). <strong>Critical</strong> indicates narrow margin (<10%) requiring immediate attention.
+                </p>
+            </div>
+            <table class="summary-table" style="margin-top: 20px;">
+                <thead>
+                    <tr>
+                        <th>Threshold</th>
+                        <th>Threshold Value</th>
+                        <th>Base Case Value</th>
+                        <th>Safety Status</th>
+                        <th>Safety Margin</th>
+                        <th>Margin (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {''.join(table_rows)}
+                </tbody>
+            </table>
+            <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
+                <p style="font-size: 0.9em; line-height: 1.6; margin: 0;">
+                    <strong>⚠️ Risk Warnings:</strong> Parameters with Critical or Warning status require careful monitoring. 
+                    Consider implementing contingency plans or adjusting assumptions to increase safety margins.
+                </p>
+            </div>
+        </div>
+    </div>
+    '''
+
+
+def identify_top_parameter_pairs(metrics: Dict) -> List[Tuple[str, str]]:
+    """
+    Identify top parameter pairs with highest combined impact.
+    
+    Args:
+        metrics: Dictionary from calculate_sensitivity_metrics()
+    
+    Returns:
+        List of tuples (param1, param2) representing top parameter pairs
+    """
+    if 'ranking' not in metrics:
+        return []
+    
+    # Get top 5 parameters by composite score
+    top_params = [item['sensitivity'] for item in metrics['ranking'][:5]]
+    
+    # Generate pairs from top parameters
+    pairs = []
+    for i, param1 in enumerate(top_params):
+        for param2 in top_params[i+1:]:
+            pairs.append((param1, param2))
+    
+    # Return top 3 pairs (can be enhanced with actual co-impact analysis)
+    return pairs[:3]
+
+
+def calculate_two_way_sensitivity(base_config: BaseCaseConfig, param1_name: str, param2_name: str, 
+                                 ranges1: np.ndarray, ranges2: np.ndarray) -> pd.DataFrame:
+    """
+    Calculate two-way sensitivity by varying two parameters simultaneously.
+    
+    Args:
+        base_config: Base case configuration
+        param1_name: Name of first parameter
+        param2_name: Name of second parameter
+        ranges1: Array of values for parameter 1
+        ranges2: Array of values for parameter 2
+    
+    Returns:
+        DataFrame with both parameters and resulting metrics
+    """
+    results = []
+    
+    for val1 in ranges1:
+        for val2 in ranges2:
+            # Create modified config based on parameter types
+            config = base_config
+            
+            if param1_name == 'Occupancy Rate':
+                occ1 = val1 / 100.0 if val1 > 1.0 else val1
+                config = apply_sensitivity(config, occupancy=occ1)
+            elif param1_name == 'Daily Rate':
+                config = apply_sensitivity(config, daily_rate=val1)
+            elif param1_name == 'Interest Rate':
+                int1 = val1 / 100.0 if val1 > 1.0 else val1
+                config = apply_sensitivity(config, interest_rate=int1)
+            elif param1_name == 'Management Fee':
+                mgmt1 = val1 / 100.0 if val1 > 1.0 else val1
+                config = apply_sensitivity(config, management_fee=mgmt1)
+            elif param1_name == 'Loan-to-Value':
+                # LTV requires special handling
+                new_financing = FinancingParams(
+                    purchase_price=base_config.financing.purchase_price,
+                    ltv=val1 / 100.0 if val1 > 1.0 else val1,
+                    interest_rate=base_config.financing.interest_rate,
+                    amortization_rate=base_config.financing.amortization_rate,
+                    num_owners=base_config.financing.num_owners
+                )
+                config = BaseCaseConfig(
+                    financing=new_financing,
+                    rental=base_config.rental,
+                    expenses=base_config.expenses
+                )
+            
+            # Apply second parameter
+            if param2_name == 'Occupancy Rate':
+                occ2 = val2 / 100.0 if val2 > 1.0 else val2
+                config = apply_sensitivity(config, occupancy=occ2)
+            elif param2_name == 'Daily Rate':
+                config = apply_sensitivity(config, daily_rate=val2)
+            elif param2_name == 'Interest Rate':
+                int2 = val2 / 100.0 if val2 > 1.0 else val2
+                config = apply_sensitivity(config, interest_rate=int2)
+            elif param2_name == 'Management Fee':
+                mgmt2 = val2 / 100.0 if val2 > 1.0 else val2
+                config = apply_sensitivity(config, management_fee=mgmt2)
+            elif param2_name == 'Loan-to-Value':
+                # LTV requires special handling
+                new_financing = FinancingParams(
+                    purchase_price=config.financing.purchase_price,
+                    ltv=val2 / 100.0 if val2 > 1.0 else val2,
+                    interest_rate=config.financing.interest_rate,
+                    amortization_rate=config.financing.amortization_rate,
+                    num_owners=config.financing.num_owners
+                )
+                config = BaseCaseConfig(
+                    financing=new_financing,
+                    rental=config.rental,
+                    expenses=config.expenses
+                )
+            
+            # Calculate results
+            result = compute_annual_cash_flows(config)
+            
+            # Calculate NPV and IRR for this combination
+            discount_rate = 0.03
+            npv_irr = calculate_npv_irr_for_config(config, discount_rate)
+            
+            results.append({
+                param1_name: val1,
+                param2_name: val2,
+                'Cash Flow After Debt (CHF)': result['cash_flow_after_debt_service'],
+                'NPV': npv_irr['npv'],
+                'IRR (%)': npv_irr['irr_with_sale_pct']
+            })
+    
+    return pd.DataFrame(results)
+
+
+def generate_two_way_sensitivity_html(all_sensitivities: Dict[str, pd.DataFrame], base_config: BaseCaseConfig, 
+                                      metrics: Dict) -> str:
+    """
+    Generate HTML section for two-way sensitivity analysis.
+    
+    Args:
+        all_sensitivities: Dictionary of sensitivity DataFrames
+        base_config: Base case configuration
+        metrics: Metrics dictionary
+    
+    Returns:
+        HTML string for two-way sensitivity section
+    """
+    # Identify top parameter pairs
+    top_pairs = identify_top_parameter_pairs(metrics)
+    
+    if not top_pairs:
+        return ''
+    
+    # Limit to top 3 pairs for performance
+    top_pairs = top_pairs[:3]
+    
+    sections = []
+    
+    for param1_name, param2_name in top_pairs:
+        # Get parameter ranges from existing sensitivities
+        if param1_name not in all_sensitivities or param2_name not in all_sensitivities:
+            continue
+        
+        df1 = all_sensitivities[param1_name]
+        df2 = all_sensitivities[param2_name]
+        
+        param1_col = df1.columns[0]
+        param2_col = df2.columns[0]
+        
+        # Check if parameters are numeric (skip categorical parameters like "Mortgage Type")
+        try:
+            param1_min = float(df1[param1_col].min())
+            param1_max = float(df1[param1_col].max())
+            param2_min = float(df2[param2_col].min())
+            param2_max = float(df2[param2_col].max())
+        except (ValueError, TypeError):
+            # Skip non-numeric parameters
+            continue
+        
+        # Use subset of values for performance (10x10 grid = 100 scenarios)
+        param1_values = np.linspace(param1_min, param1_max, 10)
+        param2_values = np.linspace(param2_min, param2_max, 10)
+        
+        # Calculate two-way sensitivity
+        two_way_df = calculate_two_way_sensitivity(base_config, param1_name, param2_name, 
+                                                    param1_values, param2_values)
+        
+        # Create contour plot
+        pivot_npv = two_way_df.pivot_table(
+            values='NPV',
+            index=param1_name,
+            columns=param2_name,
+            aggfunc='mean'
+        )
+        
+        pivot_irr = two_way_df.pivot_table(
+            values='IRR (%)',
+            index=param1_name,
+            columns=param2_name,
+            aggfunc='mean'
+        )
+        
+        # Create Plotly contour plots
+        fig_npv = go.Figure(data=go.Contour(
+            z=pivot_npv.values,
+            x=pivot_npv.columns,
+            y=pivot_npv.index,
+            colorscale='RdYlGn',
+            colorbar=dict(title="NPV (CHF)")
+        ))
+        fig_npv.update_layout(
+            title=f'NPV: {param1_name} vs {param2_name}',
+            xaxis_title=param2_name,
+            yaxis_title=param1_name,
+            height=500
+        )
+        
+        fig_irr = go.Figure(data=go.Contour(
+            z=pivot_irr.values,
+            x=pivot_irr.columns,
+            y=pivot_irr.index,
+            colorscale='RdYlGn',
+            colorbar=dict(title="IRR (%)")
+        ))
+        fig_irr.update_layout(
+            title=f'IRR: {param1_name} vs {param2_name}',
+            xaxis_title=param2_name,
+            yaxis_title=param1_name,
+            height=500
+        )
+        
+        sections.append(f'''
+        <div class="sensitivity-card" style="margin-bottom: 30px;">
+            <h3 style="font-size: 1.2em; margin-bottom: 15px; color: var(--primary);">
+                {param1_name} vs {param2_name}
+            </h3>
+            <p style="font-size: 0.9em; margin-bottom: 20px; color: #555;">
+                This two-way sensitivity analysis shows how simultaneous changes in <strong>{param1_name}</strong> and <strong>{param2_name}</strong> 
+                affect investment performance. Warmer colors (green/yellow) indicate better outcomes, cooler colors (red) indicate worse outcomes.
+            </p>
+            <div class="chart-container">
+                {fig_npv.to_html(include_plotlyjs=False, div_id=f"twoway_npv_{param1_name}_{param2_name}".replace(' ', '_').replace('-', '_'))}
+            </div>
+            <div class="chart-container" style="margin-top: 20px;">
+                {fig_irr.to_html(include_plotlyjs=False, div_id=f"twoway_irr_{param1_name}_{param2_name}".replace(' ', '_').replace('-', '_'))}
+            </div>
+        </div>
+        ''')
+    
+    if not sections:
+        return ''
+    
+    return f'''
+    <div class="section" id="two-way-sensitivity">
+        <h2><i class="fas fa-th"></i> Two-Way Sensitivity Analysis</h2>
+        <div class="sensitivity-card">
+            <div class="intro-box" style="margin-bottom: 18px;">
+                <p style="margin-bottom: 10px; font-size: 0.9em; line-height: 1.6;">
+                    <strong>What is Two-Way Sensitivity Analysis?</strong> This analysis examines how two parameters interact when changed simultaneously. 
+                    Unlike one-way sensitivity (which varies one parameter at a time), two-way analysis reveals parameter interactions and identifies 
+                    combinations that lead to optimal or suboptimal outcomes.
+                </p>
+                <p style="margin-bottom: 0; font-size: 0.9em; line-height: 1.6;">
+                    <strong>How to Read:</strong> Contour plots show NPV and IRR across parameter combinations. Each point represents a scenario with 
+                    specific values for both parameters. The color intensity indicates performance level. Break-even lines (where NPV = 0 or IRR = threshold) 
+                    can be identified by the color transitions.
+                </p>
+            </div>
+            {''.join(sections)}
+        </div>
+    </div>
+    '''
+
+
+def calculate_elasticity_metrics(all_sensitivities: Dict[str, pd.DataFrame], base_config: BaseCaseConfig, base_metrics: Dict) -> Dict[str, Dict]:
+    """
+    Calculate elasticity coefficients for each sensitivity.
+    Elasticity = (% change in output) / (% change in input)
+    
+    Returns:
+        Dictionary mapping sensitivity name to elasticity measures:
+        {
+            'elasticity_cf': elasticity of cash flow,
+            'elasticity_npv': elasticity of NPV,
+            'elasticity_irr': elasticity of IRR,
+            'classification': 'Highly elastic' (>1.5), 'Moderately elastic' (0.5-1.5), 'Inelastic' (<0.5)
+        }
+    """
+    base_cf = compute_annual_cash_flows(base_config)['cash_flow_after_debt_service']
+    base_npv = base_metrics['npv']
+    base_irr = base_metrics['irr_with_sale_pct']
+    
+    elasticity_results = {}
+    
+    for sens_name, df in all_sensitivities.items():
+        if 'Cash Flow After Debt (CHF)' not in df.columns:
+            continue
+        
+        param_col = df.columns[0]
+        param_values = df[param_col].values
+        cash_flows = df['Cash Flow After Debt (CHF)'].values
+        
+        # Get base case parameter value
+        if sens_name == 'Occupancy Rate':
+            base_param = base_config.rental.occupancy_rate * 100
+        elif sens_name == 'Daily Rate':
+            base_result = compute_annual_cash_flows(base_config)
+            base_param = base_result.get('average_daily_rate', 200.0)
+        elif sens_name == 'Interest Rate':
+            base_param = base_config.financing.interest_rate * 100
+        elif sens_name == 'Loan-to-Value':
+            base_param = base_config.financing.ltv * 100
+        elif sens_name == 'Management Fee':
+            base_param = base_config.expenses.property_management_fee_rate * 100
+        elif sens_name == 'Owner Nights':
+            base_param = base_config.rental.owner_nights_per_person * base_config.financing.num_owners
+        else:
+            continue  # Skip if we can't determine base parameter
+        
+        # Find closest parameter value to base case
+        closest_idx = np.argmin(np.abs(param_values - base_param))
+        closest_param = param_values[closest_idx]
+        closest_cf = cash_flows[closest_idx]
+        
+        # Calculate elasticity using best and worst cases
+        best_idx = cash_flows.argmax()
+        worst_idx = cash_flows.argmin()
+        
+        best_param = param_values[best_idx]
+        worst_param = param_values[worst_idx]
+        best_cf = cash_flows[best_idx]
+        worst_cf = cash_flows[worst_idx]
+        
+        # Calculate elasticity for cash flow (using best case)
+        if base_param != 0 and base_cf != 0:
+            pct_change_param = ((best_param - base_param) / base_param) * 100
+            pct_change_cf = ((best_cf - base_cf) / abs(base_cf)) * 100
+            elasticity_cf = (pct_change_cf / pct_change_param) if pct_change_param != 0 else 0
+        else:
+            elasticity_cf = 0
+        
+        # For NPV and IRR, we need to calculate them for best/worst cases
+        # This is simplified - we'll use the impacts from sensitivity_impacts if available
+        # For now, we'll focus on cash flow elasticity which is most direct
+        
+        # Classify elasticity
+        if abs(elasticity_cf) > 1.5:
+            classification = 'Highly Elastic'
+        elif abs(elasticity_cf) > 0.5:
+            classification = 'Moderately Elastic'
+        else:
+            classification = 'Inelastic'
+        
+        elasticity_results[sens_name] = {
+            'elasticity_cf': elasticity_cf,
+            'classification': classification,
+            'base_param': base_param,
+            'base_cf': base_cf
+        }
+    
+    return elasticity_results
+
+
+def calculate_statistical_summary(all_sensitivities: Dict[str, pd.DataFrame], base_config: BaseCaseConfig, base_metrics: Dict) -> Dict[str, Dict]:
+    """
+    Calculate statistical measures for each sensitivity.
+    
+    Returns:
+        Dictionary mapping sensitivity name to statistical measures:
+        {
+            'cv': coefficient of variation,
+            'p10', 'p25', 'p50', 'p75', 'p90': percentiles,
+            'range_pct': range as percentage of base case,
+            'volatility_rank': rank by volatility (1 = most volatile)
+        }
+    """
+    base_npv = base_metrics['npv']
+    base_irr = base_metrics['irr_with_sale_pct']
+    base_cf = compute_annual_cash_flows(base_config)['cash_flow_after_debt_service']
+    
+    statistical_results = {}
+    
+    for sens_name, df in all_sensitivities.items():
+        if 'Cash Flow After Debt (CHF)' not in df.columns:
+            continue
+        
+        cash_flows = df['Cash Flow After Debt (CHF)'].values
+        
+        # Calculate percentiles
+        p10 = np.percentile(cash_flows, 10)
+        p25 = np.percentile(cash_flows, 25)
+        p50 = np.percentile(cash_flows, 50)  # median
+        p75 = np.percentile(cash_flows, 75)
+        p90 = np.percentile(cash_flows, 90)
+        
+        # Calculate mean and standard deviation
+        mean_cf = np.mean(cash_flows)
+        std_cf = np.std(cash_flows)
+        
+        # Coefficient of Variation (CV)
+        cv = (std_cf / abs(mean_cf)) if mean_cf != 0 else float('inf')
+        
+        # Range as percentage of base case
+        min_cf = cash_flows.min()
+        max_cf = cash_flows.max()
+        range_abs = max_cf - min_cf
+        range_pct = (range_abs / abs(base_cf) * 100) if base_cf != 0 else 0
+        
+        statistical_results[sens_name] = {
+            'mean': mean_cf,
+            'std': std_cf,
+            'cv': cv,
+            'p10': p10,
+            'p25': p25,
+            'p50': p50,
+            'p75': p75,
+            'p90': p90,
+            'min': min_cf,
+            'max': max_cf,
+            'range': range_abs,
+            'range_pct': range_pct,
+            'base_cf': base_cf
+        }
+    
+    # Rank by volatility (CV)
+    volatility_ranking = sorted(statistical_results.items(), key=lambda x: x[1]['cv'], reverse=True)
+    for rank, (sens_name, _) in enumerate(volatility_ranking, 1):
+        statistical_results[sens_name]['volatility_rank'] = rank
+    
+    return statistical_results
+
+
+def generate_statistical_analysis_html(statistics: Dict[str, Dict]) -> str:
+    """
+    Generate HTML section for statistical analysis.
+    
+    Args:
+        statistics: Dictionary from calculate_statistical_summary()
+    
+    Returns:
+        HTML string for statistical analysis section
+    """
+    if not statistics:
+        return ''
+    
+    def format_currency(value):
+        return f"{value:,.0f} CHF"
+    
+    def format_percent(value):
+        return f"{value:.2f}%"
+    
+    # Sort by volatility rank
+    sorted_stats = sorted(statistics.items(), key=lambda x: x[1].get('volatility_rank', 999))
+    
+    table_rows = []
+    for sens_name, stats in sorted_stats:
+        cv = stats['cv']
+        range_pct = stats['range_pct']
+        volatility_rank = stats.get('volatility_rank', 999)
+        
+        # Determine volatility level
+        if cv > 1.0:
+            volatility_level = '🔴 High Volatility'
+            vol_color = '#dc3545'
+        elif cv > 0.5:
+            volatility_level = '🟡 Medium Volatility'
+            vol_color = '#ffc107'
+        else:
+            volatility_level = '🟢 Low Volatility'
+            vol_color = '#28a745'
+        
+        table_rows.append(f'''
+            <tr>
+                <td><strong>{sens_name}</strong></td>
+                <td style="text-align: center;">#{volatility_rank}</td>
+                <td style="color: {vol_color}; font-weight: 600;">{volatility_level}</td>
+                <td>{cv:.3f}</td>
+                <td>{format_currency(stats['mean'])}</td>
+                <td>{format_currency(stats['std'])}</td>
+                <td>{format_currency(stats['p10'])}</td>
+                <td>{format_currency(stats['p25'])}</td>
+                <td>{format_currency(stats['p50'])}</td>
+                <td>{format_currency(stats['p75'])}</td>
+                <td>{format_currency(stats['p90'])}</td>
+                <td>{format_currency(stats['range'])}</td>
+                <td>{range_pct:.1f}%</td>
+            </tr>
+        ''')
+    
+    return f'''
+    <div class="section" id="statistical-analysis">
+        <h2><i class="fas fa-chart-bar"></i> Statistical Analysis</h2>
+        <div class="sensitivity-card">
+            <div class="intro-box" style="margin-bottom: 18px;">
+                <p style="margin-bottom: 10px; font-size: 0.9em; line-height: 1.6;">
+                    <strong>What is Statistical Analysis?</strong> This analysis provides detailed statistical measures for each sensitivity factor, including percentiles, coefficient of variation (CV), and range metrics. These measures help understand the distribution and volatility of outcomes.
+                </p>
+                <p style="margin-bottom: 0; font-size: 0.9em; line-height: 1.6;">
+                    <strong>Key Metrics:</strong> CV (Coefficient of Variation) = std/mean, measures relative volatility. Higher CV indicates more volatile outcomes. Percentiles (P10, P25, P50, P75, P90) show the distribution of cash flow outcomes across tested parameter values.
+                </p>
+            </div>
+            <table class="summary-table" style="margin-top: 20px; font-size: 0.85em;">
+                <thead>
+                    <tr>
+                        <th>Sensitivity Factor</th>
+                        <th>Volatility Rank</th>
+                        <th>Volatility Level</th>
+                        <th>CV</th>
+                        <th>Mean</th>
+                        <th>Std Dev</th>
+                        <th>P10</th>
+                        <th>P25</th>
+                        <th>P50 (Median)</th>
+                        <th>P75</th>
+                        <th>P90</th>
+                        <th>Range</th>
+                        <th>Range % of Base</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {''.join(table_rows)}
+                </tbody>
+            </table>
+            <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #17a2b8;">
+                <p style="font-size: 0.9em; line-height: 1.6; margin: 0;">
+                    <strong>Interpretation:</strong> Factors with high CV (>1.0) show significant variability in outcomes and require careful monitoring. The range as % of base shows how much the cash flow can vary relative to the base case. Percentiles help identify likely outcome ranges (e.g., P25-P75 represents the interquartile range where 50% of outcomes fall).
+                </p>
+            </div>
+        </div>
+    </div>
+    '''
+
+
+def generate_sensitivity_ranking_table(metrics: Dict) -> str:
+    """
+    Generate HTML table for sensitivity ranking.
+    
+    Args:
+        metrics: Dictionary from calculate_sensitivity_metrics() including 'ranking' key
+    
+    Returns:
+        HTML string for ranking table
+    """
+    if 'ranking' not in metrics or not metrics['ranking']:
+        return ''
+    
+    def format_currency(value):
+        return f"{value:,.0f} CHF"
+    
+    def format_percent(value):
+        return f"{value:.2f}%"
+    
+    # Get elasticity data if available
+    elasticity_data = metrics.get('elasticity', {})
+    
+    table_rows = []
+    for item in metrics['ranking']:
+        sens_name = item['sensitivity']
+        rank = item['rank']
+        npv_range = item['npv_range']
+        irr_range = item['irr_range']
+        composite_score = item['composite_score']
+        npv_best = item['npv_best_impact']
+        npv_worst = item['npv_worst_impact']
+        irr_best = item['irr_best_impact']
+        irr_worst = item['irr_worst_impact']
+        
+        # Get elasticity if available
+        elasticity_info = elasticity_data.get(sens_name, {})
+        elasticity_cf = elasticity_info.get('elasticity_cf', 0)
+        elasticity_class = elasticity_info.get('classification', 'N/A')
+        
+        # Determine risk level based on composite score
+        max_score = max([x['composite_score'] for x in metrics['ranking']])
+        risk_pct = (composite_score / max_score * 100) if max_score > 0 else 0
+        
+        if risk_pct >= 70:
+            risk_level = '🔴 High Risk'
+            risk_color = '#dc3545'
+        elif risk_pct >= 40:
+            risk_level = '🟡 Medium Risk'
+            risk_color = '#ffc107'
+        else:
+            risk_level = '🟢 Low Risk'
+            risk_color = '#28a745'
+        
+        # Elasticity color coding
+        if abs(elasticity_cf) > 1.5:
+            elast_color = '#dc3545'
+        elif abs(elasticity_cf) > 0.5:
+            elast_color = '#ffc107'
+        else:
+            elast_color = '#28a745'
+        
+        table_rows.append(f'''
+            <tr>
+                <td style="text-align: center; font-weight: 700;">#{rank}</td>
+                <td><strong>{sens_name}</strong></td>
+                <td style="color: {risk_color}; font-weight: 600;">{risk_level}</td>
+                <td>{format_currency(npv_range)}</td>
+                <td>{format_percent(irr_range)}</td>
+                <td style="color: {elast_color}; font-weight: 600;">{elasticity_class}</td>
+                <td>{elasticity_cf:.2f}</td>
+                <td>{format_currency(composite_score)}</td>
+                <td>{format_currency(npv_best)}</td>
+                <td>{format_currency(npv_worst)}</td>
+                <td>{format_percent(irr_best)}</td>
+                <td>{format_percent(irr_worst)}</td>
+            </tr>
+        ''')
+    
+    return f'''
+    <div class="section" id="sensitivity-ranking">
+        <h2><i class="fas fa-trophy"></i> Sensitivity Ranking</h2>
+        <div class="sensitivity-card">
+            <div class="intro-box" style="margin-bottom: 18px;">
+                <p style="margin-bottom: 10px; font-size: 0.9em; line-height: 1.6;">
+                    <strong>What is Sensitivity Ranking?</strong> This table ranks all sensitivity factors by their impact on investment performance. Factors are ranked by a composite risk score that combines NPV and IRR impacts. Higher-ranked factors have the greatest potential to affect returns.
+                </p>
+                <p style="margin-bottom: 10px; font-size: 0.9em; line-height: 1.6;">
+                    <strong>Risk Levels:</strong> High Risk factors require careful monitoring and may need contingency planning. Medium Risk factors should be tracked regularly. Low Risk factors have minimal impact on overall returns.
+                </p>
+                <p style="margin-bottom: 0; font-size: 0.9em; line-height: 1.6;">
+                    <strong>Elasticity:</strong> Measures the proportional sensitivity of cash flow to parameter changes. Highly Elastic (>1.5) means output changes more than proportionally to input changes. Moderately Elastic (0.5-1.5) means proportional response. Inelastic (<0.5) means output changes less than proportionally.
+                </p>
+            </div>
+            <table class="summary-table" style="margin-top: 20px;">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Sensitivity Factor</th>
+                        <th>Risk Level</th>
+                        <th>NPV Range</th>
+                        <th>IRR Range</th>
+                        <th>Elasticity Class</th>
+                        <th>Elasticity</th>
+                        <th>Composite Score</th>
+                        <th>NPV Best</th>
+                        <th>NPV Worst</th>
+                        <th>IRR Best</th>
+                        <th>IRR Worst</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {''.join(table_rows)}
+                </tbody>
+            </table>
+            <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #17a2b8;">
+                <p style="font-size: 0.9em; line-height: 1.6; margin: 0;">
+                    <strong>Methodology:</strong> Composite score = 40% × |NPV best impact| + 40% × |NPV worst impact| + 10% × |IRR best impact| + 10% × |IRR worst impact|. This weighting emphasizes NPV as the primary metric while considering IRR for context.
+                </p>
+            </div>
+        </div>
+    </div>
+    '''
+
+
+def generate_break_even_analysis_html(break_even_results: Dict[str, Dict], base_config: BaseCaseConfig) -> str:
+    """
+    Generate HTML section for break-even analysis.
+    
+    Args:
+        break_even_results: Dictionary from calculate_break_even_points()
+        base_config: Base case configuration
+    
+    Returns:
+        HTML string for break-even analysis section
+    """
+    def format_currency(value):
+        return f"{value:,.0f} CHF"
+    
+    def format_percent(value):
+        return f"{value:.2f}%"
+    
+    def format_number(value, decimals=1):
+        if isinstance(value, float):
+            return f"{value:.{decimals}f}"
+        return str(value)
+    
+    # Parameter display names and units
+    param_display = {
+        'Occupancy Rate': {'unit': '%', 'format': format_percent},
+        'Daily Rate': {'unit': 'CHF', 'format': format_currency},
+        'Interest Rate': {'unit': '%', 'format': format_percent},
+        'Loan-to-Value': {'unit': '%', 'format': format_percent},
+        'Management Fee': {'unit': '%', 'format': format_percent},
+        'Owner Nights': {'unit': 'nights', 'format': lambda x: f"{x:.0f}"}
+    }
+    
+    table_rows = []
+    for sens_name, data in break_even_results.items():
+        if not data.get('break_even_exists', False):
+            continue
+        
+        be_value = data['break_even_value']
+        base_value = data['base_case_value']
+        margin = data['margin_to_break_even']
+        margin_pct = data['margin_pct']
+        is_above = data['is_above_break_even']
+        
+        display_info = param_display.get(sens_name, {'unit': '', 'format': format_number})
+        format_func = display_info['format']
+        unit = display_info['unit']
+        
+        # Determine safety status
+        if abs(margin_pct) < 10:
+            safety_status = '⚠️ Critical'
+            safety_color = '#dc3545'
+        elif abs(margin_pct) < 25:
+            safety_status = '⚠️ Low Margin'
+            safety_color = '#ffc107'
+        else:
+            safety_status = '✓ Safe'
+            safety_color = '#28a745'
+        
+        direction = 'above' if is_above else 'below'
+        margin_text = f"{abs(margin):.2f} {unit}" if unit else f"{abs(margin):.2f}"
+        
+        table_rows.append(f'''
+            <tr>
+                <td><strong>{sens_name}</strong></td>
+                <td>{format_func(be_value)} {unit}</td>
+                <td>{format_func(base_value)} {unit}</td>
+                <td style="color: {safety_color}; font-weight: 600;">{safety_status}</td>
+                <td>{margin_text} {direction} break-even</td>
+                <td>{abs(margin_pct):.1f}%</td>
+            </tr>
+        ''')
+    
+    if not table_rows:
+        return '''
+        <div class="section">
+            <h2><i class="fas fa-balance-scale"></i> Break-Even Analysis</h2>
+            <div class="sensitivity-card">
+                <p>Break-even analysis is not applicable for the current sensitivity ranges. All tested parameter values result in either positive or negative cash flow, with no zero-crossing point.</p>
+            </div>
+        </div>
+        '''
+    
+    return f'''
+    <div class="section" id="break-even">
+        <h2><i class="fas fa-balance-scale"></i> Break-Even Analysis</h2>
+        <div class="sensitivity-card">
+            <div class="intro-box" style="margin-bottom: 18px;">
+                <p style="margin-bottom: 10px; font-size: 0.9em; line-height: 1.6;">
+                    <strong>What is Break-Even Analysis?</strong> Break-even analysis identifies the parameter value where cash flow after debt service equals zero. This is a critical threshold - values below break-even require owner contributions, while values above break-even generate positive returns.
+                </p>
+                <p style="margin-bottom: 0; font-size: 0.9em; line-height: 1.6;">
+                    <strong>Safety Margin:</strong> The margin shows how far the base case is from break-even. A larger margin provides more protection against adverse changes. Parameters with margins below 25% are considered higher risk.
+                </p>
+            </div>
+            <table class="summary-table" style="margin-top: 20px;">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Break-Even Value</th>
+                        <th>Base Case Value</th>
+                        <th>Safety Status</th>
+                        <th>Margin</th>
+                        <th>Margin (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {''.join(table_rows)}
+                </tbody>
+            </table>
+            <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #17a2b8;">
+                <p style="font-size: 0.9em; line-height: 1.6; margin: 0;">
+                    <strong>Interpretation:</strong> Parameters with break-even values close to the base case are more sensitive and require careful monitoring. A negative margin indicates the base case is below break-even (negative cash flow), which may be acceptable if personal use value and appreciation are considered.
+                </p>
+            </div>
+        </div>
+    </div>
+    '''
 
 
 def generate_sensitivity_impact_table(monthly_cf_data, cap_rate_data, cash_on_cash_data, npv_data, irr_data, sensitivities, sensitivity_info) -> str:
@@ -1051,8 +2844,8 @@ def generate_sensitivity_impact_table(monthly_cf_data, cap_rate_data, cash_on_ca
     # Generate table HTML
     table_html = '''
     <div style="margin-top: 30px; padding: 25px; background: #f8f9fa; border-radius: 12px; border-left: 4px solid #0f3460;">
-        <h4 style="color: #0f3460; margin-bottom: 20px; font-size: 1.3em; font-weight: 600;">Comprehensive Sensitivity Impact Table</h4>
-        <p style="margin-bottom: 20px; color: #495057; line-height: 1.7;">
+        <h4 style="color: #0f3460; margin-bottom: 15px; font-size: 1.1em; font-weight: 600;">Comprehensive Sensitivity Impact Table</h4>
+        <p style="margin-bottom: 15px; color: #495057; line-height: 1.6; font-size: 0.9em;">
             This table shows the impact of each sensitivity factor on three key metrics: 
             <strong>Cash-on-Cash (Unlevered)</strong>, <strong>NPV</strong>, and <strong>IRR</strong>. 
             Values show the impact relative to the base case (worst case = negative impact, best case = positive impact).
@@ -1064,23 +2857,23 @@ def generate_sensitivity_impact_table(monthly_cf_data, cap_rate_data, cash_on_ca
             <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                 <thead>
                     <tr style="background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%); color: white;">
-                    <th style="padding: 15px; text-align: left; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2);">Sensitivity Factor</th>
-                    <th style="padding: 15px; text-align: left; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2);">Range Tested</th>
-                    <th style="padding: 15px; text-align: center; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2);" colspan="2">Monthly CF Impact (CHF)</th>
-                    <th style="padding: 15px; text-align: center; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2);" colspan="2">Cap Rate Impact (pp)</th>
-                    <th style="padding: 15px; text-align: center; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2);" colspan="2">Cash-on-Cash Impact (pp)</th>
-                    <th style="padding: 15px; text-align: center; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2);" colspan="2">NPV Impact (CHF)</th>
-                    <th style="padding: 15px; text-align: center; font-weight: 600;" colspan="2">IRR Impact (pp)</th>
+                    <th style="padding: 12px; text-align: left; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2); font-size: 0.9em;">Sensitivity Factor</th>
+                    <th style="padding: 12px; text-align: left; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2); font-size: 0.9em;">Range Tested</th>
+                    <th style="padding: 12px; text-align: center; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2); font-size: 0.9em;" colspan="2">Monthly CF Impact (CHF)</th>
+                    <th style="padding: 12px; text-align: center; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2); font-size: 0.9em;" colspan="2">Cap Rate Impact (pp)</th>
+                    <th style="padding: 12px; text-align: center; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2); font-size: 0.9em;" colspan="2">Cash-on-Cash Impact (pp)</th>
+                    <th style="padding: 12px; text-align: center; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.2); font-size: 0.9em;" colspan="2">NPV Impact (CHF)</th>
+                    <th style="padding: 12px; text-align: center; font-weight: 600; font-size: 0.9em;" colspan="2">IRR Impact (pp)</th>
                     </tr>
                 <tr style="background: #e8ecef; color: #495057;">
-                    <th style="padding: 10px 15px; border-right: 1px solid #dee2e6;"></th>
-                    <th style="padding: 10px 15px; border-right: 1px solid #dee2e6;"></th>
-                    <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Worst</th>
-                    <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Best</th>
-                    <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Worst</th>
-                    <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Best</th>
-                    <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Worst</th>
-                    <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Best</th>
+                    <th style="padding: 8px 12px; border-right: 1px solid #dee2e6;"></th>
+                    <th style="padding: 8px 12px; border-right: 1px solid #dee2e6;"></th>
+                    <th style="padding: 8px 12px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.85em; font-weight: 500;">Worst</th>
+                    <th style="padding: 8px 12px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.85em; font-weight: 500;">Best</th>
+                    <th style="padding: 8px 12px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.85em; font-weight: 500;">Worst</th>
+                    <th style="padding: 8px 12px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.85em; font-weight: 500;">Best</th>
+                    <th style="padding: 8px 12px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.85em; font-weight: 500;">Worst</th>
+                    <th style="padding: 8px 12px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.85em; font-weight: 500;">Best</th>
                     <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Worst</th>
                     <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Best</th>
                     <th style="padding: 10px 15px; text-align: center; border-right: 1px solid #dee2e6; font-size: 0.9em; font-weight: 500;">Worst</th>
@@ -1483,13 +3276,13 @@ def generate_summary_charts(metrics: Dict, base_config: BaseCaseConfig, all_sens
         layout_updates = template.copy()
         layout_updates.update({
             'title': {
-                'text': "Tornado Chart: Monthly Cash Flow per Owner Impact by Sensitivity Factor",
+                'text': "Tornado Chart: Monthly Cash Flow per Investor Impact by Sensitivity Factor",
                 'font': template['title_font'],
                 'x': template['title_x'],
                 'xanchor': template['title_xanchor'],
                 'pad': template['title_pad']
             },
-            'xaxis_title': "Monthly Cash Flow Impact (CHF per month)",
+            'xaxis_title': "Monthly Cash Flow Impact (CHF per month per investor)",
             'yaxis_title': "Sensitivity Factor",
             'height': 550,
             'barmode': 'relative',
@@ -1500,12 +3293,21 @@ def generate_summary_charts(metrics: Dict, base_config: BaseCaseConfig, all_sens
                 zerolinecolor='#495057',
                 showgrid=True,
                 gridcolor=template['xaxis']['gridcolor'],
-                gridwidth=template['xaxis']['gridwidth']
-            )
+                gridwidth=template['xaxis']['gridwidth'],
+                side='bottom'
+            ),
+            'yaxis': dict(
+                showgrid=False,
+                side='left'
+            ),
+            'margin': dict(l=150, r=50, t=80, b=60),
+            'hovermode': 'closest',
+            'plot_bgcolor': 'white',
+            'paper_bgcolor': 'white'
         })
         fig_tornado_monthly_cf.update_layout(**layout_updates)
         
-        charts_html.append(f'<div class="chart-container"><h3 style="margin-bottom: 20px; color: var(--primary);">Monthly Cash Flow per Owner Sensitivity Analysis</h3><p style="margin-bottom: 20px; color: #555; line-height: 1.7;">This chart shows the <strong>monthly cash flow impact</strong> for each of the four participants in the investment. This is the most practical metric, showing how much money each owner will need to <strong>pay monthly</strong> (negative values, left side in red) or will <strong>receive monthly</strong> (positive values, right side in green) under different scenarios. The monthly cash flow is calculated as the annual cash flow per owner divided by 12 months.<br><br><strong>Red bars (left)</strong> show worst-case scenarios where owners need to contribute money monthly to keep the investment running. <strong>Green bars (right)</strong> show best-case scenarios where owners receive monthly cash distributions.<br><br><strong>Hover over each bar</strong> to see the exact parameter values tested (minimum and maximum extremes), the monthly cash flow amounts, and the annual equivalent.</p>{fig_tornado_monthly_cf.to_html(include_plotlyjs="cdn", div_id="tornadoMonthlyCF")}</div>')
+        charts_html.append(f'<div class="chart-container"><h3 style="margin-bottom: 20px; color: var(--primary);">Monthly Cash Flow per Investor Sensitivity Analysis</h3><p style="margin-bottom: 20px; color: #555; line-height: 1.7;">This chart shows the <strong>monthly cash flow impact</strong> for each investor in the property. This is the most practical metric, showing how much money each investor will need to <strong>pay monthly</strong> (negative values, left side in red) or will <strong>receive monthly</strong> (positive values, right side in green) under different scenarios. The monthly cash flow is calculated as the annual cash flow per investor divided by 12 months.<br><br><strong>Red bars (left)</strong> show worst-case scenarios where investors need to contribute money monthly to keep the investment running. <strong>Green bars (right)</strong> show best-case scenarios where investors receive monthly cash distributions.<br><br><strong>Hover over each bar</strong> to see the exact parameter values tested (minimum and maximum extremes), the monthly cash flow amounts, and the annual equivalent.</p>{fig_tornado_monthly_cf.to_html(include_plotlyjs="cdn", div_id="tornadoMonthlyCF")}</div>')
     
     # 1. Tornado Chart for Cap Rate (Unlevered) - SECOND CHART
     # Cap Rate = NOI / Purchase Price (industry standard unlevered metric)
@@ -1604,12 +3406,21 @@ def generate_summary_charts(metrics: Dict, base_config: BaseCaseConfig, all_sens
                 zerolinecolor='#495057',
                 showgrid=True,
                 gridcolor=template['xaxis']['gridcolor'],
-                gridwidth=template['xaxis']['gridwidth']
-            )
+                gridwidth=template['xaxis']['gridwidth'],
+                side='bottom'
+            ),
+            'yaxis': dict(
+                showgrid=False,
+                side='left'
+            ),
+            'margin': dict(l=150, r=50, t=80, b=60),
+            'hovermode': 'closest',
+            'plot_bgcolor': 'white',
+            'paper_bgcolor': 'white'
         })
         fig_tornado_cap_rate.update_layout(**layout_updates)
         
-        charts_html.append(f'<div class="chart-container"><h3 style="margin-bottom: 20px; color: var(--primary);">Cap Rate Sensitivity Analysis (Unlevered)</h3><p style="margin-bottom: 20px; color: #555; line-height: 1.7;">This chart shows the impact of each sensitivity factor on the <strong>Cap Rate</strong> (Capitalization Rate), which is calculated as Net Operating Income (NOI) divided by Purchase Price. Cap Rate is an <strong>unlevered metric</strong> that measures the property\'s operating performance independent of financing structure. It represents the unlevered yield on the property investment. Higher cap rates indicate better operating performance. Red bars (left) show scenarios that reduce the cap rate, green bars (right) show scenarios that increase it.<br><br><strong>Hover over each bar</strong> to see the exact parameter values tested (minimum and maximum extremes) and the range covered by each sensitivity analysis.</p>{fig_tornado_cap_rate.to_html(include_plotlyjs="cdn", div_id="tornadoCapRate")}</div>')
+        charts_html.append(f'<div class="chart-container"><h3 style="margin-bottom: 20px; color: var(--primary);">Cap Rate Sensitivity Analysis (Unlevered)</h3><p style="margin-bottom: 20px; color: #555; line-height: 1.7;">This chart shows the impact of each sensitivity factor on the <strong>Cap Rate</strong> (Capitalization Rate), which is calculated as Net Operating Income (NOI) divided by Purchase Price. Cap Rate is an <strong>unlevered metric</strong> that measures the property\'s operating performance independent of financing structure. It represents the unlevered yield on the property investment. Higher cap rates indicate better operating performance. <strong>Red bars (left)</strong> show scenarios that reduce the cap rate, <strong>green bars (right)</strong> show scenarios that increase it.<br><br><strong>Hover over each bar</strong> to see the exact parameter values tested (minimum and maximum extremes), the cap rate impact in percentage points, and the resulting cap rate values.</p>{fig_tornado_cap_rate.to_html(include_plotlyjs="cdn", div_id="tornadoCapRate")}</div>')
         
         # 0b. Tornado Chart for Cash-on-Cash Return (Levered) - SECOND CHART
         if cash_on_cash_data:
@@ -2157,7 +3968,7 @@ def generate_apexcharts_for_sensitivities(all_sensitivities: Dict[str, pd.DataFr
                 "stroke": {"curve": "smooth", "width": 3},
                 "markers": {"size": 5},
                 "series": [{"name": "Cash Flow After Debt", "data": df['Cash Flow After Debt (CHF)'].tolist()}],
-                "xaxis": {"categories": df['Utilities Annual (CHF)'].tolist(), "title": {"text": "Utilities Annual (CHF)"}},
+                "xaxis": {"categories": df['Total Utilities Annual (CHF)'].tolist(), "title": {"text": "Total Utilities Annual (CHF)"}},
                 "yaxis": {"title": {"text": "Cash Flow After Debt (CHF)"}},
                 "colors": ["#3498db"],
                 "title": {"text": "Sensitivity: Utilities Cost Impact", "align": "left", "style": {"fontSize": "18px", "fontWeight": "600"}},
@@ -2564,7 +4375,7 @@ def generate_detailed_sensitivity_sections_with_charts(all_sensitivities: Dict[s
                 "stroke": {"curve": "smooth", "width": 3},
                 "markers": {"size": 5},
                 "series": [{"name": "Cash Flow After Debt", "data": df['Cash Flow After Debt (CHF)'].tolist()}],
-                "xaxis": {"categories": df['Utilities Annual (CHF)'].tolist(), "title": {"text": "Utilities Annual (CHF)"}},
+                "xaxis": {"categories": df['Total Utilities Annual (CHF)'].tolist(), "title": {"text": "Total Utilities Annual (CHF)"}},
                 "yaxis": {"title": {"text": "Cash Flow After Debt (CHF)"}},
                 "colors": ["#3498db"],
                 "title": {"text": f"{sens_name} Impact", "align": "left", "style": {"fontSize": "18px", "fontWeight": "600"}},
@@ -2792,12 +4603,12 @@ def generate_detailed_sensitivity_sections(all_sensitivities: Dict[str, pd.DataF
         
         sections.append(f'''
         <div class="sensitivity-section">
-            <h3 style="color: #667eea; font-size: 1.5em; margin-bottom: 15px; margin-top: 30px;">{sens_name}</h3>
+            <h3 style="color: #667eea; font-size: 1.2em; margin-bottom: 12px; margin-top: 20px;">{sens_name}</h3>
             <div class="sensitivity-card">
-                <div class="intro-box" style="margin-bottom: 25px;">
-                    <p style="margin-bottom: 12px; font-size: 1.05em; line-height: 1.8;"><strong>What this sensitivity evaluates:</strong> {sens_info.get('what_it_evaluates', sensitivity_descriptions.get(sens_name, 'This sensitivity tests how changes in this parameter affect the investment performance.'))}</p>
-                    <p style="margin-bottom: 12px; font-size: 1.05em; line-height: 1.8;"><strong>Range tested:</strong> From <strong>{sens_info.get('min', 'N/A')}</strong> (worst case scenario) to <strong>{sens_info.get('max', 'N/A')}</strong> (best case scenario). Base case value: <strong>{sens_info.get('base', 'N/A')}</strong>.</p>
-                    <p style="margin-bottom: 0; font-size: 1.05em; line-height: 1.8;"><strong>Context:</strong> {sens_info.get('description', sensitivity_descriptions.get(sens_name, 'This parameter is an important factor in determining the investment\'s financial performance.'))}</p>
+                <div class="intro-box" style="margin-bottom: 18px;">
+                    <p style="margin-bottom: 10px; font-size: 0.9em; line-height: 1.6;"><strong>What this sensitivity evaluates:</strong> {sens_info.get('what_it_evaluates', sensitivity_descriptions.get(sens_name, 'This sensitivity tests how changes in this parameter affect the investment performance.'))}</p>
+                    <p style="margin-bottom: 10px; font-size: 0.9em; line-height: 1.6;"><strong>Range tested:</strong> From <strong>{sens_info.get('min', 'N/A')}</strong> (worst case scenario) to <strong>{sens_info.get('max', 'N/A')}</strong> (best case scenario). Base case value: <strong>{sens_info.get('base', 'N/A')}</strong>.</p>
+                    <p style="margin-bottom: 0; font-size: 0.9em; line-height: 1.6;"><strong>Context:</strong> {sens_info.get('description', sensitivity_descriptions.get(sens_name, 'This parameter is an important factor in determining the investment\'s financial performance.'))}</p>
                 </div>
                 {table_html}
             </div>
@@ -2808,7 +4619,7 @@ def generate_detailed_sensitivity_sections(all_sensitivities: Dict[str, pd.DataF
 
 
 def generate_sensitivity_html(all_sensitivities: Dict[str, pd.DataFrame], charts: List[Tuple[str, go.Figure]], 
-                              base_config: BaseCaseConfig, metrics: Dict = None, output_path: str = "output/report_sensitivity.html"):
+                              base_config: BaseCaseConfig, metrics: Dict = None, output_path: str = "website/report_sensitivity.html"):
     """Generate HTML report with sensitivity analyses using ApexCharts."""
     base_result = compute_annual_cash_flows(base_config)
     
@@ -2816,6 +4627,13 @@ def generate_sensitivity_html(all_sensitivities: Dict[str, pd.DataFrame], charts
     summary_charts_html = ""
     if metrics:
         summary_charts_html = generate_summary_charts(metrics, base_config, all_sensitivities)
+    
+    # Pre-calculate scenario configs and results for efficiency
+    scenario_configs = None
+    scenario_results = None
+    if metrics:
+        scenario_configs = create_scenario_configs(base_config, all_sensitivities, metrics)
+        scenario_results = analyze_scenarios(scenario_configs)
     
     # Generate ApexCharts HTML for individual sensitivities
     charts_html = generate_apexcharts_for_sensitivities(all_sensitivities, base_config)
@@ -2872,6 +4690,28 @@ def generate_sensitivity_html(all_sensitivities: Dict[str, pd.DataFrame], charts
             </div>
         '''
     
+    # Define sections for sidebar navigation
+    sections = [
+        {'id': 'executive-summary', 'title': 'Executive Summary', 'icon': 'fas fa-chart-line'},
+        {'id': 'sensitivity-impact', 'title': 'Sensitivity Impact Analysis', 'icon': 'fas fa-chart-bar'},
+        {'id': 'break-even', 'title': 'Break-Even Analysis', 'icon': 'fas fa-balance-scale'},
+        {'id': 'sensitivity-ranking', 'title': 'Sensitivity Ranking', 'icon': 'fas fa-trophy'},
+        {'id': 'statistical-analysis', 'title': 'Statistical Analysis', 'icon': 'fas fa-chart-bar'},
+        {'id': 'two-way-sensitivity', 'title': 'Two-Way Sensitivity', 'icon': 'fas fa-th'},
+        {'id': 'scenario-analysis', 'title': 'Scenario Analysis', 'icon': 'fas fa-project-diagram'},
+        {'id': 'critical-thresholds', 'title': 'Critical Thresholds', 'icon': 'fas fa-exclamation-triangle'},
+        {'id': 'detailed-sensitivities', 'title': 'Detailed Analyses', 'icon': 'fas fa-list'},
+        {'id': 'methodology', 'title': 'Methodology & Assumptions', 'icon': 'fas fa-book'},
+    ]
+    
+    # Generate sidebar and toolbar
+    sidebar_html = generate_sidebar_navigation(sections)
+    toolbar_html = generate_top_toolbar(
+        report_title="Sensitivity Analysis",
+        back_link="index.html",
+        subtitle="Engelberg Property Investment - Comprehensive Scenario Analysis"
+    )
+    
     html_content = f"""
 <!DOCTYPE html>
 <html lang="en">
@@ -2886,6 +4726,7 @@ def generate_sensitivity_html(all_sensitivities: Dict[str, pd.DataFrame], charts
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        {generate_shared_layout_css()}
         * {{
             margin: 0;
             padding: 0;
@@ -2916,7 +4757,7 @@ def generate_sensitivity_html(all_sensitivities: Dict[str, pd.DataFrame], charts
         }}
         
         .container {{
-            max-width: 1920px;
+            max-width: 1200px;
             margin: 0 auto;
             background: white;
             min-height: 100vh;
@@ -2925,7 +4766,7 @@ def generate_sensitivity_html(all_sensitivities: Dict[str, pd.DataFrame], charts
         .header {{
             background: var(--gradient-1);
             color: white;
-            padding: 60px 80px;
+            padding: 30px 50px;
             position: relative;
             overflow: hidden;
         }}
@@ -2935,8 +4776,8 @@ def generate_sensitivity_html(all_sensitivities: Dict[str, pd.DataFrame], charts
             position: absolute;
             top: -50%;
             right: -10%;
-            width: 500px;
-            height: 500px;
+            width: 400px;
+            height: 400px;
             background: rgba(255,255,255,0.1);
             border-radius: 50%;
             animation: float 20s infinite ease-in-out;
@@ -2948,75 +4789,57 @@ def generate_sensitivity_html(all_sensitivities: Dict[str, pd.DataFrame], charts
         }}
         
         .header h1 {{
-            font-size: 3.5em;
+            font-size: 2.0em;
             font-weight: 700;
-            margin-bottom: 15px;
-            letter-spacing: -1px;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
             position: relative;
             z-index: 1;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }}
         
         .header .subtitle {{
-            font-size: 1.4em;
+            font-size: 0.95em;
             opacity: 0.95;
-            margin-bottom: 10px;
+            margin-bottom: 6px;
             position: relative;
             z-index: 1;
         }}
         
         .header .meta {{
-            font-size: 0.95em;
+            font-size: 0.85em;
             opacity: 0.85;
-            margin-top: 20px;
+            margin-top: 8px;
             position: relative;
             z-index: 1;
         }}
         
         .kpi-card {{
             background: white;
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: var(--shadow-md);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
             position: relative;
             overflow: hidden;
-            border-left: 4px solid var(--primary);
-        }}
-        
-        .kpi-card::before {{
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--gradient-1);
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.3s;
+            border-left: 3px solid var(--primary);
         }}
         
         .kpi-card:hover {{
-            transform: translateY(-8px);
-            box-shadow: var(--shadow-lg);
-        }}
-        
-        .kpi-card:hover::before {{
-            transform: scaleX(1);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
         }}
         
         .content {{
-            padding: 50px 80px;
+            padding: 30px 40px;
         }}
         
         .dashboard {{
-            padding: 50px 80px;
+            padding: 30px 40px;
             background: #f5f7fa;
         }}
         
         .section {{
-            padding: 50px 80px;
+            padding: 20px 30px;
             background: white;
             margin-bottom: 0;
         }}
@@ -3026,26 +4849,26 @@ def generate_sensitivity_html(all_sensitivities: Dict[str, pd.DataFrame], charts
         }}
         
         .section h2 {{
-            font-size: 2.2em;
+            font-size: 1.5em;
             font-weight: 700;
             color: var(--primary);
-            margin-bottom: 30px;
-            padding-bottom: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
             border-bottom: 3px solid var(--secondary);
             letter-spacing: -0.5px;
         }}
         
         .kpi-grid {{
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-            margin-bottom: 50px;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 18px;
+            margin-bottom: 30px;
         }}
         
         .kpi-card {{
             background: white;
-            padding: 30px;
-            border-radius: 16px;
+            padding: 20px;
+            border-radius: 12px;
             box-shadow: var(--shadow-md);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
@@ -3067,7 +4890,7 @@ def generate_sensitivity_html(all_sensitivities: Dict[str, pd.DataFrame], charts
         }}
         
         .kpi-card:hover {{
-            transform: translateY(-8px);
+            transform: translateY(-5px);
             box-shadow: var(--shadow-lg);
         }}
         
@@ -3076,19 +4899,19 @@ def generate_sensitivity_html(all_sensitivities: Dict[str, pd.DataFrame], charts
         }}
         
         .kpi-label {{
-            font-size: 0.85em;
+            font-size: 0.8em;
             color: #6c757d;
             text-transform: uppercase;
-            letter-spacing: 1.2px;
-            margin-bottom: 15px;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
             font-weight: 600;
         }}
         
         .kpi-value {{
-            font-size: 2.5em;
+            font-size: 2.0em;
             font-weight: 700;
             color: var(--primary);
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             letter-spacing: -1px;
         }}
         
@@ -3101,9 +4924,9 @@ def generate_sensitivity_html(all_sensitivities: Dict[str, pd.DataFrame], charts
         }}
         
         .kpi-description {{
-            font-size: 0.9em;
+            font-size: 0.85em;
             color: #868e96;
-            margin-top: 8px;
+            margin-top: 6px;
         }}
         
         .scroll-reveal {{
@@ -3119,17 +4942,17 @@ def generate_sensitivity_html(all_sensitivities: Dict[str, pd.DataFrame], charts
         
         .intro-box {{
             background: #f8f9fa;
-            padding: 30px;
+            padding: 20px;
             border-radius: 8px;
             border-left: 4px solid #0f3460;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }}
         
         .intro-box p {{
-            font-size: 1em;
+            font-size: 0.9em;
             color: #495057;
-            margin-bottom: 15px;
-            line-height: 1.7;
+            margin-bottom: 12px;
+            line-height: 1.6;
         }}
         
         .intro-box p:last-child {{
@@ -3142,31 +4965,31 @@ def generate_sensitivity_html(all_sensitivities: Dict[str, pd.DataFrame], charts
         }}
         
         .chart-container {{
-            margin: 35px 0;
+            margin: 20px 0;
             background: white;
-            padding: 35px;
-            border-radius: 16px;
+            padding: 24px;
+            border-radius: 12px;
             border: 1px solid #e8ecef;
             box-shadow: var(--shadow-md);
             transition: all 0.3s;
         }}
         
         .chart-container:hover {{
-            transform: translateY(-5px);
+            transform: translateY(-3px);
             box-shadow: var(--shadow-lg);
         }}
         
         .chart-section-title {{
-            font-size: 1.1em;
+            font-size: 1.0em;
             color: #495057;
-            margin-bottom: 25px;
+            margin-bottom: 18px;
             font-weight: 500;
-            line-height: 1.6;
+            line-height: 1.5;
         }}
         
         .sensitivity-section {{
-            margin-bottom: 50px;
-            padding: 30px;
+            margin-bottom: 30px;
+            padding: 20px;
             background: #f8f9fa;
             border-radius: 8px;
             border: 1px solid #e8ecef;
@@ -3174,26 +4997,26 @@ def generate_sensitivity_html(all_sensitivities: Dict[str, pd.DataFrame], charts
         
         .sensitivity-section h3 {{
             color: #1a1a2e;
-            font-size: 1.4em;
+            font-size: 1.2em;
             font-weight: 600;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
             border-bottom: 2px solid #dee2e6;
         }}
         
         .sensitivity-card {{
             background: white;
-            padding: 25px;
+            padding: 20px;
             border-radius: 8px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             border-left: 4px solid #0f3460;
         }}
         
         .sensitivity-card p {{
-            line-height: 1.7;
+            line-height: 1.6;
             color: #495057;
-            margin-bottom: 20px;
-            font-size: 0.95em;
+            margin-bottom: 15px;
+            font-size: 0.9em;
         }}
         
         .kpi-mini-grid {{
@@ -3309,16 +5132,12 @@ def generate_sensitivity_html(all_sensitivities: Dict[str, pd.DataFrame], charts
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-chart-line"></i> Sensitivity Analysis</h1>
-            <div class="subtitle">Engelberg Property Investment - Comprehensive Scenario Analysis</div>
-            <div class="meta">Generated on {datetime.now().strftime('%B %d, %Y at %H:%M:%S')}</div>
-        </div>
-        
-        <div class="content">
+    <div class="layout-container">
+        {toolbar_html}
+        {sidebar_html}
+        <div class="main-content">
             <!-- Executive Summary with KPIs -->
-            <div class="section">
+            <div class="section" id="executive-summary">
                 <h2>Executive Summary</h2>
                 {kpi_cards_html}
                 <div class="intro-box">
@@ -3338,7 +5157,7 @@ def generate_sensitivity_html(all_sensitivities: Dict[str, pd.DataFrame], charts
             
             <!-- Summary Charts Section -->
             {f'''
-            <div class="section">
+            <div class="section" id="sensitivity-impact">
                 <h2>Sensitivity Impact Analysis</h2>
                 <div class="chart-section-title">
                     The following visualizations provide a comprehensive overview of how different sensitivity factors impact the investment. 
@@ -3349,6 +5168,24 @@ def generate_sensitivity_html(all_sensitivities: Dict[str, pd.DataFrame], charts
                 {summary_charts_html}
             </div>
             ''' if summary_charts_html else ''}
+            
+            <!-- Break-Even Analysis -->
+            {generate_break_even_analysis_html(calculate_break_even_points(all_sensitivities, base_config), base_config)}
+            
+            <!-- Sensitivity Ranking -->
+            {generate_sensitivity_ranking_table(metrics) if metrics and 'ranking' in metrics else ''}
+            
+            <!-- Statistical Analysis -->
+            {generate_statistical_analysis_html(metrics.get('statistics', {})) if metrics and 'statistics' in metrics else ''}
+            
+            <!-- Two-Way Sensitivity Analysis -->
+            {generate_two_way_sensitivity_html(all_sensitivities, base_config, metrics) if metrics else ''}
+            
+            <!-- Scenario Analysis -->
+            {generate_scenario_analysis_html(scenario_configs, scenario_results) if scenario_configs and scenario_results is not None and not scenario_results.empty else ''}
+            
+            <!-- Critical Thresholds -->
+            {generate_critical_thresholds_html(identify_critical_thresholds(all_sensitivities, base_config))}
             
             <!-- Table of Contents -->
             <div class="section">
@@ -3361,21 +5198,93 @@ def generate_sensitivity_html(all_sensitivities: Dict[str, pd.DataFrame], charts
             </div>
             
             <!-- Detailed Sensitivities with Charts Only -->
-            <div class="section">
+            <div class="section" id="detailed-sensitivities">
                 <h2>Detailed Sensitivity Analyses</h2>
                 {generate_detailed_sensitivity_sections_with_charts(all_sensitivities, sensitivity_descriptions, base_config)}
             </div>
+            
+            <!-- Methodology & Assumptions -->
+            <div class="section" id="methodology">
+                <h2><i class="fas fa-book"></i> Methodology & Assumptions</h2>
+                <div class="sensitivity-card">
+                    <h3 style="font-size: 1.1em; margin-bottom: 15px; color: var(--primary);">Sensitivity Analysis Methodology</h3>
+                    <p style="font-size: 0.9em; line-height: 1.7; margin-bottom: 15px;">
+                        This sensitivity analysis employs a comprehensive one-way and two-way parameter variation approach to assess investment risk and return variability. 
+                        Each parameter is systematically varied across a realistic range while holding all other parameters constant at their base case values.
+                    </p>
+                    <p style="font-size: 0.9em; line-height: 1.7; margin-bottom: 15px;">
+                        <strong>One-Way Sensitivity:</strong> Tests individual parameter impacts by varying one parameter at a time. This approach isolates the effect of each factor 
+                        and helps identify which parameters have the greatest impact on investment performance.
+                    </p>
+                    <p style="font-size: 0.9em; line-height: 1.7; margin-bottom: 15px;">
+                        <strong>Two-Way Sensitivity:</strong> Examines parameter interactions by varying two parameters simultaneously. This reveals how parameters interact and 
+                        identifies combinations that lead to optimal or suboptimal outcomes.
+                    </p>
+                    <p style="font-size: 0.9em; line-height: 1.7; margin-bottom: 15px;">
+                        <strong>Scenario Analysis:</strong> Combines multiple parameter changes to model realistic scenarios (Optimistic, Base, Pessimistic). 
+                        This provides a framework for understanding the range of possible outcomes under different market conditions.
+                    </p>
+                    
+                    <h3 style="font-size: 1.1em; margin-top: 30px; margin-bottom: 15px; color: var(--primary);">Parameter Range Justifications</h3>
+                    <ul style="font-size: 0.9em; line-height: 1.7; margin-left: 20px; margin-bottom: 15px;">
+                        <li><strong>Occupancy Rate (30-70%):</strong> Based on Engelberg market data and seasonal patterns. 30% represents low-demand scenarios, 70% represents strong demand.</li>
+                        <li><strong>Daily Rate (120-300 CHF):</strong> Reflects pricing strategies from discounted off-peak rates to premium peak-season rates, calibrated to local market conditions.</li>
+                        <li><strong>Interest Rate (1.2-3.5%):</strong> Covers current low-rate environment to historical averages, accounting for potential rate increases.</li>
+                        <li><strong>Management Fee (20-35%):</strong> Represents typical range for property management services in Swiss vacation rental markets.</li>
+                        <li><strong>Loan-to-Value (60-80%):</strong> Standard range for Swiss real estate financing, balancing leverage and equity requirements.</li>
+                    </ul>
+                    
+                    <h3 style="font-size: 1.1em; margin-top: 30px; margin-bottom: 15px; color: var(--primary);">Key Assumptions</h3>
+                    <ul style="font-size: 0.9em; line-height: 1.7; margin-left: 20px; margin-bottom: 15px;">
+                        <li><strong>Time Horizon:</strong> 15-year investment period with property sale at end of period</li>
+                        <li><strong>Inflation Rate:</strong> 2% annual inflation applied to revenues and variable expenses</li>
+                        <li><strong>Property Appreciation:</strong> 2.5% annual appreciation rate</li>
+                        <li><strong>Discount Rate:</strong> 3% for NPV calculations (realistic for real estate investments)</li>
+                        <li><strong>Tax Considerations:</strong> Analysis is pre-tax; actual returns may vary based on individual tax situations</li>
+                        <li><strong>Market Stability:</strong> Assumes no major market disruptions or regulatory changes</li>
+                    </ul>
+                    
+                    <h3 style="font-size: 1.1em; margin-top: 30px; margin-bottom: 15px; color: var(--primary);">Limitations</h3>
+                    <ul style="font-size: 0.9em; line-height: 1.7; margin-left: 20px; margin-bottom: 15px;">
+                        <li><strong>One-Way Analysis Limitation:</strong> One-way sensitivity assumes parameters are independent. In reality, parameters may be correlated (e.g., higher occupancy may require lower rates).</li>
+                        <li><strong>Static Assumptions:</strong> Analysis uses fixed assumptions for inflation, appreciation, and discount rates. Actual rates may vary over time.</li>
+                        <li><strong>No Tax Considerations:</strong> Analysis is pre-tax. Tax benefits (depreciation, deductions) and tax liabilities may significantly impact actual returns.</li>
+                        <li><strong>Market Risk:</strong> Analysis does not account for market crashes, regulatory changes, or other black swan events.</li>
+                        <li><strong>Operating Assumptions:</strong> Assumes consistent property management quality and maintenance standards. Actual operating performance may vary.</li>
+                        <li><strong>Financing Assumptions:</strong> Assumes fixed-rate financing. Variable-rate mortgages introduce additional interest rate risk.</li>
+                    </ul>
+                    
+                    <h3 style="font-size: 1.1em; margin-top: 30px; margin-bottom: 15px; color: var(--primary);">Industry Benchmarks</h3>
+                    <ul style="font-size: 0.9em; line-height: 1.7; margin-left: 20px; margin-bottom: 15px;">
+                        <li><strong>Cap Rates:</strong> Swiss vacation rental properties typically show cap rates of 3-6%, depending on location and property type</li>
+                        <li><strong>Occupancy Rates:</strong> Engelberg vacation rentals typically achieve 40-60% annual occupancy, with strong seasonality</li>
+                        <li><strong>Management Fees:</strong> Standard range is 20-30% of gross rental income for full-service management</li>
+                        <li><strong>Cash-on-Cash Returns:</strong> Levered vacation rental investments typically target 5-10% cash-on-cash returns</li>
+                        <li><strong>IRR Targets:</strong> Real estate investors typically target 8-12% IRR for vacation rental properties</li>
+                    </ul>
+                    
+                    <div style="margin-top: 30px; padding: 20px; background: #e7f3ff; border-radius: 8px; border-left: 4px solid #17a2b8;">
+                        <p style="font-size: 0.9em; line-height: 1.7; margin: 0;">
+                            <strong>Note:</strong> This analysis is a tool for decision-making and risk assessment. It should be used in conjunction with professional financial advice, 
+                            market research, and consideration of personal circumstances. Actual investment performance may differ from projections due to market conditions, 
+                            operational factors, and unforeseen events.
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
         
-        <div class="footer">
-            <p>Engelberg Property Investment - Sensitivity Analysis</p>
-            <p>This sensitivity analysis was generated automatically by the Engelberg Property Investment Simulation</p>
-            <p style="margin-top: 8px; font-size: 0.9em; opacity: 0.8;">For detailed numerical data, please refer to the Excel export file.</p>
+        <div class="footer" style="margin-top: 40px; padding: 30px; background: #f8f9fa; text-align: center; border-top: 1px solid #dee2e6;">
+            <p style="margin: 0; font-size: 0.9em; color: #6c757d;">Engelberg Property Investment - Sensitivity Analysis</p>
+            <p style="margin: 5px 0 0 0; font-size: 0.85em; color: #6c757d;">Generated on {datetime.now().strftime('%B %d, %Y at %H:%M:%S')}</p>
+            <p style="margin: 5px 0 0 0; font-size: 0.8em; color: #adb5bd;">For detailed numerical data, please refer to the Excel export file.</p>
+        </div>
         </div>
     </div>
     
+    {generate_shared_layout_js()}
     <script>
-        // Advanced JavaScript for interactivity and animations
+        // Additional JavaScript for interactivity and animations
         (function() {{
             // Scroll reveal animation
             const observerOptions = {{
@@ -3395,20 +5304,6 @@ def generate_sensitivity_html(all_sensitivities: Dict[str, pd.DataFrame], charts
             // Observe all scroll-reveal elements
             document.querySelectorAll('.scroll-reveal').forEach(el => {{
                 observer.observe(el);
-            }});
-            
-            // Smooth scroll for anchor links
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {{
-                anchor.addEventListener('click', function (e) {{
-                    e.preventDefault();
-                    const target = document.querySelector(this.getAttribute('href'));
-                    if (target) {{
-                        target.scrollIntoView({{
-                            behavior: 'smooth',
-                            block: 'start'
-                        }});
-                    }}
-                }});
             }});
             
             // Add fade-in animation to KPI cards
@@ -3505,7 +5400,7 @@ def main():
     
     # Ensure output directory exists
     import os
-    os.makedirs("output", exist_ok=True)
+    os.makedirs("website", exist_ok=True)
     
     # Calculate NPV and IRR metrics for summary charts
     print("[*] Calculating NPV and IRR metrics...")
@@ -3524,7 +5419,7 @@ def main():
     print("[+] Sensitivity analysis complete!")
     print("=" * 70)
     # print(f"[+] Excel file: sensitivity_analysis.xlsx")  # Excel export disabled
-    print(f"[+] HTML report: output/report_sensitivity.html")
+    print(f"[+] HTML report: website/report_sensitivity.html")
     print("=" * 70)
 
 

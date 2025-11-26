@@ -1,0 +1,769 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scenario Comparison Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        
+        /* Layout Container */
+        .layout-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background: #f5f7fa;
+        }
+        
+        /* Top Toolbar */
+        .top-toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--gradient-1);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        .toolbar-left, .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .toolbar-center {
+            flex: 1;
+            text-align: center;
+        }
+        
+        .toolbar-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            margin: 0;
+            color: white;
+        }
+        
+        .toolbar-subtitle {
+            font-size: 0.85em;
+            margin: 0;
+            opacity: 0.9;
+        }
+        
+        .toolbar-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        .toolbar-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-1px);
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 60px;
+            width: 250px;
+            height: calc(100vh - 60px);
+            background: white;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            z-index: 999;
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            background: var(--primary);
+            color: white;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar-header h3 {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .sidebar-nav {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .sidebar-nav li {
+            margin: 0;
+        }
+        
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px 20px;
+            color: #495057;
+            text-decoration: none;
+            border-left: 3px solid transparent;
+            transition: all 0.2s ease;
+            font-size: 0.9em;
+        }
+        
+        .sidebar-item:hover {
+            background: #f8f9fa;
+            color: var(--primary);
+            border-left-color: var(--primary);
+        }
+        
+        .sidebar-item.active {
+            background: #e7f3ff;
+            color: var(--primary);
+            border-left-color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .sidebar-item i {
+            width: 20px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+        
+        .sidebar-item-text {
+            flex: 1;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            margin-top: 60px;
+            padding: 30px 40px;
+            background: white;
+            min-height: calc(100vh - 60px);
+        }
+        
+        /* Section IDs for navigation */
+        .section {
+            scroll-margin-top: 80px;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 250px;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .toolbar-btn-text {
+                display: none;
+            }
+            
+            .toolbar-title {
+                font-size: 1.1em;
+            }
+        }
+        
+        /* Scrollbar styling for sidebar */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #0a0e27;
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1920px;
+            margin: 0 auto;
+            background: #ffffff;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 80px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 3.5em;
+            margin-bottom: 15px;
+        }
+        
+        .header .subtitle {
+            font-size: 1.4em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 50px 80px;
+        }
+        
+        .section {
+            margin-bottom: 50px;
+        }
+        
+        .section h2 {
+            font-size: 2.2em;
+            color: #1a1a2e;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            margin-bottom: 30px;
+        }
+        
+        .comparison-table thead {
+            background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%);
+            color: white;
+        }
+        
+        .comparison-table th {
+            padding: 20px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+        
+        .comparison-table td {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e8ecef;
+        }
+        
+        .comparison-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .comparison-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .metric-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .metric-value {
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+        
+        .positive {
+            color: #2ecc71;
+        }
+        
+        .negative {
+            color: #e74c3c;
+        }
+        
+        .scenario-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .scenario-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .scenario-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        }
+        
+        .scenario-card h3 {
+            font-size: 1.5em;
+            color: #1a1a2e;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .scenario-card .metric {
+            margin-bottom: 15px;
+        }
+        
+        .scenario-card .metric-label {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+        
+        .scenario-card .metric-value {
+            font-size: 1.3em;
+            color: #1a1a2e;
+        }
+        
+        .scenario-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: opacity 0.3s ease;
+        }
+        
+        .scenario-link:hover {
+            opacity: 0.9;
+        }
+        
+        .footer {
+            background: #f8f9fa;
+            padding: 40px 80px;
+            text-align: center;
+            color: #6c757d;
+            border-top: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+    <div class="layout-container">
+        
+    <div class="top-toolbar">
+        <div class="toolbar-left">
+            <a href="index.html" class="toolbar-btn" title="Back to Home">
+                <i class="fas fa-home"></i> <span class="toolbar-btn-text">Home</span>
+            </a>
+        </div>
+        <div class="toolbar-center">
+            <h1 class="toolbar-title">Scenario Comparison Dashboard</h1>
+            <p class="toolbar-subtitle">Compare different investment scenarios side by side</p>
+        </div>
+        <div class="toolbar-right">
+            <!-- Future toolbar actions can be added here -->
+        </div>
+    </div>
+    
+        
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-bars"></i> Navigation</h3>
+        </div>
+        <ul class="sidebar-nav">
+            
+            <li>
+                <a href="#key-metrics-comparison" class="sidebar-item" data-section="key-metrics-comparison">
+                    <i class="fas fa-table"></i>
+                    <span class="sidebar-item-text">Key Metrics Comparison</span>
+                </a>
+            </li>
+        
+            <li>
+                <a href="#individual-scenario-reports" class="sidebar-item" data-section="individual-scenario-reports">
+                    <i class="fas fa-file-alt"></i>
+                    <span class="sidebar-item-text">Individual Scenario Reports</span>
+                </a>
+            </li>
+        
+        </ul>
+    </nav>
+    
+        <div class="main-content">
+            <div class="section" id="key-metrics-comparison">
+                <h2><i class="fas fa-table"></i> Key Metrics Comparison</h2>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+<th>3 Owners</th><th>5 Owners</th><th>Lower Price 1.1M</th><th>Lower Price 1.0M</th><th>Lower Price 1.1M - 3 Owners</th><th>Lower Price 1.0M - 5 Owners</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr>
+                            <td class="metric-label">Purchase Price</td>
+<td class='metric-value'>1,300,000 CHF</td><td class='metric-value'>1,300,000 CHF</td><td class='metric-value'>1,100,000 CHF</td><td class='metric-value'>1,000,000 CHF</td><td class='metric-value'>1,100,000 CHF</td><td class='metric-value'>1,000,000 CHF</td>
+                        </tr>
+
+                        <tr>
+                            <td class="metric-label">Number of Owners</td>
+<td class='metric-value'>3</td><td class='metric-value'>5</td><td class='metric-value'>4</td><td class='metric-value'>4</td><td class='metric-value'>3</td><td class='metric-value'>5</td>
+                        </tr>
+
+                        <tr>
+                            <td class="metric-label">Loan Amount</td>
+<td class='metric-value'>975,000 CHF</td><td class='metric-value'>975,000 CHF</td><td class='metric-value'>825,000 CHF</td><td class='metric-value'>750,000 CHF</td><td class='metric-value'>825,000 CHF</td><td class='metric-value'>750,000 CHF</td>
+                        </tr>
+
+                        <tr>
+                            <td class="metric-label">Equity per Owner</td>
+<td class='metric-value'>108,333 CHF</td><td class='metric-value'>65,000 CHF</td><td class='metric-value'>68,750 CHF</td><td class='metric-value'>62,500 CHF</td><td class='metric-value'>91,667 CHF</td><td class='metric-value'>50,000 CHF</td>
+                        </tr>
+
+                        <tr>
+                            <td class="metric-label">Gross Rental Income</td>
+<td class='metric-value'>45,622 CHF</td><td class='metric-value'>44,258 CHF</td><td class='metric-value'>44,912 CHF</td><td class='metric-value'>44,912 CHF</td><td class='metric-value'>45,622 CHF</td><td class='metric-value'>44,258 CHF</td>
+                        </tr>
+
+                        <tr>
+                            <td class="metric-label">Net Operating Income</td>
+<td class='metric-value'>3,556 CHF</td><td class='metric-value'>2,806 CHF</td><td class='metric-value'>5,163 CHF</td><td class='metric-value'>6,163 CHF</td><td class='metric-value'>5,556 CHF</td><td class='metric-value'>5,806 CHF</td>
+                        </tr>
+
+                        <tr>
+                            <td class="metric-label">Annual Cash Flow</td>
+<td class='metric-value negative'>-18,869 CHF</td><td class='metric-value negative'>-19,619 CHF</td><td class='metric-value negative'>-13,812 CHF</td><td class='metric-value negative'>-11,087 CHF</td><td class='metric-value negative'>-13,419 CHF</td><td class='metric-value negative'>-11,444 CHF</td>
+                        </tr>
+
+                        <tr>
+                            <td class="metric-label">Cash Flow per Investor</td>
+<td class='metric-value negative'>-6,290 CHF</td><td class='metric-value negative'>-3,924 CHF</td><td class='metric-value negative'>-3,453 CHF</td><td class='metric-value negative'>-2,772 CHF</td><td class='metric-value negative'>-4,473 CHF</td><td class='metric-value negative'>-2,289 CHF</td>
+                        </tr>
+
+                        <tr>
+                            <td class="metric-label">Monthly Cash Flow per Investor</td>
+<td class='metric-value negative'>-524 CHF</td><td class='metric-value negative'>-327 CHF</td><td class='metric-value negative'>-288 CHF</td><td class='metric-value negative'>-231 CHF</td><td class='metric-value negative'>-373 CHF</td><td class='metric-value negative'>-191 CHF</td>
+                        </tr>
+
+                        <tr>
+                            <td class="metric-label">Cap Rate</td>
+<td class='metric-value'>0.27%</td><td class='metric-value'>0.22%</td><td class='metric-value'>0.47%</td><td class='metric-value'>0.62%</td><td class='metric-value'>0.51%</td><td class='metric-value'>0.58%</td>
+                        </tr>
+
+                        <tr>
+                            <td class="metric-label">Cash-on-Cash Return</td>
+<td class='metric-value'>-5.81%</td><td class='metric-value'>-6.04%</td><td class='metric-value'>-5.02%</td><td class='metric-value'>-4.43%</td><td class='metric-value'>-4.88%</td><td class='metric-value'>-4.58%</td>
+                        </tr>
+
+                        <tr>
+                            <td class="metric-label">Debt Coverage Ratio</td>
+<td class='metric-value'>0.16x</td><td class='metric-value'>0.13x</td><td class='metric-value'>0.27x</td><td class='metric-value'>0.36x</td><td class='metric-value'>0.29x</td><td class='metric-value'>0.34x</td>
+                        </tr>
+
+                        <tr>
+                            <td class="metric-label">IRR with Sale</td>
+<td class='metric-value'>4.53%</td><td class='metric-value'>4.38%</td><td class='metric-value'>5.03%</td><td class='metric-value'>5.42%</td><td class='metric-value'>5.13%</td><td class='metric-value'>5.32%</td>
+                        </tr>
+
+                        <tr>
+                            <td class="metric-label">IRR without Sale</td>
+<td class='metric-value'>0.00%</td><td class='metric-value'>0.00%</td><td class='metric-value'>0.00%</td><td class='metric-value'>0.00%</td><td class='metric-value'>0.00%</td><td class='metric-value'>0.00%</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="section" id="individual-scenario-reports">
+                <h2><i class="fas fa-file-alt"></i> Individual Scenario Reports</h2>
+                <div class="scenario-cards">
+
+                    <div class="scenario-card">
+                        <h3>3 Owners</h3>
+                        <div class="metric">
+                            <div class="metric-label">Purchase Price</div>
+                            <div class="metric-value">1,300,000 CHF</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Number of Owners</div>
+                            <div class="metric-value">3</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Equity per Owner</div>
+                            <div class="metric-value">108,333 CHF</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Cap Rate</div>
+                            <div class="metric-value">0.27%</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Cash-on-Cash Return</div>
+                            <div class="metric-value">-5.81%</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">IRR with Sale</div>
+                            <div class="metric-value">4.53%</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Annual Cash Flow per Investor</div>
+                            <div class="metric-value negative">-6,290 CHF</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Monthly Cash Flow per Investor</div>
+                            <div class="metric-value negative">-524 CHF</div>
+                        </div>
+                        <a href="report_scenario_3_owners.html" class="scenario-link" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> View Full Report
+                        </a>
+                    </div>
+
+                    <div class="scenario-card">
+                        <h3>5 Owners</h3>
+                        <div class="metric">
+                            <div class="metric-label">Purchase Price</div>
+                            <div class="metric-value">1,300,000 CHF</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Number of Owners</div>
+                            <div class="metric-value">5</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Equity per Owner</div>
+                            <div class="metric-value">65,000 CHF</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Cap Rate</div>
+                            <div class="metric-value">0.22%</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Cash-on-Cash Return</div>
+                            <div class="metric-value">-6.04%</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">IRR with Sale</div>
+                            <div class="metric-value">4.38%</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Annual Cash Flow per Investor</div>
+                            <div class="metric-value negative">-3,924 CHF</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Monthly Cash Flow per Investor</div>
+                            <div class="metric-value negative">-327 CHF</div>
+                        </div>
+                        <a href="report_scenario_5_owners.html" class="scenario-link" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> View Full Report
+                        </a>
+                    </div>
+
+                    <div class="scenario-card">
+                        <h3>Lower Price 1.1M</h3>
+                        <div class="metric">
+                            <div class="metric-label">Purchase Price</div>
+                            <div class="metric-value">1,100,000 CHF</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Number of Owners</div>
+                            <div class="metric-value">4</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Equity per Owner</div>
+                            <div class="metric-value">68,750 CHF</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Cap Rate</div>
+                            <div class="metric-value">0.47%</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Cash-on-Cash Return</div>
+                            <div class="metric-value">-5.02%</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">IRR with Sale</div>
+                            <div class="metric-value">5.03%</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Annual Cash Flow per Investor</div>
+                            <div class="metric-value negative">-3,453 CHF</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Monthly Cash Flow per Investor</div>
+                            <div class="metric-value negative">-288 CHF</div>
+                        </div>
+                        <a href="report_scenario_lower_price_1.1m.html" class="scenario-link" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> View Full Report
+                        </a>
+                    </div>
+
+                    <div class="scenario-card">
+                        <h3>Lower Price 1.0M</h3>
+                        <div class="metric">
+                            <div class="metric-label">Purchase Price</div>
+                            <div class="metric-value">1,000,000 CHF</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Number of Owners</div>
+                            <div class="metric-value">4</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Equity per Owner</div>
+                            <div class="metric-value">62,500 CHF</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Cap Rate</div>
+                            <div class="metric-value">0.62%</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Cash-on-Cash Return</div>
+                            <div class="metric-value">-4.43%</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">IRR with Sale</div>
+                            <div class="metric-value">5.42%</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Annual Cash Flow per Investor</div>
+                            <div class="metric-value negative">-2,772 CHF</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Monthly Cash Flow per Investor</div>
+                            <div class="metric-value negative">-231 CHF</div>
+                        </div>
+                        <a href="report_scenario_lower_price_1.0m.html" class="scenario-link" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> View Full Report
+                        </a>
+                    </div>
+
+                    <div class="scenario-card">
+                        <h3>Lower Price 1.1M - 3 Owners</h3>
+                        <div class="metric">
+                            <div class="metric-label">Purchase Price</div>
+                            <div class="metric-value">1,100,000 CHF</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Number of Owners</div>
+                            <div class="metric-value">3</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Equity per Owner</div>
+                            <div class="metric-value">91,667 CHF</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Cap Rate</div>
+                            <div class="metric-value">0.51%</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Cash-on-Cash Return</div>
+                            <div class="metric-value">-4.88%</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">IRR with Sale</div>
+                            <div class="metric-value">5.13%</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Annual Cash Flow per Investor</div>
+                            <div class="metric-value negative">-4,473 CHF</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Monthly Cash Flow per Investor</div>
+                            <div class="metric-value negative">-373 CHF</div>
+                        </div>
+                        <a href="report_scenario_lower_price_1.1m_-_3_owners.html" class="scenario-link" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> View Full Report
+                        </a>
+                    </div>
+
+                    <div class="scenario-card">
+                        <h3>Lower Price 1.0M - 5 Owners</h3>
+                        <div class="metric">
+                            <div class="metric-label">Purchase Price</div>
+                            <div class="metric-value">1,000,000 CHF</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Number of Owners</div>
+                            <div class="metric-value">5</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Equity per Owner</div>
+                            <div class="metric-value">50,000 CHF</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Cap Rate</div>
+                            <div class="metric-value">0.58%</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Cash-on-Cash Return</div>
+                            <div class="metric-value">-4.58%</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">IRR with Sale</div>
+                            <div class="metric-value">5.32%</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Annual Cash Flow per Investor</div>
+                            <div class="metric-value negative">-2,289 CHF</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Monthly Cash Flow per Investor</div>
+                            <div class="metric-value negative">-191 CHF</div>
+                        </div>
+                        <a href="report_scenario_lower_price_1.0m_-_5_owners.html" class="scenario-link" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> View Full Report
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer" style="margin-top: 40px; padding: 30px; background: #f8f9fa; text-align: center; border-top: 1px solid #dee2e6;">
+            <p style="margin: 0; font-size: 0.9em; color: #6c757d;">Generated by Engelberg Property Investment Simulation</p>
+            <p style="margin: 5px 0 0 0; font-size: 0.85em; color: #6c757d;">Compare different scenarios to find the best investment structure</p>
+        </div>
+        </div>
+    </div>
+    {generate_shared_layout_js()}
+</body>
+</html>
+    

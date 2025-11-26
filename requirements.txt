@@ -1,5 +1,12 @@
+# Core data manipulation and analysis
 pandas>=2.0.0
-openpyxl>=3.1.0
+numpy>=1.24.0
+
+# Scientific computing and statistics
+scipy>=1.10.0
+
+# Interactive visualizations
 plotly>=5.17.0
 
-
+# Excel file support (for export functions, though currently commented out)
+openpyxl>=3.1.0
