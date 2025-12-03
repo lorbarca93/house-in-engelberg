@@ -103,47 +103,100 @@
       /* Sidebar */
       .sidebar {
         width: var(--sidebar-width);
-        background: white;
-        border-right: 1px solid var(--border);
+        background: linear-gradient(180deg, #0f1730 0%, #111a3b 100%);
+        color: #e5e7eb;
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
         overflow-y: auto;
-        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+        box-shadow: 2px 0 12px rgba(0, 0, 0, 0.12);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .sidebar::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          circle at 20% 20%,
+          rgba(102, 126, 234, 0.15),
+          transparent 40%
+        );
+        pointer-events: none;
       }
 
       .sidebar-header {
         padding: 20px;
-        background: var(--light);
-        border-bottom: 1px solid var(--border);
-        font-weight: 600;
-        color: var(--primary);
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.08),
+          rgba(255, 255, 255, 0.02)
+        );
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        font-weight: 700;
+        color: #fff;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+      }
+
+      .sidebar-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        letter-spacing: 0.2px;
+      }
+
+      .sidebar-subtitle {
+        margin-top: 6px;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.9em;
+        font-weight: 500;
       }
 
       .sidebar-menu {
         list-style: none;
-        padding: 10px 0;
+        padding: 12px 14px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
       }
 
       .sidebar-menu-item {
-        padding: 12px 20px;
+        padding: 12px 14px;
         cursor: pointer;
-        transition: all 0.2s;
-        border-left: 3px solid transparent;
+        transition: all 0.2s ease;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(255, 255, 255, 0.03);
       }
 
       .sidebar-menu-item:hover {
-        background: var(--light);
-        border-left-color: var(--accent);
+        background: rgba(255, 255, 255, 0.07);
+        border-color: rgba(255, 255, 255, 0.12);
+        transform: translateX(4px);
       }
 
       .sidebar-menu-item.active {
-        background: rgba(102, 126, 234, 0.1);
-        border-left-color: var(--accent);
-        font-weight: 600;
-        color: var(--accent);
+        background: linear-gradient(90deg, rgba(102, 126, 234, 0.35), rgba(102, 126, 234, 0.15));
+        border-color: rgba(102, 126, 234, 0.5);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        font-weight: 700;
+        color: #fff;
       }
 
       .sidebar-menu-item i {
-        width: 20px;
-        margin-right: 10px;
+        width: 22px;
+        text-align: center;
+        color: rgba(255, 255, 255, 0.85);
+      }
+
+      .sidebar-menu-item.active i {
+        color: #fff;
       }
 
       /* Main Content Area */
@@ -336,7 +389,11 @@
       <!-- Sidebar -->
       <div class="sidebar">
         <div class="sidebar-header">
-          <i class="fas fa-list"></i> Analysis Types
+          <div class="sidebar-title">
+            <i class="fas fa-list"></i>
+            <span>Analysis Types</span>
+          </div>
+          <div class="sidebar-subtitle">Choose a view to explore the model</div>
         </div>
         <ul class="sidebar-menu" id="analysisMenu">
           <li class="sidebar-menu-item active" data-analysis="base_case">
