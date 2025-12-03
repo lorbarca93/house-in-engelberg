@@ -1,153 +1,325 @@
 # Engelberg Property Investment Simulation
 
-A professional-grade toolkit for analysing co-ownership rental investments in Engelberg, Switzerland. The code base produces harmonised HTML dashboards for the base case, sensitivity analysis, Monte Carlo simulation, scenario comparisons, and validation checks.
+A professional-grade toolkit for analyzing co-ownership rental investments in Engelberg, Switzerland. The codebase features a **dynamic single-page dashboard** that loads all analyses dynamically from JSON data files, providing a unified, interactive experience.
 
 ## Overview
 
-- **Single Source of Truth**: `simulation.py` defines the calibrated Engelberg base case (63 % occupancy, 200 CHF ADR, ≈46 k CHF annual revenue).
-- **Modular Analyses**: Each script focuses on a specific deliverable while reusing the same configuration pipeline.
-- **HTML-First Reporting**: All scripts save reports into `website/` using the `report_*.html` naming convention. Open `website/index.html` in a browser to access all reports.
+- **Single Source of Truth**: All assumptions are centralized in `assumptions.json` (and case-specific `assumptions_*.json` files)
+- **Dynamic Dashboard**: Single interactive HTML page (`website/index.html`) that loads data dynamically
+- **JSON Data Export**: All analyses export structured JSON data to `website/data/` for the dashboard
+- **Unified Analysis Script**: Single `analyze.py` script handles all analysis types
+- **Case Management**: Easy creation of new scenarios by adding `assumptions_*.json` files
+- **Comprehensive Validation**: 198 automated checks ensure system integrity
 
 ## Quick Start
 
-1. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-2. Run the desired analysis:
-   ```bash
-   python analysis_base_case.py              # Base case KPI dashboard
-   python analysis_sensitivity.py            # Tornado tables & parameter write-ups
-   python analysis_monte_carlo.py            # Probabilistic risk view
-   python analysis_alternative_scenarios.py # Ownership & pricing lab
-   python analysis_validation.py             # Automated checks + QA dashboard
-   python analysis_portal.py                 # Unified summary dashboard
-   ```
+### 1. Install Dependencies
 
-## Key Reports
+```bash
+pip install -r requirements.txt
+```
 
-| Script                              | Purpose                                                                     | HTML Output                                                                |
-| ----------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `analysis_base_case.py`             | Executive dashboard, KPI gauges, 15-year projection                         | `website/report_base_case.html`                                            |
-| `analysis_sensitivity.py`           | Tornado charts (Monthly CF per Investor & Cap Rate), break-even, elasticity | `website/report_sensitivity.html`                                          |
-| `analysis_monte_carlo.py`           | Enhanced Monte Carlo with advanced distributions, correlations, seasonality | `website/report_monte_carlo.html`                                          |
-| `analysis_alternative_scenarios.py` | 3/5-investor cases, lower purchase prices, scenario comparison              | `website/report_scenario_*.html`, `website/report_scenarios_overview.html` |
-| `analysis_validation.py`            | Automated regression tests and monitoring dashboard                         | `website/report_validation.html`                                           |
-| `analysis_portal.py`                | Unified summary dashboard combining all analyses                            | `website/report_portal.html`                                               |
+### 2. Generate Data for Dashboard
 
-All reports share a compact visual system (fonts, colour palette, hover styles) for a cohesive experience. Each report includes:
+**Option A: Generate All Cases Automatically** (Recommended)
 
-- **Fixed Sidebar Navigation**: Quick access to all major sections with active highlighting
-- **Top Toolbar**: "Back to Home" button and report title
-- **Smooth Scrolling**: Clicking sidebar items smoothly scrolls to the target section
-- **Active Section Detection**: Sidebar automatically highlights the currently visible section
-- **Responsive Design**: Sidebar collapses on mobile devices for optimal viewing
+```bash
+python generate_all_data.py
+```
 
-## Base Case Snapshot
+This script:
 
-- **Purchase Price**: 1 300 000 CHF
-- **Financing**: 75 % LTV, 1.3 % interest, 1 % amortisation
-- **Investors**: 4 investors, 5 personal nights each
-- **Calibrated Inputs** (Airbnb market data):
-  - Average occupancy: **63 %**
-  - Average nightly rate: **200 CHF**
-  - Annual revenue: **≈44.9 k CHF** after owner nights
-- **Operating Model**: 20 % management fee (cleaning separate), variable expenses inflated annually, maintenance at 1 % of property value
+- Auto-detects all `assumptions_*.json` files
+- Generates base case, sensitivity (3 types), and Monte Carlo data for each case
+- Creates `website/data/cases_index.json` with metadata
+- Produces 26 JSON data files
 
-Adjustments to assumptions should be made in `create_base_case_config()` inside `simulation.py`.
+**Option B: Run Individual Analyses**
+
+```bash
+python analyze.py                              # All analyses for base case
+python analyze.py assumptions_migros.json      # All analyses for Migros
+python analyze.py --analysis base              # Only base case analysis
+python analyze.py --analysis sensitivity       # Only sensitivity analysis
+python analyze.py --analysis monte_carlo       # Only Monte Carlo
+python analyze.py --quiet                      # Minimal output
+```
+
+### 3. Open the Dashboard
+
+**Using a Local Web Server** (Recommended - required for JSON loading):
+
+```bash
+cd website
+python -m http.server 8080
+# Then open: http://localhost:8080/index.html
+```
+
+**Or directly** (may have CORS limitations):
+
+- Open `website/index.html` in your browser
+- Note: Some browsers block local file access for security reasons
+
+### 4. Validate the System
+
+```bash
+python validate_system.py    # 198 comprehensive checks
+```
+
+## Dynamic Dashboard Features
+
+The dashboard (`website/index.html`) provides:
+
+- **Top Navigation Bar**: Case selector dropdown (Base Case, Migros, 3 Owners, 5 Owners, 6 Owners)
+- **Left Sidebar**: Analysis type selector with 5 options:
+  - **Model** (Simulation KPIs): Base case metrics and 15-year projection
+  - **Sensitivity - Equity IRR**: How parameters affect your equity return
+  - **Sensitivity - Cash-on-Cash**: How parameters affect Year 1 cash yield
+  - **Sensitivity - Monthly NCF**: How parameters affect monthly cash flow
+  - **Monte Carlo**: Probabilistic simulation with 1,000+ scenarios
+- **Dynamic Content Area**:
+  - KPI cards with key metrics (12+ per page)
+  - Interactive Plotly.js tornado charts
+  - Data tables with detailed analysis
+  - Responsive design for mobile devices
+
+### Dashboard Workflow
+
+1. Select a case from the dropdown (e.g., "Base Case", "Migros")
+2. Select an analysis type from the sidebar
+3. View dynamically loaded charts, KPIs, and data tables
+4. Switch between cases and analyses instantly without page reloads
+
+## Available Cases
+
+The system supports 5 investment scenarios:
+
+| Case          | File                        | LTV | Interest | Amort | Owners |
+| ------------- | --------------------------- | --- | -------- | ----- | ------ |
+| **Base Case** | `assumptions.json`          | 75% | 1.3%     | 1%    | 4      |
+| **Migros**    | `assumptions_migros.json`   | 60% | 1.8%     | 0%    | 4      |
+| **3 Owners**  | `assumptions_3_owners.json` | 75% | 1.3%     | 1%    | 3      |
+| **5 Owners**  | `assumptions_5_owners.json` | 75% | 1.3%     | 1%    | 5      |
+| **6 Owners**  | `assumptions_6_owners.json` | 75% | 1.3%     | 1%    | 6      |
+
+## Key Metrics (Base Case)
+
+| Metric              | Value           | Description                    |
+| ------------------- | --------------- | ------------------------------ |
+| **Equity IRR**      | 4.63%           | Return on equity over 15 years |
+| **Project IRR**     | 2.53%           | Unlevered return (no debt)     |
+| **NPV @ 5%**        | -CHF 5,007      | Present value at 5% discount   |
+| **MOIC**            | 2.17×           | Multiple on invested capital   |
+| **Cash Flow/Owner** | -CHF 2,870/year | Annual net cash flow           |
+| **Payback Period**  | 15 years        | With property sale             |
 
 ## Repository Structure
 
 ```
 .
-├── analysis_base_case.py              # Base case dashboard generator
-├── analysis_sensitivity.py            # Sensitivity toolkit + report builder
-├── analysis_monte_carlo.py            # Monte Carlo simulation + report
-├── analysis_alternative_scenarios.py  # Ownership & pricing scenario lab
-├── analysis_validation.py             # Automated calculations QA + dashboard
-├── analysis_portal.py                 # Unified summary dashboard
-├── simulation.py                      # Data classes + shared financial logic
-├── website/                           # HTML reports and homepage
-│   ├── index.html                     # Homepage with links to all reports
-│   └── *.html                         # Individual analysis reports
-├── markdown_archive/                   # Legacy documentation
-├── CHANGELOG.md                       # Detailed implementation history
-└── README.md                          # Project guide (this file)
+├── assumptions.json                 # Base case assumptions (single source of truth)
+├── assumptions_*.json               # Case-specific assumption overrides (4 files)
+├── analyze.py                       # 🆕 Unified analysis script (1,500+ lines)
+├── core_engine.py                   # 🆕 Core calculation engine (1,250+ lines)
+├── monte_carlo_engine.py            # Monte Carlo simulation engine (1,870+ lines)
+├── generate_all_data.py             # Master data generator (auto-discovers cases)
+├── validate_system.py               # System validation (198 checks)
+├── requirements.txt                 # Python dependencies
+├── website/
+│   ├── index.html                   # Dynamic single-page dashboard
+│   └── data/                        # JSON data files (26 files)
+│       ├── cases_index.json         # Master index of all cases
+│       ├── {case}_base_case_analysis.json
+│       ├── {case}_sensitivity.json
+│       ├── {case}_sensitivity_coc.json
+│       ├── {case}_sensitivity_ncf.json
+│       └── {case}_monte_carlo.json
+├── README.md                        # Project guide (this file)
+├── QUICK_START.md                   # Quick start guide
+└── CHANGELOG.md                     # Detailed implementation history
 ```
 
-## Monte Carlo Enhancements
+## Analysis Types
 
-The Monte Carlo simulation (`analysis_monte_carlo.py`) has been enhanced with sophisticated modeling capabilities:
+### 1. Model (Base Case Analysis)
 
-### Advanced Distributions
+- **12 KPI cards**: IRR, NPV, MOIC, Payback, Cash Flow, etc.
+- **Main Assumptions Summary**: Financing, rental, projection parameters
+- **15-Year Projection Table**: Revenue, expenses, debt service, equity
 
-- **Beta distribution** for occupancy rates (captures realistic bounded patterns)
-- **Lognormal distribution** for daily rates and utilities (models positive-skewed uncertainty)
-- **Triangular distribution** for management fees and seasonal parameters (expert-estimated ranges)
-- **Normal distribution** for interest rates, inflation, and appreciation (standard financial modeling)
+### 2. Sensitivity Analysis - Equity IRR
 
-### Correlation Structure
+- **15 parameters tested**: Property appreciation, interest rate, occupancy, etc.
+- **Tornado chart**: Visual impact ranking
+- **Data table**: Low/base/high scenarios with results
+- **Hover tooltips**: Detailed explanations for each parameter
 
-Parameters are sampled with realistic correlations using a Gaussian copula approach:
+### 3. Sensitivity Analysis - Cash-on-Cash
 
-- Revenue correlations: Occupancy and ADR positively correlated (ρ=0.4-0.5)
-- Seasonal correlations: Peak seasons show moderate positive correlation
-- Financial correlations: Interest rates negatively correlate with property appreciation (ρ=-0.3)
-- Expense correlations: Utilities and maintenance correlate with inflation (ρ=0.3-0.4)
+- **Year 1 cash yield focus**: How parameters affect first-year returns
+- **Filters out zero-impact params**: Property appreciation, selling costs
+- **Same 15 parameters**: Different metric focus
 
-### Expanded Stochastic Inputs
+### 4. Sensitivity Analysis - Monthly NCF
 
-Beyond the original four parameters (occupancy, ADR, interest, management fee), the simulation now varies:
+- **Monthly cash flow per owner**: Practical "what hits your bank account"
+- **CHF values**: Shows actual monthly impact in Swiss Francs
+- **Filters non-monthly impacts**: Appreciation, inflation, selling costs
 
-- **Seasonal parameters**: Independent occupancy and ADR for Winter, Summer, and Off-Peak seasons
-- **Expense drivers**: Owner nights, utilities, and maintenance rate
-- **Projection parameters**: Inflation rate and property appreciation rate (varies per simulation)
+### 5. Monte Carlo Simulation
 
-### Methodology
+- **1,000+ simulations**: Probabilistic outcomes
+- **Statistics**: Mean, median, std dev, percentiles
+- **Distribution charts**: NPV and IRR histograms
+- **Risk metrics**: Probability of negative NPV, VaR
 
-The simulation uses Cholesky decomposition of a correlation matrix to generate correlated standard normals, which are then transformed to target distributions via inverse CDF. This ensures realistic parameter relationships while maintaining distributional accuracy.
+## Creating New Cases
 
-## Key Features
+To create a new investment scenario:
 
-### Navigation System
+1. **Create an assumptions file**: `assumptions_mycase.json`
 
-All HTML reports feature a unified navigation system:
+   ```json
+   {
+     "_case_metadata": {
+       "display_name": "My Case",
+       "description": "Description of this scenario",
+       "enabled": true
+     },
+     "financing": {
+       "purchase_price": 1300000.0,
+       "num_owners": 4,
+       "ltv": 0.7,
+       "interest_rate": 0.015
+     }
+   }
+   ```
 
-- **Fixed Sidebar**: Lists all major sections with icons for quick navigation
-- **Top Toolbar**: Contains report title and "Back to Home" button
-- **Active Highlighting**: Sidebar automatically highlights the section currently in view
-- **Smooth Scrolling**: Clicking sidebar items smoothly scrolls to the target section
-- **Responsive**: Sidebar collapses on mobile devices (< 768px width)
+2. **Run the generator**:
 
-### Sensitivity Analysis Features
+   ```bash
+   python generate_all_data.py
+   ```
 
-The sensitivity analysis report includes:
+3. **The new case will appear** in the dashboard dropdown automatically!
 
-- **Tornado Charts**: Visual representation of parameter impact on:
-  - Monthly Cash Flow per Investor (most practical metric)
-  - Cap Rate (unlevered yield metric)
-  - Cash-on-Cash Return (levered return metric)
-  - NPV and IRR impacts
-- **Break-Even Analysis**: Identifies parameter values where cash flow reaches zero
-- **Elasticity Metrics**: Measures sensitivity of outputs to input changes
-- **Two-Way Sensitivity**: Analyzes interactions between parameter pairs
-- **Scenario Analysis**: Optimistic, pessimistic, base, and stressed scenarios
-- **Statistical Measures**: Coefficient of variation, confidence intervals, threshold analysis
+## Assumptions Management
 
-### Monte Carlo Simulation Features
+### Current Economic Assumptions
 
-The Monte Carlo simulation includes:
+| Parameter                 | Value     | Description                    |
+| ------------------------- | --------- | ------------------------------ |
+| **Inflation**             | 1.0%/year | Revenue and expense growth     |
+| **Property Appreciation** | 2.5%/year | Annual property value increase |
+| **Discount Rate**         | 5.0%      | NPV calculation rate           |
+| **Maintenance Reserve**   | 0.5%/year | Of property value              |
+| **Selling Costs**         | 7.8%      | Broker + notary + transfer tax |
 
-- **Advanced Distributions**: Beta, lognormal, triangular, and normal distributions
-- **Correlation Structure**: Realistic parameter correlations using Gaussian copula
-- **Key Metrics**: NPV, IRR, Cap Rate, Monthly Cash Flow per Investor
-- **Risk Metrics**: Percentiles, probability distributions, confidence intervals
-- **Visualizations**: Distribution charts, correlation analysis, parameter quartiles
+### Selling Costs Breakdown (7.8% total)
 
-## Notes
+| Component    | Rate | Description          |
+| ------------ | ---- | -------------------- |
+| Broker Fee   | 3.0% | Agent commission     |
+| Notary Fees  | 1.5% | Legal documentation  |
+| Transfer Tax | 3.3% | Canton Obwalden rate |
 
-- Excel exports have been disabled to keep the repository light-weight; HTML reports are the single source of deliverables.
-- Tests can be launched via `analysis_validation.py`. The script runs 43+ checks and updates `website/report_validation.html`.
-- Open `website/index.html` in a web browser to access the homepage with links to all reports. Each report includes a "Back to Home" button in the top toolbar.
-- All reports use "per Investor" terminology for consistency and clarity.
-- Legacy documentation lives under `markdown_archive/` for historical reference. Some files may mention deprecated script names; the active naming scheme is `analysis_*.py` and `report_*.html`.
+### Modifying Assumptions
+
+**To change base case assumptions:**
+
+1. Edit `assumptions.json`
+2. Run `python generate_all_data.py`
+
+**To create a new scenario:**
+
+1. Create `assumptions_mycase.json` with only changed parameters
+2. Run `python generate_all_data.py`
+
+## System Validation
+
+Run the comprehensive validation script:
+
+```bash
+python validate_system.py
+```
+
+**198 checks across 12 categories:**
+
+- ✅ File structure and existence
+- ✅ Python module imports
+- ✅ Assumptions file structure
+- ✅ Cross-dependencies
+- ✅ Generated data files
+- ✅ Calculation consistency
+- ✅ Cross-validation (assumptions ↔ data)
+- ✅ Sensitivity analysis
+- ✅ Monte Carlo simulation
+- ✅ Dashboard components
+- ✅ Script integration
+- ✅ End-to-end consistency
+
+**Example Output:**
+
+```
+[SUCCESS] SYSTEM VALIDATION PASSED
+[PASS] Passed:  198
+[FAIL] Failed:  0
+[WARN] Warnings: 0
+```
+
+## Troubleshooting
+
+### Dashboard Shows "No cases available"
+
+**Solution**: Run `python generate_all_data.py` to generate all data files.
+
+### Dashboard Shows "Failed to load data"
+
+**Solutions**:
+
+1. Run `python generate_all_data.py` to regenerate data
+2. Use a web server: `cd website && python -m http.server 8080`
+3. Check browser console (F12) for specific errors
+4. Run `python validate_system.py` to diagnose issues
+
+### JSON Files Not Generated
+
+**Check**:
+
+1. Verify `website/data/` directory exists
+2. Check script output for error messages
+3. Ensure dependencies: `pip install -r requirements.txt`
+4. Run `python validate_system.py`
+
+## Technical Notes
+
+- **Python Version**: 3.8+ required
+- **Dependencies**: pandas, numpy, plotly (see `requirements.txt`)
+- **Browser**: Modern browser with JavaScript enabled
+- **Data Format**: All outputs in JSON for easy consumption
+- **IRR Calculation**: Binary search method for numerical stability
+
+## Development
+
+### Adding a New Analysis Type
+
+1. Create analysis function in `analyze.py`
+2. Add JSON export to `website/data/{case}_myanalysis.json`
+3. Update `generate_all_data.py` to call new function
+4. Add render function in `website/index.html`
+5. Add sidebar menu item
+
+### Modifying the Dashboard
+
+The dashboard (`website/index.html`) uses:
+
+- **DataManager**: JSON file loading via Fetch API
+- **ChartRenderer**: Plotly.js chart rendering
+- **UIManager**: UI state management
+- **Controller**: Main orchestration
+
+---
+
+**Last Updated**: December 3, 2025  
+**Status**: Production Ready ✅  
+**Validation**: 198/198 checks passing

@@ -1,0 +1,17 @@
+{
+  "_comment": "Engelberg Property Investment - 3 Owners Scenario",
+  "_description": "This file contains assumption parameters for the 3 owners scenario. It overrides the number of owners from the base case.",
+  "_case_metadata": {
+    "display_name": "3 Owners",
+    "description": "Same purchase price and financing terms with 3 owners instead of 4",
+    "enabled": true
+  },
+  
+  "financing": {
+    "_explanation": "Same financing terms as base case, but with 3 owners instead of 4. This increases equity per owner but also increases individual cash flow requirements.",
+    
+    "num_owners": 3
+  }
+}
+
+

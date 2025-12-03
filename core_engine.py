@@ -3,10 +3,12 @@ Real Estate Investment Simulation for Engelberg Property
 Refined version with comprehensive financial modeling
 """
 
-from dataclasses import dataclass
-from typing import Dict, List, Optional
+from dataclasses import dataclass, asdict
+from typing import Dict, List, Optional, Any
 import pandas as pd
 from datetime import datetime
+import json
+import os
 
 
 # -----------------------------
@@ -156,10 +158,191 @@ class BaseCaseConfig:
 
 
 # -----------------------------
+# JSON Configuration Loader
+# -----------------------------
+
+def load_assumptions_from_json(json_path: str = "assumptions.json") -> Dict:
+    """
+    Load assumption parameters from JSON file.
+    
+    This function loads all assumption parameters from a centralized JSON file,
+    ensuring a single source of truth for all analyses.
+    
+    Args:
+        json_path: Path to the JSON assumptions file (default: "assumptions.json")
+    
+    Returns:
+        Dictionary containing all assumption parameters organized by category
+    
+    Raises:
+        FileNotFoundError: If JSON file does not exist
+        json.JSONDecodeError: If JSON file is malformed
+        ValueError: If required fields are missing or invalid
+    """
+    # Check if file exists
+    if not os.path.exists(json_path):
+        raise FileNotFoundError(
+            f"Assumptions file not found: {json_path}\n"
+            f"Please ensure the assumptions.json file exists in the project root."
+        )
+    
+    # Load JSON file
+    try:
+        with open(json_path, 'r', encoding='utf-8') as f:
+            assumptions = json.load(f)
+    except json.JSONDecodeError as e:
+        raise json.JSONDecodeError(
+            f"Invalid JSON format in {json_path}: {str(e)}",
+            e.doc,
+            e.pos
+        )
+    
+    # Validate required sections exist
+    required_sections = ['financing', 'rental', 'expenses', 'seasonal', 'projection']
+    missing_sections = [section for section in required_sections if section not in assumptions]
+    
+    # If missing sections and this isn't the base assumptions.json, merge with base
+    if missing_sections and json_path != "assumptions.json" and os.path.exists("assumptions.json"):
+        # Load base assumptions
+        with open("assumptions.json", 'r', encoding='utf-8') as f:
+            base_assumptions = json.load(f)
+        
+        # Merge: scenario overrides base
+        for section in required_sections:
+            if section not in assumptions:
+                assumptions[section] = base_assumptions.get(section, {})
+            elif section in assumptions and section in base_assumptions:
+                # Deep merge for sections that exist in both
+                merged_section = base_assumptions[section].copy()
+                merged_section.update(assumptions[section])
+                assumptions[section] = merged_section
+        
+        # Re-check for missing sections after merge
+        missing_sections = [section for section in required_sections if section not in assumptions]
+    
+    if missing_sections:
+        raise ValueError(
+            f"Missing required sections in {json_path}: {', '.join(missing_sections)}"
+        )
+    
+    # Validate financing section (check for either direct values or value objects)
+    financing = assumptions['financing']
+    required_financing = ['purchase_price', 'ltv', 'interest_rate', 'amortization_rate', 'num_owners']
+    
+    # Skip explanation fields (starting with _) when checking for required fields
+    missing_financing = [field for field in required_financing if field not in financing or (isinstance(financing[field], str) and financing[field].startswith('_'))]
+    if missing_financing:
+        raise ValueError(
+            f"Missing required financing fields: {', '.join(missing_financing)}"
+        )
+    
+    # Validate rental section
+    rental = assumptions['rental']
+    required_rental = ['owner_nights_per_person', 'days_per_year']
+    missing_rental = [field for field in required_rental if field not in rental]
+    if missing_rental:
+        raise ValueError(
+            f"Missing required rental fields: {', '.join(missing_rental)}"
+        )
+    
+    # Validate seasonal section
+    seasonal = assumptions['seasonal']
+    required_seasons = ['winter_peak', 'summer_peak', 'offpeak']
+    missing_seasons = [season for season in required_seasons if season not in seasonal]
+    if missing_seasons:
+        raise ValueError(
+            f"Missing required seasons: {', '.join(missing_seasons)}"
+        )
+    
+    # Validate each season has required fields (skip metadata keys starting with _)
+    for season_name, season_data in seasonal.items():
+        if season_name.startswith('_'):
+            continue  # Skip metadata fields like _explanation
+        required_season_fields = ['name', 'months', 'occupancy_rate', 'average_daily_rate']
+        missing_fields = [field for field in required_season_fields if field not in season_data]
+        if missing_fields:
+            raise ValueError(
+                f"Season '{season_name}' missing required fields: {', '.join(missing_fields)}"
+            )
+        # Validate occupancy_rate is between 0 and 1
+        occ_rate = season_data.get('occupancy_rate')
+        if occ_rate is not None and not isinstance(occ_rate, str) and not 0 <= float(occ_rate) <= 1:
+            raise ValueError(
+                f"Season '{season_name}' occupancy_rate must be between 0 and 1, got {occ_rate}"
+            )
+    
+    # Validate expenses section
+    expenses = assumptions['expenses']
+    required_expenses = [
+        'property_management_fee_rate', 'cleaning_cost_per_stay', 'average_length_of_stay',
+        'tourist_tax_per_person_per_night', 'avg_guests_per_night', 'insurance_rate',
+        'nubbing_costs_annual', 'electricity_internet_annual', 'maintenance_rate'
+    ]
+    missing_expenses = [field for field in required_expenses if field not in expenses]
+    if missing_expenses:
+        raise ValueError(
+            f"Missing required expense fields: {', '.join(missing_expenses)}"
+        )
+    
+    # Validate projection section
+    projection = assumptions['projection']
+    required_projection = ['inflation_rate', 'property_appreciation_rate']
+    missing_projection = [field for field in required_projection if field not in projection]
+    if missing_projection:
+        raise ValueError(
+            f"Missing required projection fields: {', '.join(missing_projection)}"
+        )
+    
+    # Validate numeric ranges (skip explanation fields)
+    ltv_val = assumptions['financing'].get('ltv')
+    if ltv_val is not None and not isinstance(ltv_val, str) and not 0 < float(ltv_val) < 1:
+        raise ValueError(f"LTV must be between 0 and 1, got {ltv_val}")
+    
+    mgmt_fee_val = assumptions['expenses'].get('property_management_fee_rate')
+    if mgmt_fee_val is not None and not isinstance(mgmt_fee_val, str) and not 0 <= float(mgmt_fee_val) <= 1:
+        raise ValueError(
+            f"Property management fee rate must be between 0 and 1, "
+            f"got {mgmt_fee_val}"
+        )
+    
+    return assumptions
+
+
+def get_projection_defaults(json_path: str = "assumptions.json") -> Dict[str, float]:
+    """
+    Get projection default values from JSON.
+    
+    This helper function allows analysis scripts to use the same projection defaults
+    as defined in the assumptions.json file, ensuring consistency.
+    
+    Args:
+        json_path: Path to the assumptions JSON file (default: "assumptions.json")
+    
+    Returns:
+        Dictionary with projection parameters including rates, years, and selling costs
+    """
+    assumptions = load_assumptions_from_json(json_path)
+    projection = assumptions['projection']
+    selling_costs = projection.get('selling_costs', {})
+    
+    return {
+        'inflation_rate': float(projection.get('inflation_rate', 0.01)),
+        'property_appreciation_rate': float(projection.get('property_appreciation_rate', 0.015)),
+        'start_year': int(projection.get('start_year', 2026)),
+        'projection_years': int(projection.get('projection_years', 15)),
+        'discount_rate': float(projection.get('discount_rate', 0.05)),
+        'selling_costs_rate': float(selling_costs.get('total_rate', 0.078)),
+        'broker_fee_rate': float(selling_costs.get('broker_fee_rate', 0.03)),
+        'notary_fee_rate': float(selling_costs.get('notary_fee_rate', 0.015)),
+        'transfer_tax_rate': float(selling_costs.get('transfer_tax_rate', 0.033))
+    }
+
+
+# -----------------------------
 # Base case configuration
 # -----------------------------
 
-def create_base_case_config() -> BaseCaseConfig:
+def create_base_case_config(json_path: str = "assumptions.json") -> BaseCaseConfig:
     """
     Create the base case configuration with seasonal parameters for Engelberg.
     
@@ -171,6 +354,9 @@ def create_base_case_config() -> BaseCaseConfig:
     DO NOT create alternative base case configurations in other scripts.
     Always use this function and then apply variations using apply_sensitivity().
     
+    All assumptions are loaded from assumptions.json file, ensuring a single
+    source of truth for all parameters across all analyses.
+    
     Calibrated to real Engelberg Airbnb analytics:
     - Average annual revenue: 46,000 CHF
     - Average occupancy rate: 63%
@@ -180,12 +366,36 @@ def create_base_case_config() -> BaseCaseConfig:
     1. Winter Peak (Dec-Mar): Ski season, highest rates and occupancy
     2. Summer Peak (Jun-Sep): Hiking and mountain activities
     3. Off-Peak (Apr-May, Oct-Nov): Shoulder seasons with lower demand
-    """
-    purchase_price = 1_300_000.0
-    num_owners = 4
     
-    # Calculate total owner nights (distributed across year)
-    total_owner_nights = 5 * num_owners  # 20 nights total
+    Args:
+        json_path: Path to the assumptions JSON file (default: "assumptions.json")
+    
+    Returns:
+        BaseCaseConfig with all parameters loaded from JSON file
+    """
+    # Load assumptions from JSON file
+    assumptions = load_assumptions_from_json(json_path)
+    
+    # Extract financing parameters (skip fields starting with _)
+    financing_data = assumptions['financing']
+    
+    def get_value(data, key):
+        """Extract value, skipping explanation fields starting with _"""
+        if key not in data:
+            return None
+        val = data[key]
+        # Skip explanation fields
+        if isinstance(val, str) and key.startswith('_'):
+            return None
+        return val
+    
+    purchase_price = float(financing_data.get('purchase_price', 1300000.0))
+    num_owners = int(financing_data.get('num_owners', 4))
+    
+    # Extract rental parameters
+    rental_data = assumptions['rental']
+    owner_nights_per_person = int(rental_data.get('owner_nights_per_person', 5))
+    days_per_year = int(rental_data.get('days_per_year', 365))
     
     # Days per month (approximate)
     days_per_month = {
@@ -193,86 +403,100 @@ def create_base_case_config() -> BaseCaseConfig:
         7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31
     }
     
-    # Define seasons based on Engelberg tourism patterns
-    # Winter Peak: December, January, February, March (ski season)
-    winter_months = [12, 1, 2, 3]
-    winter_nights = sum(days_per_month[m] for m in winter_months)  # 120 nights
+    # Extract seasonal parameters
+    seasonal_data = assumptions['seasonal']
+    owner_nights_dist_raw = rental_data.get('owner_nights_distribution', {
+        'winter': 8,
+        'summer': 7,
+        'offpeak': 5
+    })
     
-    # Summer Peak: June, July, August, September (hiking season)
-    summer_months = [6, 7, 8, 9]
-    summer_nights = sum(days_per_month[m] for m in summer_months)  # 122 nights
+    # Extract owner nights distribution (skip explanation fields)
+    owner_nights_dist = {}
+    for season in ['winter', 'summer', 'offpeak']:
+        if season in owner_nights_dist_raw and not season.startswith('_'):
+            val = owner_nights_dist_raw[season]
+            if not isinstance(val, str) or not val.startswith('_'):
+                owner_nights_dist[season] = int(val)
+        else:
+            owner_nights_dist[season] = {'winter': 8, 'summer': 7, 'offpeak': 5}[season]
     
-    # Off-Peak: April, May, October, November (shoulder seasons)
-    offpeak_months = [4, 5, 10, 11]
-    offpeak_nights = sum(days_per_month[m] for m in offpeak_months)  # 123 nights
-    
-    # Distribute owner nights proportionally (more in peak seasons)
-    # Winter: 8 nights, Summer: 7 nights, Off-peak: 5 nights
-    owner_nights_winter = 8
-    owner_nights_summer = 7
-    owner_nights_offpeak = 5
-    
-    # Calculate rentable nights per season
+    # Winter Peak season
+    winter_data = seasonal_data['winter_peak']
+    winter_months = winter_data['months']
+    winter_nights = sum(days_per_month[m] for m in winter_months)
+    owner_nights_winter = owner_nights_dist.get('winter', 8)
     rentable_winter = winter_nights - owner_nights_winter
-    rentable_summer = summer_nights - owner_nights_summer
-    rentable_offpeak = offpeak_nights - owner_nights_offpeak
     
-    # Engelberg-specific seasonal parameters (calibrated to Airbnb analytics)
-    # Target: 63% overall occupancy, 200 CHF average nightly rate, ~46,000 CHF annual revenue
-    # Based on real Engelberg Airbnb data: 63% occupancy, 200 CHF/night average, 46k CHF/year revenue
-    # Winter Peak: High demand, premium rates
     winter_season = SeasonalParams(
-        name="Winter Peak (Ski Season)",
+        name=winter_data['name'],
         months=winter_months,
-        occupancy_rate=0.75,  # 75% occupancy during ski season (peak demand)
-        average_daily_rate=250.0,  # Premium rates during ski season
+        occupancy_rate=float(winter_data.get('occupancy_rate', 0.75)),
+        average_daily_rate=float(winter_data.get('average_daily_rate', 250.0)),
         nights_in_season=rentable_winter
     )
     
-    # Summer Peak: Good demand, moderate rates
+    # Summer Peak season
+    summer_data = seasonal_data['summer_peak']
+    summer_months = summer_data['months']
+    summer_nights = sum(days_per_month[m] for m in summer_months)
+    owner_nights_summer = owner_nights_dist.get('summer', 7)
+    rentable_summer = summer_nights - owner_nights_summer
+    
     summer_season = SeasonalParams(
-        name="Summer Peak (Hiking Season)",
+        name=summer_data['name'],
         months=summer_months,
-        occupancy_rate=0.65,  # 65% occupancy during summer (good demand)
-        average_daily_rate=200.0,  # Moderate rates during summer
+        occupancy_rate=float(summer_data.get('occupancy_rate', 0.65)),
+        average_daily_rate=float(summer_data.get('average_daily_rate', 200.0)),
         nights_in_season=rentable_summer
     )
     
-    # Off-Peak: Lower demand, discounted rates
+    # Off-Peak season
+    offpeak_data = seasonal_data['offpeak']
+    offpeak_months = offpeak_data['months']
+    offpeak_nights = sum(days_per_month[m] for m in offpeak_months)
+    owner_nights_offpeak = owner_nights_dist.get('offpeak', 5)
+    rentable_offpeak = offpeak_nights - owner_nights_offpeak
+    
     offpeak_season = SeasonalParams(
-        name="Off-Peak (Shoulder Seasons)",
+        name=offpeak_data['name'],
         months=offpeak_months,
-        occupancy_rate=0.50,  # 50% occupancy during shoulder seasons
-        average_daily_rate=150.0,  # Discounted rates during off-peak
+        occupancy_rate=float(offpeak_data.get('occupancy_rate', 0.5)),
+        average_daily_rate=float(offpeak_data.get('average_daily_rate', 150.0)),
         nights_in_season=rentable_offpeak
     )
     
+    # Create financing parameters
     financing = FinancingParams(
         purchase_price=purchase_price,
-        ltv=0.75,               # 75 percent loan to value
-        interest_rate=0.013,    # 1.3 percent interest (updated per user request)
-        amortization_rate=0.01, # 1 percent amortization on initial loan
+        ltv=float(financing_data.get('ltv', 0.75)),
+        interest_rate=float(financing_data.get('interest_rate', 0.013)),
+        amortization_rate=float(financing_data.get('amortization_rate', 0.01)),
         num_owners=num_owners
     )
 
+    # Create rental parameters
     rental = RentalParams(
-        owner_nights_per_person=5,    # five nights per owner (distributed across seasons)
+        owner_nights_per_person=owner_nights_per_person,
         num_owners=num_owners,
-        occupancy_rate=0.63,          # legacy - not used when seasons are provided (calibrated to Airbnb analytics)
-        average_daily_rate=200.0,     # legacy - not used when seasons are provided (calibrated to Airbnb analytics)
-        seasons=[winter_season, summer_season, offpeak_season]  # Seasonal breakdown
+        occupancy_rate=float(rental_data.get('legacy_occupancy_rate', 0.63)),
+        average_daily_rate=float(rental_data.get('legacy_average_daily_rate', 200.0)),
+        days_per_year=days_per_year,
+        seasons=[winter_season, summer_season, offpeak_season]
     )
 
+    # Create expense parameters
+    expenses_data = assumptions['expenses']
     expenses = ExpenseParams(
-        property_management_fee_rate=0.20,  # 20% of gross rental income (can vary 15-30% in sensitivities)
-        cleaning_cost_per_stay=80.0,        # 80 CHF per stay (can vary 60-130 CHF in sensitivities)
-        average_length_of_stay=1.7,         # 1.7 nights per stay
-        tourist_tax_per_person_per_night=3.0,
-        avg_guests_per_night=2.0,
-        insurance_annual=purchase_price * 0.004,  # 0.4% of property value
-        nubbing_costs_annual=2_000.0,      # Shared expenses for shared parts (water, heating)
-        electricity_internet_annual=1_000.0,  # Electricity and internet
-        maintenance_rate=0.01,             # 1% of property value per year
+        property_management_fee_rate=float(expenses_data.get('property_management_fee_rate', 0.20)),
+        cleaning_cost_per_stay=float(expenses_data.get('cleaning_cost_per_stay', 80.0)),
+        average_length_of_stay=float(expenses_data.get('average_length_of_stay', 1.7)),
+        tourist_tax_per_person_per_night=float(expenses_data.get('tourist_tax_per_person_per_night', 3.0)),
+        avg_guests_per_night=float(expenses_data.get('avg_guests_per_night', 2.0)),
+        insurance_annual=purchase_price * float(expenses_data.get('insurance_rate', 0.004)),
+        nubbing_costs_annual=float(expenses_data.get('nubbing_costs_annual', 2000.0)),
+        electricity_internet_annual=float(expenses_data.get('electricity_internet_annual', 1000.0)),
+        maintenance_rate=float(expenses_data.get('maintenance_rate', 0.01)),
         property_value=purchase_price
     )
 
@@ -575,13 +799,20 @@ def calculate_irr(cash_flows: List[float], initial_investment: float, sale_proce
 
 def calculate_irrs_from_projection(projection: List[Dict], initial_equity: float, 
                                    final_property_value: float, final_loan_balance: float,
-                                   num_owners: int = 4, purchase_price: float = None) -> Dict[str, float]:
+                                   num_owners: int = 4, purchase_price: float = None,
+                                   selling_costs_rate: float = 0.078,
+                                   discount_rate: float = 0.05) -> Dict[str, float]:
     """
-    Calculate multiple IRRs:
-    1. Equity IRR with sale (levered, includes debt service)
-    2. Equity IRR without sale (levered, includes debt service)
-    3. Project IRR with sale (unlevered, no debt, 100% equity)
-    4. Project IRR without sale (unlevered, no debt, 100% equity)
+    Calculate multiple IRRs with selling costs:
+    1. Equity IRR with sale (levered, includes debt service and selling costs)
+    2. Equity IRR without sale (levered, cash flow only)
+    3. Project IRR with sale (unlevered, no debt, includes selling costs)
+    4. Project IRR without sale (unlevered, cash flow only)
+    
+    Selling costs in Switzerland (typically 7.8%):
+    - Broker fee: 3%
+    - Notary fees: 1.5%
+    - Transfer tax: 3.3% (varies by canton, Obwalden has high rate)
     
     Args:
         projection: 15-year projection data
@@ -590,9 +821,10 @@ def calculate_irrs_from_projection(projection: List[Dict], initial_equity: float
         final_loan_balance: Remaining loan balance at end of 15 years
         num_owners: Number of owners
         purchase_price: Total purchase price (needed for unlevered IRR)
+        selling_costs_rate: Total selling costs as % of sale price (default 7.8%)
     
     Returns:
-        Dictionary with all IRR metrics (as percentages)
+        Dictionary with all IRR metrics (as percentages), NPV, MOIC, and payback period
     """
     # Extract cash flows per owner (levered - after debt service)
     equity_cash_flows = [year['cash_flow_per_owner'] for year in projection]
@@ -600,11 +832,15 @@ def calculate_irrs_from_projection(projection: List[Dict], initial_equity: float
     # Extract NOI (unlevered - before debt service) per owner
     unlevered_cash_flows = [year['net_operating_income'] / num_owners for year in projection]
     
-    # Calculate sale proceeds per owner (net of loan payoff for levered)
-    sale_proceeds_per_owner = (final_property_value - final_loan_balance) / num_owners
+    # Calculate selling costs
+    selling_costs_total = final_property_value * selling_costs_rate
+    net_sale_price = final_property_value - selling_costs_total
     
-    # For unlevered, sale proceeds = full property value (no loan to pay)
-    unlevered_sale_proceeds_per_owner = final_property_value / num_owners if purchase_price else 0
+    # Calculate sale proceeds per owner (net of loan payoff and selling costs for levered)
+    sale_proceeds_per_owner = (net_sale_price - final_loan_balance) / num_owners
+    
+    # For unlevered, sale proceeds = net sale price (no loan to pay, but still have selling costs)
+    unlevered_sale_proceeds_per_owner = net_sale_price / num_owners if purchase_price else 0
     
     # Equity IRR (levered) with sale
     equity_irr_with_sale = calculate_irr(equity_cash_flows, initial_equity, sale_proceeds_per_owner)
@@ -621,11 +857,43 @@ def calculate_irrs_from_projection(projection: List[Dict], initial_equity: float
         project_irr_with_sale = 0.0
         project_irr_without_sale = 0.0
     
+    # Calculate NPV using provided discount rate
+    npv = -initial_equity
+    for i, cash_flow in enumerate(equity_cash_flows, 1):
+        npv += cash_flow / ((1 + discount_rate) ** i)
+    npv += sale_proceeds_per_owner / ((1 + discount_rate) ** len(equity_cash_flows))
+    
+    # Calculate MOIC (Multiple on Invested Capital)
+    total_cash_returned = sum(equity_cash_flows) + sale_proceeds_per_owner
+    moic = total_cash_returned / initial_equity if initial_equity > 0 else 0
+    
+    # Calculate Payback Period (years until cumulative cash flow turns positive)
+    cumulative_cash = -initial_equity
+    payback_period = None
+    for i, cash_flow in enumerate(equity_cash_flows, 1):
+        cumulative_cash += cash_flow
+        if cumulative_cash >= 0 and payback_period is None:
+            payback_period = i
+    # If never pays back from cash flows alone, payback is at sale
+    if payback_period is None:
+        cumulative_cash += sale_proceeds_per_owner
+        if cumulative_cash >= 0:
+            payback_period = len(equity_cash_flows)  # Payback at year 15 with sale
+    
     return {
         'equity_irr_with_sale_pct': equity_irr_with_sale * 100,
         'equity_irr_without_sale_pct': equity_irr_without_sale * 100,
         'project_irr_with_sale_pct': project_irr_with_sale * 100,
         'project_irr_without_sale_pct': project_irr_without_sale * 100,
+        # New metrics
+        'npv_at_5pct': npv,
+        'moic': moic,
+        'payback_period_years': payback_period,
+        # Sale details
+        'gross_sale_price': final_property_value,
+        'selling_costs': selling_costs_total,
+        'net_sale_price': net_sale_price,
+        'selling_costs_rate_pct': selling_costs_rate * 100,
         # Legacy names for backward compatibility
         'irr_with_sale_pct': equity_irr_with_sale * 100,
         'irr_without_sale_pct': equity_irr_without_sale * 100,
@@ -765,4 +1033,218 @@ def apply_sensitivity(
         rental=new_rental,
         expenses=new_expenses
     )
+
+
+# -----------------------------
+# JSON Export Functions
+# -----------------------------
+
+def export_base_case_to_json(config: BaseCaseConfig, results: Dict[str, float], 
+                             projection: List[Dict], irr_results: Dict[str, float]) -> Dict[str, Any]:
+    """
+    Export base case analysis results to a structured dictionary ready for JSON serialization.
+    
+    Args:
+        config: Base case configuration
+        results: Annual cash flow results from compute_annual_cash_flows
+        projection: 15-year projection from compute_15_year_projection
+        irr_results: IRR calculation results from calculate_irrs_from_projection
+    
+    Returns:
+        Dictionary with all base case data structured for JSON export
+    """
+    # Convert config to dict (handling dataclasses)
+    config_dict = {
+        'financing': {
+            'purchase_price': config.financing.purchase_price,
+            'ltv': config.financing.ltv,
+            'interest_rate': config.financing.interest_rate,
+            'amortization_rate': config.financing.amortization_rate,
+            'num_owners': config.financing.num_owners,
+            'loan_amount': config.financing.loan_amount,
+            'equity_total': config.financing.equity_total,
+            'equity_per_owner': config.financing.equity_per_owner
+        },
+        'rental': {
+            'owner_nights_per_person': config.rental.owner_nights_per_person,
+            'num_owners': config.rental.num_owners,
+            'occupancy_rate': config.rental.occupancy_rate,
+            'average_daily_rate': config.rental.average_daily_rate,
+            'days_per_year': config.rental.days_per_year,
+            'gross_rental_income': config.rental.gross_rental_income,
+            'rented_nights': config.rental.rented_nights,
+            'seasons': [
+                {
+                    'name': s.name,
+                    'months': s.months,
+                    'occupancy_rate': s.occupancy_rate,
+                    'average_daily_rate': s.average_daily_rate,
+                    'nights_in_season': s.nights_in_season,
+                    'rented_nights': s.rented_nights,
+                    'season_income': s.season_income
+                }
+                for s in config.rental.seasons
+            ]
+        },
+        'expenses': {
+            'property_management_fee_rate': config.expenses.property_management_fee_rate,
+            'cleaning_cost_per_stay': config.expenses.cleaning_cost_per_stay,
+            'average_length_of_stay': config.expenses.average_length_of_stay,
+            'tourist_tax_per_person_per_night': config.expenses.tourist_tax_per_person_per_night,
+            'avg_guests_per_night': config.expenses.avg_guests_per_night,
+            'insurance_annual': config.expenses.insurance_annual,
+            'nubbing_costs_annual': config.expenses.nubbing_costs_annual,
+            'electricity_internet_annual': config.expenses.electricity_internet_annual,
+            'maintenance_rate': config.expenses.maintenance_rate,
+            'property_value': config.expenses.property_value
+        }
+    }
+    
+    # Structure annual results
+    annual_results = {
+        'purchase_price': results.get('purchase_price', config.financing.purchase_price),
+        'loan_amount': results.get('loan_amount', config.financing.loan_amount),
+        'equity_total': results.get('equity_total', config.financing.equity_total),
+        'equity_per_owner': results.get('equity_per_owner', config.financing.equity_per_owner),
+        'total_owner_nights': results.get('total_owner_nights', 0),
+        'rentable_nights': results.get('rentable_nights', 0),
+        'rented_nights': results.get('rented_nights', 0),
+        'gross_rental_income': results.get('gross_rental_income', 0),
+        'property_management_cost': results.get('property_management_cost', 0),
+        'cleaning_cost': results.get('cleaning_cost', 0),
+        'tourist_tax': results.get('tourist_tax', 0),
+        'insurance': results.get('insurance', 0),
+        'nubbing_costs': results.get('nubbing_costs', 0),
+        'electricity_internet': results.get('electricity_internet', 0),
+        'maintenance_reserve': results.get('maintenance_reserve', 0),
+        'total_operating_expenses': results.get('total_operating_expenses', 0),
+        'net_operating_income': results.get('net_operating_income', 0),
+        'interest_payment': results.get('interest_payment', 0),
+        'amortization_payment': results.get('amortization_payment', 0),
+        'debt_service': results.get('debt_service', 0),
+        'cash_flow_after_debt_service': results.get('cash_flow_after_debt_service', 0),
+        'cash_flow_per_owner': results.get('cash_flow_per_owner', 0),
+        'cap_rate_pct': results.get('cap_rate_pct', 0),
+        'cash_on_cash_return_pct': results.get('cash_on_cash_return_pct', 0),
+        'debt_coverage_ratio': results.get('debt_coverage_ratio', 0),
+        'operating_expense_ratio_pct': results.get('operating_expense_ratio_pct', 0)
+    }
+    
+    # Add seasonal breakdown if available
+    if 'seasonal_breakdown' in results:
+        annual_results['seasonal_breakdown'] = results['seasonal_breakdown']
+    
+    # Structure KPIs
+    kpis = {
+        'cap_rate_pct': results.get('cap_rate_pct', 0),
+        'cash_on_cash_return_pct': results.get('cash_on_cash_return_pct', 0),
+        'debt_coverage_ratio': results.get('debt_coverage_ratio', 0),
+        'operating_expense_ratio_pct': results.get('operating_expense_ratio_pct', 0)
+    }
+    
+    # Structure IRR results (include all new metrics)
+    irr_data = {
+        'equity_irr_with_sale_pct': irr_results.get('equity_irr_with_sale_pct', irr_results.get('irr_with_sale_pct', 0)),
+        'equity_irr_without_sale_pct': irr_results.get('equity_irr_without_sale_pct', irr_results.get('irr_without_sale_pct', 0)),
+        'project_irr_with_sale_pct': irr_results.get('project_irr_with_sale_pct', 0),
+        'project_irr_without_sale_pct': irr_results.get('project_irr_without_sale_pct', 0),
+        'sale_proceeds_per_owner': irr_results.get('sale_proceeds_per_owner', 0),
+        'final_property_value': irr_results.get('final_property_value', 0),
+        'final_loan_balance': irr_results.get('final_loan_balance', 0),
+        # New metrics
+        'npv_at_5pct': irr_results.get('npv_at_5pct', 0),
+        'moic': irr_results.get('moic', 0),
+        'payback_period_years': irr_results.get('payback_period_years'),
+        # Selling cost details
+        'gross_sale_price': irr_results.get('gross_sale_price', 0),
+        'selling_costs': irr_results.get('selling_costs', 0),
+        'net_sale_price': irr_results.get('net_sale_price', 0),
+        'selling_costs_rate_pct': irr_results.get('selling_costs_rate_pct', 0)
+    }
+    
+    return {
+        'config': config_dict,
+        'annual_results': annual_results,
+        'projection_15yr': projection,
+        'irr_results': irr_data,
+        'kpis': kpis,
+        'timestamp': datetime.now().isoformat()
+    }
+
+
+def export_sensitivity_to_json(sensitivities_dict: Dict[str, Dict]) -> Dict[str, Any]:
+    """
+    Export sensitivity analysis results to a structured dictionary ready for JSON serialization.
+    
+    Args:
+        sensitivities_dict: Dictionary mapping parameter names to sensitivity results
+                          Each value should be a dict with 'values' (list of parameter values),
+                          'metrics' (dict mapping metric names to lists of values),
+                          and optionally 'base_value' and 'base_metrics'
+    
+    Returns:
+        Dictionary with all sensitivity data structured for JSON export
+    """
+    export_data = {
+        'sensitivities': {},
+        'timestamp': datetime.now().isoformat()
+    }
+    
+    for param_name, param_data in sensitivities_dict.items():
+        export_data['sensitivities'][param_name] = {
+            'parameter_name': param_name,
+            'base_value': param_data.get('base_value'),
+            'base_metrics': param_data.get('base_metrics', {}),
+            'values': param_data.get('values', []),
+            'metrics': param_data.get('metrics', {})
+        }
+    
+    return export_data
+
+
+def export_monte_carlo_to_json(df: pd.DataFrame, stats: Dict[str, float]) -> Dict[str, Any]:
+    """
+    Export Monte Carlo simulation results to a structured dictionary ready for JSON serialization.
+    
+    Args:
+        df: DataFrame with simulation results (one row per simulation)
+        stats: Dictionary with summary statistics (mean, std, percentiles, etc.)
+    
+    Returns:
+        Dictionary with Monte Carlo data structured for JSON export
+    """
+    # Sample a subset of data for charting (to keep JSON size manageable)
+    # Use every Nth row or limit to 1000 rows max
+    sample_size = min(1000, len(df))
+    step = max(1, len(df) // sample_size)
+    df_sample = df.iloc[::step].copy()
+    
+    # Convert DataFrame to records (list of dicts)
+    sample_data = df_sample.to_dict('records')
+    
+    # Convert numpy types to native Python types for JSON serialization
+    for record in sample_data:
+        for key, value in record.items():
+            if hasattr(value, 'item'):  # numpy scalar
+                record[key] = value.item()
+            elif pd.isna(value):
+                record[key] = None
+    
+    # Convert stats to native types
+    stats_clean = {}
+    for key, value in stats.items():
+        if hasattr(value, 'item'):
+            stats_clean[key] = value.item()
+        elif pd.isna(value):
+            stats_clean[key] = None
+        else:
+            stats_clean[key] = value
+    
+    return {
+        'statistics': stats_clean,
+        'sample_data': sample_data,
+        'total_simulations': len(df),
+        'sample_size': len(sample_data),
+        'timestamp': datetime.now().isoformat()
+    }
 

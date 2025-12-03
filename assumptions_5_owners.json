@@ -1,0 +1,17 @@
+{
+  "_comment": "Engelberg Property Investment - 5 Owners Scenario",
+  "_description": "This file contains assumption parameters for the 5 owners scenario. It overrides the number of owners from the base case.",
+  "_case_metadata": {
+    "display_name": "5 Owners",
+    "description": "Same purchase price and financing terms with 5 owners instead of 4",
+    "enabled": true
+  },
+  
+  "financing": {
+    "_explanation": "Same financing terms as base case, but with 5 owners instead of 4. This reduces equity per owner and individual cash flow requirements, making the investment more accessible.",
+    
+    "num_owners": 5
+  }
+}
+
+

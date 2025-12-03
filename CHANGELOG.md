@@ -2,173 +2,254 @@
 
 All notable changes to the Engelberg Property Investment Simulation will be documented in this file.
 
-## [2025-11-26] - UI/UX Overhaul: Sidebar Navigation, Tornado Charts, and Terminology Updates
+## [2025-12-03] - Code Consolidation & Monthly NCF Sensitivity
 
-### Prompt Context
+### Major Changes
 
-The user requested several major improvements to enhance the professional appearance and usability of all HTML reports:
+#### 1. New Sensitivity Analysis: Monthly Net Cash Flow
 
-1. **Sidebar Navigation & Toolbar**: Add fixed sidebar navigation and top toolbar to all HTML reports for better navigation
-2. **Tornado Charts Enhancement**: Ensure tornado charts are clean and functional, and add cap rate and monthly cash flow per investor metrics
-3. **Terminology Consistency**: Update all references from "per Owner" to "per Investor" for clarity
-4. **Portal Updates**: Update the analysis portal to reflect new metrics and features
-5. **Alternative Scenario Reports**: Update all alternative scenario reports with consistent terminology and new metrics
+- **New**: `Sensitivity - Monthly NCF` tab in dashboard
+  - Shows CHF impact on monthly cash flow per owner
+  - Filters out parameters with no monthly impact (appreciation, selling costs, inflation)
+  - Teal color theme distinct from IRR (purple) and CoC (pink)
+  - Complete hover tooltips for all 15 parameters
+- **New**: `calculate_monthly_ncf()` function in `analyze.py`
+- **New**: `run_monthly_ncf_sensitivity_analysis()` function
+- **New**: `{case}_sensitivity_ncf.json` data files (5 files)
 
-### Why These Changes Were Requested
+#### 2. Code Consolidation & Renaming
 
-- **Navigation**: As reports became more complex with multiple sections, users needed better navigation to quickly jump between sections
-- **Professional Presentation**: Sidebar and toolbar provide a more professional, dashboard-like experience
-- **Tornado Charts**: Cap rate and monthly cash flow per investor are critical metrics that needed to be prominently displayed
-- **Terminology**: "Investor" is more accurate and professional than "Owner" for financial reporting
-- **Consistency**: All reports should use the same terminology and design language
+- **Renamed**: `simulation.py` → `core_engine.py` (clearer purpose)
+- **Renamed**: `run_analysis.py` → `analyze.py` (simpler name)
+- **Consolidated**: All analysis scripts merged into unified `analyze.py`
+  - `analysis_base_case.py` → merged into `analyze.py`
+  - `analysis_sensitivity.py` → merged into `analyze.py`
+  - `analysis_monte_carlo.py` → merged into `analyze.py`
+- **Deleted**: Individual analysis scripts (using unified script now)
 
-### Changes Implemented
+#### 3. Bug Fixes
 
-#### 1. Sidebar Navigation & Top Toolbar System
+- **Fixed**: `discount_rate` was hardcoded to 0.05 in `calculate_irrs_from_projection()`
+  - Now properly accepts as parameter from assumptions.json
+  - Updated all 4 call sites in `analyze.py`
+- **Fixed**: Table colors in sensitivity analysis
+  - Now dynamically colored based on better/worse than base
+  - Green = better result, Red = worse result
+  - Applied to all 3 sensitivity tabs
 
-- **Files**: All `analysis_*.py` files
-  - Created shared layout functions: `generate_top_toolbar()`, `generate_sidebar_navigation()`, `generate_shared_layout_css()`, `generate_shared_layout_js()`
-  - Implemented fixed sidebar (250px width) with section navigation
-  - Added fixed top toolbar (60px height) with "Back to Home" button
-  - Integrated smooth scrolling and active section highlighting using Intersection Observer API
-  - Added responsive design (sidebar collapses on mobile)
+#### 4. Dashboard Enhancements
 
-- **Reports Updated**:
-  - `analysis_base_case.py` - Base case report
-  - `analysis_sensitivity.py` - Sensitivity analysis report
-  - `analysis_monte_carlo.py` - Monte Carlo simulation report
-  - `analysis_alternative_scenarios.py` - Scenario comparison dashboard
-  - `analysis_validation.py` - Validation report
-  - `analysis_portal.py` - Unified portal dashboard
-  - `website/index.html` - Homepage (toolbar only, no sidebar needed)
+- **New**: Chart annotations showing base value, range, and parameter count
+- **Improved**: Hover tooltips with tree-style formatting and rationale
+- **Improved**: `formatValue()` function handles all parameter types:
+  - Rates: "7.80%" instead of "0.078"
+  - Currency: "CHF 70" instead of "70.0"
+  - Nights: "1.7 nights" instead of "1.70"
+- **Added**: Complete parameter info for all 15 sensitivity parameters
 
-- **Features**:
-  - Fixed sidebar with section navigation
-  - Active section highlighting as user scrolls
-  - Smooth scroll to sections on click
-  - "Back to Home" button in toolbar
-  - Responsive mobile design
-  - Consistent styling across all reports
+#### 5. Validation Expansion
 
-#### 2. Tornado Charts Enhancement
+- **Expanded**: `validate_system.py` from 72 to 198 checks
+- **New**: Cross-validation between assumptions and generated data
+- **New**: Sensitivity analysis delta verification
+- **New**: Dashboard component checks
+- **New**: Script integration tests
+- **New**: End-to-end consistency checks
 
-- **File**: `analysis_sensitivity.py`
-  - Updated tornado chart titles and labels to use "per Investor" terminology
-  - Enhanced chart formatting:
-    - Improved margins and spacing
-    - White background for cleaner appearance
-    - Better grid lines and zero line visibility
-    - Enhanced hover tooltips with detailed parameter information
-  - Verified both tornado charts are functional:
-    - **Monthly Cash Flow per Investor**: Shows monthly impact in CHF per investor
-    - **Cap Rate (Unlevered)**: Shows cap rate impact in percentage points
-  - Charts now display with proper sorting by impact magnitude
-  - Interactive hover tooltips show parameter ranges and resulting values
+### Technical Details
 
-#### 3. Terminology Updates: "per Owner" → "per Investor"
+#### New File Structure
 
-- **Files Updated**:
-  - `analysis_base_case.py`: Updated all HTML labels, chart titles, table headers
-  - `analysis_sensitivity.py`: Updated tornado chart labels and descriptions
-  - `analysis_alternative_scenarios.py`: Updated comparison dashboard and scenario cards
-  - `analysis_portal.py`: Updated portal metrics and descriptions
-  - `analysis_monte_carlo.py`: Already using correct terminology
+```
+analyze.py           # Unified analysis script (1,500+ lines)
+core_engine.py       # Core calculation engine (1,250+ lines)
+monte_carlo_engine.py # Monte Carlo simulation
+generate_all_data.py # Batch generator
+validate_system.py   # System validator (198 checks)
+```
 
-- **Changes**:
-  - "Cash Flow per Owner" → "Cash Flow per Investor"
-  - "Monthly Cash per Owner" → "Monthly Cash Flow per Investor"
-  - "Equity per Owner" → "Equity per Investor"
-  - Chart labels, table headers, KPI cards, and descriptions updated
-  - Print statements updated for consistency
+#### Data Files Generated (26 total)
 
-#### 4. Portal Updates
+- 5 cases × 5 analysis types = 25 files
+- 1 cases_index.json
+- Analysis types: base_case_analysis, sensitivity, sensitivity_coc, sensitivity_ncf, monte_carlo
 
-- **File**: `analysis_portal.py`
-  - Updated terminology to "per Investor"
-  - Added description mentioning tornado charts for monthly cash flow per investor and cap rate
-  - Enhanced Monte Carlo section to include cap rate and monthly cash flow statistics (if available)
-  - Updated link text to reference new tornado chart features
-  - Added monthly cash flow per investor to scenario comparison cards
+#### Sensitivity Parameters (15 total)
 
-#### 5. Alternative Scenario Reports Updates
+1. Property Appreciation Rate
+2. Interest Rate
+3. Average Daily Rate
+4. Maintenance Reserve Rate
+5. Loan-to-Value (LTV)
+6. Average Length of Stay
+7. Cleaning Cost per Stay
+8. Occupancy Rate
+9. Property Management Fee
+10. Winter Season Occupancy
+11. Amortization Rate
+12. Purchase Price
+13. Selling Costs Rate
+14. Insurance Rate
+15. Inflation Rate
 
-- **File**: `analysis_alternative_scenarios.py`
-  - Updated comparison dashboard terminology
-  - Added "Monthly Cash Flow per Investor" metric to comparison table
-  - Added monthly cash flow to scenario cards
-  - Updated section IDs for proper sidebar navigation
-  - Fixed CSS variable for gradient-1
-  - Individual scenario reports automatically updated via base case report function
+### Migration Notes
 
-- **Reports Updated**:
-  - Comparison dashboard: `report_scenarios_overview.html`
-  - All 6 individual scenario reports (inherit updates from base case)
+**For Users:**
 
-#### 6. Homepage Updates
+- Run `python generate_all_data.py` to regenerate all data
+- Old script names (`run_analysis.py`, `simulation.py`) no longer exist
+- Use `python analyze.py` for all analyses
 
-- **File**: `website/index.html`
-  - Added top toolbar matching other reports
-  - Consistent gradient styling
-  - Responsive design improvements
-  - Enhanced card hover effects
+**For Developers:**
 
-### Technical Implementation Details
+- Import calculation functions from `core_engine` instead of `simulation`
+- Use unified `analyze.py` instead of individual analysis scripts
 
-#### Shared Layout Functions
+---
 
-All reports now use shared layout functions that can be imported from `analysis_sensitivity.py`:
+## [2025-12-01] - Dynamic Single-Page Dashboard Redesign
 
-- `generate_top_toolbar(report_title, back_link, subtitle)`: Creates fixed toolbar HTML
-- `generate_sidebar_navigation(sections)`: Creates sidebar with section links
-- `generate_shared_layout_css()`: Returns CSS for layout components
-- `generate_shared_layout_js()`: Returns JavaScript for smooth scrolling and active highlighting
+### Major System Overhaul
 
-#### Sidebar Navigation
+Complete transformation from multi-page static HTML reports to a unified dynamic dashboard system with JSON-based data architecture.
 
-- Sections are defined with `id`, `title`, and optional `icon`
-- JavaScript uses Intersection Observer API to detect visible sections
-- Active section is highlighted in sidebar as user scrolls
-- Smooth scrolling with proper offset for fixed toolbar
+### Key Changes
 
-#### Tornado Charts
+#### 1. Dynamic Dashboard System
 
-- Monthly Cash Flow per Investor: Calculated as annual cash flow / 12
-- Cap Rate: Calculated as NOI / Purchase Price (unlevered metric)
-- Charts sorted by maximum absolute impact
-- Top 10 factors displayed
-- Red bars (left) = worst case, Green bars (right) = best case
+- **New**: Single-page interactive dashboard (`website/index.html`)
+  - Top navigation bar with case selector dropdown
+  - Left sidebar with analysis type selector
+  - Dynamic content area that loads data via JavaScript
+  - Responsive design for mobile devices
+  - Plotly.js integration for interactive charts
 
-### Files Modified
+#### 2. JSON Data Architecture
 
-1. `analysis_base_case.py` - Terminology updates, sidebar/toolbar integration
-2. `analysis_sensitivity.py` - Tornado chart enhancements, sidebar/toolbar, terminology
-3. `analysis_monte_carlo.py` - Sidebar/toolbar integration
-4. `analysis_alternative_scenarios.py` - Terminology, metrics, sidebar/toolbar
-5. `analysis_validation.py` - Sidebar/toolbar integration, layout functions
-6. `analysis_portal.py` - Terminology, metrics, sidebar/toolbar
-7. `website/index.html` - Toolbar addition, styling improvements
+- **New**: All analyses now export structured JSON data to `website/data/`
+- **New**: `export_base_case_to_json()` function in `simulation.py`
+- **New**: `export_sensitivity_to_json()` function in `simulation.py`
+- **New**: `export_monte_carlo_to_json()` function in `simulation.py`
+- **New**: `cases_index.json` master index file listing all available cases
+
+#### 3. Enhanced Assumptions Management
+
+- **Enhanced**: `assumptions.json` now includes extensive explanatory text for each parameter
+- **New**: Case metadata system with `_case_metadata` fields
+- **New**: Support for case-specific assumption files (`assumptions_*.json`)
+- **New**: JSON loader handles explanation fields (skips fields starting with `_`)
+
+#### 4. Master Data Generator
+
+- **New**: `generate_all_data.py` script
+  - Auto-detects all `assumptions_*.json` files
+  - Generates JSON data for each case automatically
+  - Creates `cases_index.json` with metadata
+  - Handles base case, sensitivity, and Monte Carlo analyses
+
+#### 5. Case Management System
+
+- **New**: Support for multiple investment scenarios:
+  - Base Case (`assumptions.json`)
+  - Migros Scenario (`assumptions_migros.json`)
+  - 3 Owners (`assumptions_3_owners.json`)
+  - 5 Owners (`assumptions_5_owners.json`)
+  - 6 Owners (`assumptions_6_owners.json`)
+- **New**: Easy creation of new cases by adding `assumptions_*.json` files
+
+#### 6. Updated Analysis Scripts
+
+- **Modified**: `analysis_base_case.py` - Added JSON export to `website/data/{case}_base_case_analysis.json`
+- **Modified**: `analysis_sensitivity.py` - Added JSON export to `website/data/{case}_sensitivity.json`
+- **Modified**: `analysis_monte_carlo.py` - Added JSON export to `website/data/{case}_monte_carlo.json`
+- **Modified**: `analysis_alternative_scenarios.py` - Added JSON export for each scenario
+
+#### 7. Cleanup
+
+- **Removed**: All legacy `report_*.html` files (13 files deleted)
+- **Kept**: Only `website/index.html` as the single dashboard entry point
+
+### Technical Details
+
+#### JSON Export Functions
+
+- All export functions return structured dictionaries ready for JSON serialization
+- Includes timestamps for data freshness tracking
+- Handles numpy/pandas types for JSON compatibility
+
+#### Dashboard JavaScript Architecture
+
+- **DataManager**: Handles loading JSON files via Fetch API
+- **ChartRenderer**: Renders Plotly.js charts from JSON data
+- **UIManager**: Manages case/analysis selection and UI updates
+- **StateManager**: Tracks current case and analysis type
+
+#### File Naming Convention
+
+- Base case analysis: `{case_name}_base_case_analysis.json`
+- Sensitivity: `{case_name}_sensitivity.json`
+- Monte Carlo: `{case_name}_monte_carlo.json`
+- Cases index: `cases_index.json`
+
+### Migration Notes
+
+**For Users:**
+
+1. Run `python generate_all_data.py` to generate all JSON data files
+2. Open `website/index.html` using a web server (e.g., `python -m http.server 8000`)
+3. Select cases and analyses from the dashboard interface
+
+**For Developers:**
+
+- All assumptions should be modified in `assumptions.json` or case-specific files
+- New cases can be added by creating `assumptions_*.json` files
+- Dashboard can be extended by adding new analysis types to the JavaScript
 
 ### Benefits
 
-- **Better Navigation**: Users can quickly jump to any section in long reports
-- **Professional Appearance**: Sidebar and toolbar give reports a modern dashboard feel
-- **Consistent Terminology**: "Investor" is more accurate and professional
-- **Enhanced Metrics**: Cap rate and monthly cash flow per investor prominently displayed
-- **Improved UX**: Smooth scrolling, active highlighting, responsive design
-- **Unified Design**: All reports share the same navigation system and styling
+1. **Unified Experience**: All analyses accessible from one dashboard
+2. **Easy Navigation**: Switch between cases and analyses instantly
+3. **Maintainability**: Single HTML file to maintain
+4. **Scalability**: Easy to add new cases (just add JSON file)
+5. **Performance**: Lazy loading of data, only load what's needed
+6. **Enhanced Assumptions**: Explanatory text helps understand rationale
 
-### Testing Notes
+### Breaking Changes
 
-- All reports generate successfully with sidebar and toolbar
-- Navigation works correctly on all pages
-- "Back to Home" button functions on all reports
-- Tornado charts display correctly with proper formatting
-- Terminology is consistent across all reports
-- Responsive design works on mobile devices
-- Active section highlighting functions as expected
-- All links and navigation elements are functional
+- **Removed**: Individual HTML report files (`report_*.html`)
+- **Changed**: Dashboard now requires JSON data files in `website/data/`
+- **Changed**: Must use web server to open dashboard (not `file://` protocol)
 
----
+### Files Added
+
+- `generate_all_data.py` - Master data generator
+- `assumptions_3_owners.json` - 3 owners scenario
+- `assumptions_5_owners.json` - 5 owners scenario
+- `assumptions_6_owners.json` - 6 owners scenario
+- `website/data/` - Directory for JSON data files
+
+### Files Modified
+
+- `assumptions.json` - Added extensive explanatory text
+- `assumptions_migros.json` - Added explanatory text and case metadata
+- `simulation.py` - Added JSON export functions
+- `analysis_base_case.py` - Added JSON export
+- `analysis_sensitivity.py` - Added JSON export
+- `analysis_monte_carlo.py` - Added JSON export
+- `analysis_alternative_scenarios.py` - Added JSON export
+- `website/index.html` - Complete rewrite as dynamic dashboard
+
+### Files Deleted
+
+- `website/report_base_case.html`
+- `website/report_migros.html`
+- `website/report_migros_sensitivity.html`
+- `website/report_monte_carlo.html`
+- `website/report_portal.html`
+- `website/report_scenario_*.html` (multiple files)
+- `website/report_scenarios_overview.html`
+- `website/report_sensitivity.html`
+- `website/report_validation.html`
 
 ## [2025-01-XX] - Base Case Update: Property Management Fee & 15-Year Projection
 

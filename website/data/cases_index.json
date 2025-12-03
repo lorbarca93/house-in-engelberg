@@ -1,0 +1,76 @@
+{
+  "cases": [
+    {
+      "case_name": "base_case",
+      "display_name": "Base Case",
+      "assumptions_file": "assumptions.json",
+      "data_files": {
+        "base_case_analysis": "base_case_base_case_analysis.json",
+        "sensitivity": "base_case_sensitivity.json",
+        "sensitivity_coc": "base_case_sensitivity_coc.json",
+        "sensitivity_ncf": "base_case_sensitivity_ncf.json",
+        "monte_carlo": "base_case_monte_carlo.json"
+      },
+      "status": "success",
+      "errors": []
+    },
+    {
+      "case_name": "3_owners",
+      "display_name": "3 Owners",
+      "assumptions_file": "assumptions_3_owners.json",
+      "data_files": {
+        "base_case_analysis": "3_owners_base_case_analysis.json",
+        "sensitivity": "3_owners_sensitivity.json",
+        "sensitivity_coc": "3_owners_sensitivity_coc.json",
+        "sensitivity_ncf": "3_owners_sensitivity_ncf.json",
+        "monte_carlo": "3_owners_monte_carlo.json"
+      },
+      "status": "success",
+      "errors": []
+    },
+    {
+      "case_name": "5_owners",
+      "display_name": "5 Owners",
+      "assumptions_file": "assumptions_5_owners.json",
+      "data_files": {
+        "base_case_analysis": "5_owners_base_case_analysis.json",
+        "sensitivity": "5_owners_sensitivity.json",
+        "sensitivity_coc": "5_owners_sensitivity_coc.json",
+        "sensitivity_ncf": "5_owners_sensitivity_ncf.json",
+        "monte_carlo": "5_owners_monte_carlo.json"
+      },
+      "status": "success",
+      "errors": []
+    },
+    {
+      "case_name": "6_owners",
+      "display_name": "6 Owners",
+      "assumptions_file": "assumptions_6_owners.json",
+      "data_files": {
+        "base_case_analysis": "6_owners_base_case_analysis.json",
+        "sensitivity": "6_owners_sensitivity.json",
+        "sensitivity_coc": "6_owners_sensitivity_coc.json",
+        "sensitivity_ncf": "6_owners_sensitivity_ncf.json",
+        "monte_carlo": "6_owners_monte_carlo.json"
+      },
+      "status": "success",
+      "errors": []
+    },
+    {
+      "case_name": "migros",
+      "display_name": "Migros Scenario",
+      "assumptions_file": "assumptions_migros.json",
+      "data_files": {
+        "base_case_analysis": "migros_base_case_analysis.json",
+        "sensitivity": "migros_sensitivity.json",
+        "sensitivity_coc": "migros_sensitivity_coc.json",
+        "sensitivity_ncf": "migros_sensitivity_ncf.json",
+        "monte_carlo": "migros_monte_carlo.json"
+      },
+      "status": "success",
+      "errors": []
+    }
+  ],
+  "generated_at": "2025-12-03T08:06:23.340981",
+  "total_cases": 5
+}

@@ -1,0 +1,25 @@
+{
+  "_comment": "Migros Scenario Assumptions - Alternative Financing",
+  "_description": "This file contains assumption parameters for the Migros financing scenario. It overrides specific financing parameters from the base case.",
+  "_case_metadata": {
+    "display_name": "Migros Scenario",
+    "description": "Migros Bank financing: 60% LTV, 1.8% interest (fixed for 5 years), no amortization",
+    "enabled": true
+  },
+  
+  "financing": {
+    "_explanation": "Migros Bank offers alternative financing terms with lower LTV (60% vs 75%), higher interest rate (1.8% vs 1.3%), and no amortization requirement. This scenario evaluates the impact of these different financing terms on investment returns.",
+    
+    "purchase_price": 1300000.0,
+    "num_owners": 4,
+    
+    "ltv": 0.60,
+    "_ltv_explanation": "60% loan-to-value ratio is lower than the base case (75%), requiring more equity upfront (40% vs 25%). This reduces leverage but also reduces interest costs and improves cash flow. Migros Bank typically offers lower LTV ratios for investment properties.",
+    
+    "interest_rate": 0.018,
+    "_interest_rate_explanation": "1.8% annual interest rate is higher than the base case (1.3%) but is fixed for 5 years, providing rate certainty. After 5 years, the rate will need to be rolled/refinanced. This rate reflects Migros Bank's current offering for investment property mortgages.",
+    
+    "amortization_rate": 0.00,
+    "_amortization_explanation": "0% amortization means pure interest payment with no principal paydown. This improves cash flow in the short term (no amortization expense) but means the loan balance remains constant. This is a common structure for investment properties where cash flow is prioritized over principal reduction."
+  }
+}
