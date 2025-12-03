@@ -944,65 +944,58 @@
                         <h2 class="section-title">🎯 Sensitivity Analysis</h2>
                         
                         <!-- Info Box -->
-                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
-                            <h3 style="margin: 0 0 10px 0; font-size: 1.2em; color: white;">💡 What is This Analysis?</h3>
-                            <p style="margin: 0; font-size: 0.95em; line-height: 1.6; opacity: 0.95;">
-                                The tornado chart below shows how <strong>Equity IRR</strong> (your actual return) changes when key parameters vary. 
-                                Parameters are ranked by impact (most influential at top). 
-                                <strong>Hover over any bar</strong> to see detailed explanations of why each parameter matters.
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px;">
+                            <p style="margin: 0; font-size: 0.85em; line-height: 1.5; opacity: 0.95;">
+                                💡 <strong>Equity IRR Sensitivity</strong> — How your 15-year return changes with parameter variations. Ranked by impact. Hover for details.
                             </p>
                         </div>
                         
                         <!-- Summary KPIs -->
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 35px;">
-                            <div class="kpi-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white;">
-                                <h3 style="color: rgba(255,255,255,0.9);">Base Case Equity IRR</h3>
-                                <div class="value" style="color: white; font-size: 2em;">${baseIRR.toFixed(
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;">
+                            <div class="kpi-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; padding: 12px;">
+                                <h3 style="color: rgba(255,255,255,0.9); font-size: 0.75em;">Base Equity IRR</h3>
+                                <div class="value" style="color: white; font-size: 1.4em;">${baseIRR.toFixed(
                                   2
                                 )}%</div>
-                                <div class="unit" style="color: rgba(255,255,255,0.8);">levered return (with financing)</div>
                             </div>
-                            <div class="kpi-card">
-                                <h3>Parameters Tested</h3>
-                                <div class="value" style="color: var(--info);">${
+                            <div class="kpi-card" style="padding: 12px;">
+                                <h3 style="font-size: 0.75em;">Parameters</h3>
+                                <div class="value" style="color: var(--info); font-size: 1.4em;">${
                                   sensitivities.length
                                 }</div>
-                                <div class="unit">key assumptions</div>
                             </div>
-                            <div class="kpi-card">
-                                <h3>Highest Impact</h3>
-                                <div class="value" style="color: var(--warning);">±${(
+                            <div class="kpi-card" style="padding: 12px;">
+                                <h3 style="font-size: 0.75em;">Top Impact</h3>
+                                <div class="value" style="color: var(--warning); font-size: 1.4em;">±${(
                                   sensitivities[0]?.impact || 0
                                 ).toFixed(2)}%</div>
-                                <div class="unit">${
+                                <div class="unit" style="font-size: 0.7em;">${
                                   sensitivities[0]?.parameter || "N/A"
                                 }</div>
                             </div>
-                            <div class="kpi-card">
-                                <h3>IRR Range</h3>
-                                <div class="value" style="color: var(--success);">${Math.min(
+                            <div class="kpi-card" style="padding: 12px;">
+                                <h3 style="font-size: 0.75em;">IRR Range</h3>
+                                <div class="value" style="color: var(--success); font-size: 1.2em;">${Math.min(
                                   ...sensitivities.map((s) =>
                                     Math.min(s.low.irr, s.high.irr)
                                   )
-                                ).toFixed(2)}% to ${Math.max(
+                                ).toFixed(1)}% - ${Math.max(
             ...sensitivities.map((s) => Math.max(s.low.irr, s.high.irr))
-          ).toFixed(2)}%</div>
-                                <div class="unit">across all scenarios</div>
+          ).toFixed(1)}%</div>
                             </div>
                         </div>
                         
                         <!-- Tornado Chart -->
-                        <div class="chart-container" style="padding: 30px; margin-bottom: 40px;">
-                            <h3 style="margin-bottom: 20px; font-size: 1.3em; color: var(--primary); font-weight: 600;">
+                        <div class="chart-container" style="padding: 20px; margin-bottom: 25px;">
+                            <h3 style="margin-bottom: 12px; font-size: 1.1em; color: var(--primary); font-weight: 600;">
                                 📊 Tornado Chart - Parameter Impact on Equity IRR
                             </h3>
-                            <p style="color: #7f8c8d; margin-bottom: 25px; font-size: 0.95em; line-height: 1.6;">
-                                <strong>How to read:</strong> Longer bars = more impact on your return. 
-                                <span style="color: #2ecc71; font-weight: bold;">■</span> Green = better IRR, 
-                                <span style="color: #e74c3c; font-weight: bold;">■</span> Red = worse IRR. 
-                                Hover over any bar for detailed explanations.
+                            <p style="color: #7f8c8d; margin-bottom: 15px; font-size: 0.85em; line-height: 1.5;">
+                                <span style="color: #2ecc71;">■</span> Green = better IRR | 
+                                <span style="color: #e74c3c;">■</span> Red = worse IRR | 
+                                Hover for details
                             </p>
-                            <div class="chart-wrapper" id="tornadoChart" style="min-height: 650px; height: auto; overflow: visible; margin-bottom: 50px;"></div>
+                            <div class="chart-wrapper" id="tornadoChart" style="min-height: 400px; height: auto; overflow: visible;"></div>
                         </div>
                         
                         <!-- Spacer to prevent overlap -->
@@ -1295,90 +1288,55 @@
 
             const layout = {
               barmode: "overlay",
+              hovermode: "closest",
               xaxis: {
                 title: {
                   text: "Change in Equity IRR (%)",
-                  font: {
-                    size: 15,
-                    color: "#1a1a2e",
-                    family: "'Segoe UI', Arial, sans-serif",
-                    weight: 600,
-                  },
-                  standoff: 15,
+                  font: { size: 13, color: "#2c3e50", family: "Segoe UI" },
+                  standoff: 10,
                 },
                 zeroline: true,
-                zerolinewidth: 4,
-                zerolinecolor: "#2c3e50",
+                zerolinewidth: 2,
+                zerolinecolor: "#667eea",
                 gridcolor: "#e8ecef",
-                gridwidth: 1,
-                tickfont: { size: 13, color: "#34495e" },
-                showline: true,
-                linecolor: "#bdc3c7",
-                linewidth: 2,
+                tickfont: { size: 11, color: "#5a6c7d" },
               },
               yaxis: {
                 title: "",
                 autorange: "reversed",
-                tickfont: {
-                  size: 13,
-                  color: "#1a1a2e",
-                  family: "'Segoe UI', Arial, sans-serif",
-                  weight: 500,
-                },
-                tickmode: "linear",
-                showline: false,
-                dtick: 1,
+                tickfont: { size: 11, color: "#2c3e50", family: "Segoe UI" },
               },
-              margin: { l: 240, r: 50, t: 80, b: 100 },
-              hovermode: "closest",
+              margin: { l: 200, r: 30, t: 50, b: 60 },
               showlegend: true,
               legend: {
                 orientation: "h",
                 x: 0.5,
                 xanchor: "center",
-                y: 1.12,
-                bgcolor: "rgba(255, 255, 255, 0.95)",
-                bordercolor: "#95a5a6",
-                borderwidth: 2,
-                font: {
-                  size: 14,
-                  color: "#2c3e50",
-                  family: "'Segoe UI', Arial",
-                },
-                itemsizing: "constant",
-                itemwidth: 30,
+                y: 1.08,
+                bgcolor: "rgba(255,255,255,0.9)",
+                bordercolor: "#ddd",
+                borderwidth: 1,
+                font: { size: 11, color: "#2c3e50" },
               },
-              height: Math.max(550, 400 + sensitivities.length * 55),
+              height: Math.max(420, 300 + sensitivities.length * 40),
               paper_bgcolor: "#ffffff",
-              plot_bgcolor: "#f8f9fa",
-              font: {
-                family:
-                  "'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif",
-                size: 13,
-                color: "#2c3e50",
-              },
+              plot_bgcolor: "#fafbfc",
+              font: { family: "Segoe UI, Arial", size: 11, color: "#2c3e50" },
               annotations: [
                 {
-                  text: "← Negative Impact (Worse) | Positive Impact (Better) →",
+                  text: `<b>Base IRR:</b> ${baseIRR.toFixed(2)}%`,
                   xref: "paper",
                   yref: "paper",
-                  x: 0.5,
-                  y: -0.1,
-                  xanchor: "center",
+                  x: 0.01,
+                  y: 0.99,
+                  xanchor: "left",
                   yanchor: "top",
                   showarrow: false,
-                  font: { size: 13, color: "#7f8c8d", family: "Arial" },
-                },
-                {
-                  text: "Hover over bars for detailed explanations",
-                  xref: "paper",
-                  yref: "paper",
-                  x: 0.5,
-                  y: 1.18,
-                  xanchor: "center",
-                  yanchor: "bottom",
-                  showarrow: false,
-                  font: { size: 11, color: "#95a5a6", style: "italic" },
+                  font: { size: 11, color: "#667eea" },
+                  bgcolor: "rgba(255,255,255,0.9)",
+                  bordercolor: "#667eea",
+                  borderwidth: 1,
+                  borderpad: 4,
                 },
               ],
             };
@@ -1529,74 +1487,64 @@
               <h2 class="section-title">💰 Cash-on-Cash Sensitivity Analysis</h2>
               
               <!-- Info Box -->
-              <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(240, 147, 251, 0.3);">
-                <h3 style="margin: 0 0 10px 0; font-size: 1.2em; color: white;">💡 What is Cash-on-Cash Return?</h3>
-                <p style="margin: 0; font-size: 0.95em; line-height: 1.6; opacity: 0.95;">
-                  Cash-on-Cash = <strong>Year 1 Annual Cash Flow / Initial Equity Investment</strong>. 
-                  This shows your cash yield in the first year, ignoring appreciation and future cash flows.
-                  Unlike IRR, this is a <strong>simple yield metric</strong> - like a bond or dividend yield.
-                  <strong>Hover over bars</strong> to see why each parameter affects cash flow.
+              <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px;">
+                <p style="margin: 0; font-size: 0.85em; line-height: 1.5; opacity: 0.95;">
+                  💡 <strong>Cash-on-Cash = Year 1 Cash / Equity</strong> — First year cash yield like a bond. Ignores appreciation. Hover for details.
                 </p>
               </div>
               
               <!-- Summary KPIs -->
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 35px;">
-                <div class="kpi-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border: none; color: white;">
-                  <h3 style="color: rgba(255,255,255,0.9);">Base Case CoC</h3>
-                  <div class="value" style="color: white; font-size: 2em;">${baseCoC.toFixed(
+              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;">
+                <div class="kpi-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border: none; color: white; padding: 12px;">
+                  <h3 style="color: rgba(255,255,255,0.9); font-size: 0.75em;">Base CoC</h3>
+                  <div class="value" style="color: white; font-size: 1.4em;">${baseCoC.toFixed(
                     2
                   )}%</div>
-                  <div class="unit" style="color: rgba(255,255,255,0.8);">${
-                    baseCoC < 0 ? "requires cash injection" : "positive yield"
-                  }</div>
                 </div>
-                <div class="kpi-card">
-                  <h3>Parameters Tested</h3>
-                  <div class="value" style="color: var(--info);">${
+                <div class="kpi-card" style="padding: 12px;">
+                  <h3 style="font-size: 0.75em;">Parameters</h3>
+                  <div class="value" style="color: var(--info); font-size: 1.4em;">${
                     sensitivities.length
                   }</div>
-                  <div class="unit">key assumptions</div>
                 </div>
-                <div class="kpi-card">
-                  <h3>Highest Impact</h3>
-                  <div class="value" style="color: var(--warning);">±${(
+                <div class="kpi-card" style="padding: 12px;">
+                  <h3 style="font-size: 0.75em;">Top Impact</h3>
+                  <div class="value" style="color: var(--warning); font-size: 1.4em;">±${(
                     sensitivities[0]?.impact || 0
                   ).toFixed(2)}%</div>
-                  <div class="unit">${
+                  <div class="unit" style="font-size: 0.7em;">${
                     sensitivities[0]?.parameter || "N/A"
                   }</div>
                 </div>
-                <div class="kpi-card">
-                  <h3>CoC Range</h3>
-                  <div class="value" style="color: var(--success);">${Math.min(
+                <div class="kpi-card" style="padding: 12px;">
+                  <h3 style="font-size: 0.75em;">CoC Range</h3>
+                  <div class="value" style="color: var(--success); font-size: 1.2em;">${Math.min(
                     ...sensitivities
                       .filter((s) => s.impact > 0)
                       .map((s) => Math.min(s.low.irr, s.high.irr))
-                  ).toFixed(2)}% to ${Math.max(
+                  ).toFixed(1)}% - ${Math.max(
             ...sensitivities
               .filter((s) => s.impact > 0)
               .map((s) => Math.max(s.low.irr, s.high.irr))
-          ).toFixed(2)}%</div>
-                  <div class="unit">across all scenarios</div>
+          ).toFixed(1)}%</div>
                 </div>
               </div>
               
               <!-- Tornado Chart -->
-              <div class="chart-container" style="padding: 30px; margin-bottom: 40px;">
-                <h3 style="margin-bottom: 20px; font-size: 1.3em; color: var(--primary); font-weight: 600;">
+              <div class="chart-container" style="padding: 20px; margin-bottom: 25px;">
+                <h3 style="margin-bottom: 12px; font-size: 1.1em; color: #f5576c; font-weight: 600;">
                   📊 Tornado Chart - Impact on Year 1 Cash Yield
                 </h3>
-                <p style="color: #7f8c8d; margin-bottom: 25px; font-size: 0.95em; line-height: 1.6;">
-                  <strong>How to read:</strong> Shows which parameters most affect your Year 1 cash flow. 
-                  <span style="color: #2ecc71; font-weight: bold;">■</span> Green = better CoC, 
-                  <span style="color: #e74c3c; font-weight: bold;">■</span> Red = worse CoC. 
-                  Hover over any bar for detailed explanations. Note: Appreciation & Inflation have zero impact (don't affect Year 1).
+                <p style="color: #7f8c8d; margin-bottom: 15px; font-size: 0.85em; line-height: 1.5;">
+                  <span style="color: #2ecc71;">■</span> Green = better CoC | 
+                  <span style="color: #e74c3c;">■</span> Red = worse CoC | 
+                  Hover for details
                 </p>
-                <div class="chart-wrapper" id="tornadoChartCoC" style="min-height: 650px; height: auto; overflow: visible; margin-bottom: 50px;"></div>
+                <div class="chart-wrapper" id="tornadoChartCoC" style="min-height: 400px; height: auto; overflow: visible;"></div>
               </div>
               
               <!-- Spacer -->
-              <div style="clear: both; height: 50px;"></div>
+              <div style="clear: both; height: 20px;"></div>
               
               <!-- Insights Panel -->
               <div style="background: #fff5f5; border-left: 5px solid #f5576c; padding: 25px; border-radius: 8px; margin-bottom: 35px;">
@@ -1855,87 +1803,53 @@
               xaxis: {
                 title: {
                   text: "Change in Cash-on-Cash (%)",
-                  font: { size: 15, color: "#1a1a2e", weight: 600 },
-                  standoff: 15,
+                  font: { size: 13, color: "#2c3e50", family: "Segoe UI" },
+                  standoff: 10,
                 },
                 zeroline: true,
-                zerolinewidth: 4,
-                zerolinecolor: "#2c3e50",
+                zerolinewidth: 2,
+                zerolinecolor: "#f5576c",
                 gridcolor: "#e8ecef",
+                tickfont: { size: 11, color: "#5a6c7d" },
               },
               yaxis: {
                 title: "",
                 autorange: "reversed",
-                tickfont: { size: 13, color: "#1a1a2e", weight: 500 },
+                tickfont: { size: 11, color: "#2c3e50", family: "Segoe UI" },
               },
               showlegend: true,
               legend: {
-                x: 0.7,
-                y: 1.1,
                 orientation: "h",
-                font: { size: 12, color: "#2c3e50" },
+                x: 0.5,
+                xanchor: "center",
+                y: 1.08,
+                bgcolor: "rgba(255,255,255,0.9)",
+                bordercolor: "#ddd",
+                borderwidth: 1,
+                font: { size: 11, color: "#2c3e50" },
               },
               annotations: [
                 {
-                  text: `<b>Base Case:</b> ${baseCoC.toFixed(2)}%`,
+                  text: `<b>Base CoC:</b> ${baseCoC.toFixed(2)}%`,
                   xref: "paper",
                   yref: "paper",
-                  x: 0.02,
-                  y: 0.98,
+                  x: 0.01,
+                  y: 0.99,
                   xanchor: "left",
                   yanchor: "top",
                   showarrow: false,
-                  font: { size: 14, color: "#f5576c", family: "Segoe UI" },
-                  bgcolor: "rgba(255,255,255,0.95)",
+                  font: { size: 11, color: "#f5576c" },
+                  bgcolor: "rgba(255,255,255,0.9)",
                   bordercolor: "#f5576c",
-                  borderwidth: 2,
-                  borderpad: 8,
-                },
-                {
-                  text: `<b>Range:</b> ${Math.min(
-                    ...meaningfulSensitivities.map((s) =>
-                      Math.min(s.low.irr, s.high.irr)
-                    )
-                  ).toFixed(2)}% to ${Math.max(
-                    ...meaningfulSensitivities.map((s) =>
-                      Math.max(s.low.irr, s.high.irr)
-                    )
-                  ).toFixed(2)}%`,
-                  xref: "paper",
-                  yref: "paper",
-                  x: 0.02,
-                  y: 0.9,
-                  xanchor: "left",
-                  yanchor: "top",
-                  showarrow: false,
-                  font: { size: 12, color: "#34495e", family: "Segoe UI" },
-                  bgcolor: "rgba(255,255,255,0.95)",
-                  bordercolor: "#bdc3c7",
                   borderwidth: 1,
-                  borderpad: 6,
-                },
-                {
-                  text: `<b>Analyzed:</b> ${
-                    meaningfulSensitivities.length
-                  } params (${
-                    sensitivities.length - meaningfulSensitivities.length
-                  } filtered)`,
-                  xref: "paper",
-                  yref: "paper",
-                  x: 0.02,
-                  y: 0.82,
-                  xanchor: "left",
-                  yanchor: "top",
-                  showarrow: false,
-                  font: { size: 11, color: "#7f8c8d", family: "Segoe UI" },
-                  bgcolor: "rgba(255,255,255,0.90)",
-                  bordercolor: "#d5d8dc",
-                  borderwidth: 1,
-                  borderpad: 5,
+                  borderpad: 4,
                 },
               ],
-              margin: { l: 250, r: 50, t: 100, b: 120 },
-              height: Math.max(600, 450 + meaningfulSensitivities.length * 60),
+              margin: { l: 200, r: 30, t: 50, b: 60 },
+              height: Math.max(420, 300 + meaningfulSensitivities.length * 40),
+              paper_bgcolor: "#ffffff",
+              plot_bgcolor: "#fafbfc",
+              font: { family: "Segoe UI, Arial", size: 11, color: "#2c3e50" },
             };
 
             Plotly.newPlot("tornadoChartCoC", [traceLow, traceHigh], layout, {
@@ -2067,60 +1981,57 @@
                 <i class="fas fa-wallet"></i> Sensitivity Analysis - Monthly Net Cash Flow
               </h2>
               
+              <!-- Info Box -->
+              <div style="background: linear-gradient(135deg, #16a085 0%, #1abc9c 100%); color: white; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px;">
+                <p style="margin: 0; font-size: 0.85em; line-height: 1.5; opacity: 0.95;">
+                  💡 <strong>Monthly NCF = Annual Cash / 12 / Owners</strong> — Actual CHF hitting your bank each month after all costs.
+                </p>
+              </div>
+              
               <!-- KPI Summary Cards - Teal Theme -->
-              <div class="kpi-grid" style="margin-bottom: 30px;">
-                <div class="kpi-card" style="border-left: 4px solid #16a085;">
-                  <h3>Base Monthly NCF</h3>
-                  <div class="value ${
-                    baseNCF >= 0 ? "positive" : "negative"
-                  }" style="color: ${baseNCF >= 0 ? "#16a085" : "#e74c3c"};">
-                    CHF ${baseNCF.toFixed(0)}
-                  </div>
-                  <small style="color: #7f8c8d;">Per Owner After Debt</small>
+              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;">
+                <div class="kpi-card" style="background: linear-gradient(135deg, #16a085 0%, #1abc9c 100%); border: none; color: white; padding: 12px;">
+                  <h3 style="color: rgba(255,255,255,0.9); font-size: 0.75em;">Base NCF</h3>
+                  <div class="value" style="color: white; font-size: 1.4em;">CHF ${baseNCF.toFixed(
+                    0
+                  )}</div>
                 </div>
-                <div class="kpi-card" style="border-left: 4px solid #1abc9c;">
-                  <h3>NCF Range</h3>
-                  <div class="value" style="font-size: 1.2em;">
-                    CHF ${Math.min(
-                      ...sensitivities.map((s) =>
-                        Math.min(s.low.irr, s.high.irr)
-                      )
-                    ).toFixed(0)} to ${Math.max(
-            ...sensitivities.map((s) => Math.max(s.low.irr, s.high.irr))
-          ).toFixed(0)}
-                  </div>
-                  <small style="color: #7f8c8d;">Full Range</small>
+                <div class="kpi-card" style="padding: 12px;">
+                  <h3 style="font-size: 0.75em;">Parameters</h3>
+                  <div class="value" style="color: #16a085; font-size: 1.4em;">${
+                    meaningfulSensitivities.length
+                  }/${sensitivities.length}</div>
                 </div>
-                <div class="kpi-card" style="border-left: 4px solid #2ecc71;">
-                  <h3>Most Impactful</h3>
-                  <div class="value" style="font-size: 1.1em; color: #16a085;">
-                    ${sensitivities[0]?.parameter || "N/A"}
-                  </div>
-                  <small style="color: #7f8c8d;">±CHF ${(
+                <div class="kpi-card" style="padding: 12px;">
+                  <h3 style="font-size: 0.75em;">Top Impact</h3>
+                  <div class="value" style="color: var(--warning); font-size: 1.4em;">±CHF ${(
                     sensitivities[0]?.impact || 0
-                  ).toFixed(0)}</small>
+                  ).toFixed(0)}</div>
+                  <div class="unit" style="font-size: 0.7em;">${
+                    sensitivities[0]?.parameter || "N/A"
+                  }</div>
                 </div>
-                <div class="kpi-card" style="border-left: 4px solid #3498db;">
-                  <h3>Params Analyzed</h3>
-                  <div class="value" style="font-size: 1.4em; color: #3498db;">
-                    ${meaningfulSensitivities.length} / ${sensitivities.length}
-                  </div>
-                  <small style="color: #7f8c8d;">With Meaningful Impact</small>
+                <div class="kpi-card" style="padding: 12px;">
+                  <h3 style="font-size: 0.75em;">NCF Range</h3>
+                  <div class="value" style="color: var(--success); font-size: 1.1em;">CHF ${Math.min(
+                    ...sensitivities.map((s) => Math.min(s.low.irr, s.high.irr))
+                  ).toFixed(0)} - ${Math.max(
+            ...sensitivities.map((s) => Math.max(s.low.irr, s.high.irr))
+          ).toFixed(0)}</div>
                 </div>
               </div>
               
               <!-- Tornado Chart -->
-              <div class="chart-container" style="padding: 30px; margin-bottom: 40px;">
-                <h3 style="margin-bottom: 20px; font-size: 1.3em; color: #16a085; font-weight: 600;">
+              <div class="chart-container" style="padding: 20px; margin-bottom: 25px;">
+                <h3 style="margin-bottom: 12px; font-size: 1.1em; color: #16a085; font-weight: 600;">
                   📊 Tornado Chart - Impact on Monthly Cash Flow
                 </h3>
-                <p style="color: #7f8c8d; margin-bottom: 25px; font-size: 0.95em; line-height: 1.6;">
-                  <strong>How to read:</strong> Shows CHF impact on monthly net cash flow per owner. 
-                  <span style="color: #2ecc71; font-weight: bold;">■</span> Green = higher cash flow, 
-                  <span style="color: #e74c3c; font-weight: bold;">■</span> Red = lower cash flow. 
-                  Hover for details. Parameters with no monthly impact are filtered.
+                <p style="color: #7f8c8d; margin-bottom: 15px; font-size: 0.85em; line-height: 1.5;">
+                  <span style="color: #2ecc71;">■</span> Green = higher cash | 
+                  <span style="color: #e74c3c;">■</span> Red = lower cash | 
+                  Hover for details
                 </p>
-                <div class="chart-wrapper" id="tornadoChartNCF" style="min-height: 650px; height: auto; overflow: visible; margin-bottom: 50px;"></div>
+                <div class="chart-wrapper" id="tornadoChartNCF" style="min-height: 400px; height: auto; overflow: visible;"></div>
               </div>
 
               <!-- Data Table -->
@@ -2352,104 +2263,60 @@
             };
 
             const layout = {
-              title: {
-                text: `Monthly Net Cash Flow Sensitivity (Base: CHF ${baseNCF.toFixed(
-                  0
-                )}/month)`,
-                font: { size: 18, color: "#16a085", family: "Segoe UI" },
-              },
               barmode: "relative",
               hovermode: "closest",
               xaxis: {
-                title: "Change from Base (CHF/month)",
+                title: {
+                  text: "Change from Base (CHF/month)",
+                  font: { size: 13, color: "#2c3e50", family: "Segoe UI" },
+                  standoff: 10,
+                },
                 zeroline: true,
-                zerolinewidth: 3,
+                zerolinewidth: 2,
                 zerolinecolor: "#16a085",
-                gridcolor: "#ecf0f1",
+                gridcolor: "#e8ecef",
                 tickformat: "+,.0f",
                 tickprefix: "CHF ",
+                tickfont: { size: 11, color: "#5a6c7d" },
               },
               yaxis: {
                 title: "",
                 autorange: "reversed",
-                tickfont: {
-                  size: 13,
-                  color: "#1a1a2e",
-                  family: "'Segoe UI', Arial, sans-serif",
-                  weight: 500,
-                },
-                tickmode: "linear",
-                showline: false,
-                gridcolor: "#f5f5f5",
+                tickfont: { size: 11, color: "#2c3e50", family: "Segoe UI" },
               },
               showlegend: true,
               legend: {
-                x: 0.7,
-                y: 1.1,
                 orientation: "h",
-                font: { size: 12, color: "#2c3e50" },
+                x: 0.5,
+                xanchor: "center",
+                y: 1.08,
+                bgcolor: "rgba(255,255,255,0.9)",
+                bordercolor: "#ddd",
+                borderwidth: 1,
+                font: { size: 11, color: "#2c3e50" },
               },
               annotations: [
                 {
-                  text: `<b>Base NCF:</b> CHF ${baseNCF.toFixed(0)}`,
+                  text: `<b>Base NCF:</b> CHF ${baseNCF.toFixed(0)}/mo`,
                   xref: "paper",
                   yref: "paper",
-                  x: 0.02,
-                  y: 0.98,
+                  x: 0.01,
+                  y: 0.99,
                   xanchor: "left",
                   yanchor: "top",
                   showarrow: false,
-                  font: { size: 14, color: "#16a085", family: "Segoe UI" },
-                  bgcolor: "rgba(255,255,255,0.95)",
+                  font: { size: 11, color: "#16a085" },
+                  bgcolor: "rgba(255,255,255,0.9)",
                   bordercolor: "#16a085",
-                  borderwidth: 2,
-                  borderpad: 8,
-                },
-                {
-                  text: `<b>Range:</b> CHF ${Math.min(
-                    ...meaningfulSensitivities.map((s) =>
-                      Math.min(s.low.irr, s.high.irr)
-                    )
-                  ).toFixed(0)} to ${Math.max(
-                    ...meaningfulSensitivities.map((s) =>
-                      Math.max(s.low.irr, s.high.irr)
-                    )
-                  ).toFixed(0)}`,
-                  xref: "paper",
-                  yref: "paper",
-                  x: 0.02,
-                  y: 0.9,
-                  xanchor: "left",
-                  yanchor: "top",
-                  showarrow: false,
-                  font: { size: 12, color: "#34495e", family: "Segoe UI" },
-                  bgcolor: "rgba(255,255,255,0.95)",
-                  bordercolor: "#bdc3c7",
                   borderwidth: 1,
-                  borderpad: 6,
-                },
-                {
-                  text: `<b>Analyzed:</b> ${
-                    meaningfulSensitivities.length
-                  } params (${
-                    sensitivities.length - meaningfulSensitivities.length
-                  } filtered)`,
-                  xref: "paper",
-                  yref: "paper",
-                  x: 0.02,
-                  y: 0.82,
-                  xanchor: "left",
-                  yanchor: "top",
-                  showarrow: false,
-                  font: { size: 11, color: "#7f8c8d", family: "Segoe UI" },
-                  bgcolor: "rgba(255,255,255,0.90)",
-                  bordercolor: "#d5d8dc",
-                  borderwidth: 1,
-                  borderpad: 5,
+                  borderpad: 4,
                 },
               ],
-              margin: { l: 250, r: 50, t: 100, b: 120 },
-              height: Math.max(600, 450 + meaningfulSensitivities.length * 60),
+              margin: { l: 200, r: 30, t: 50, b: 60 },
+              height: Math.max(420, 300 + meaningfulSensitivities.length * 40),
+              paper_bgcolor: "#ffffff",
+              plot_bgcolor: "#fafbfc",
+              font: { family: "Segoe UI, Arial", size: 11, color: "#2c3e50" },
             };
 
             Plotly.newPlot("tornadoChartNCF", [traceLow, traceHigh], layout, {

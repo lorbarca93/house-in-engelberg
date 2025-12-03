@@ -2,6 +2,59 @@
 
 All notable changes to the Engelberg Property Investment Simulation will be documented in this file.
 
+## [2025-12-03] - Tornado Chart Harmonization & Cleanup
+
+### Dashboard Visual Improvements
+
+#### 1. Tornado Charts Harmonized
+
+All three sensitivity tornado charts now have consistent, compact styling:
+
+- **Reduced Chart Size**:
+  - Height: `Math.max(420, 300 + params * 40)` (was 550-600)
+  - Margins: `{ l: 200, r: 30, t: 50, b: 60 }` (was l: 240-250, r: 50)
+  - Min-height: 400px (was 650px)
+
+- **Unified Visual Elements**:
+  - Zero line width: 2px (was 3-4px)
+  - Font sizes: 11-13px (was 13-15px)
+  - Consistent `hovermode: "closest"` on all charts
+  - Same legend positioning (centered, horizontal, y: 1.08)
+  - Same background colors (`#fafbfc`)
+
+- **Compact Info Boxes**:
+  - Padding: 14px 18px (was 20px)
+  - Border radius: 8px (was 12px)
+  - Single-line concise descriptions
+
+- **Compact KPI Grids**:
+  - 4-column layout (was auto-fit)
+  - Card padding: 12px
+  - Font sizes: 0.75em headers, 1.4em values
+  - Gap: 12px (was 20px)
+
+#### 2. Repository Cleanup
+
+- **Deleted**: `STATUS.md` (redundant with README.md)
+- **Deleted**: `markdown_archive/` folder (6 archived docs)
+- **Deleted**: `__pycache__/` folder
+
+### Files Modified
+
+- `website/index.html` - Tornado chart and KPI styling harmonization
+
+### Files Deleted
+
+- `STATUS.md`
+- `markdown_archive/BASE_CASE_ARCHITECTURE.md`
+- `markdown_archive/CALCULATION_REVIEW.md`
+- `markdown_archive/COMPLETE_GITHUB_SETUP.md`
+- `markdown_archive/CONSISTENCY_REPORT.md`
+- `markdown_archive/GITHUB_SETUP.md`
+- `markdown_archive/IMPLEMENTATION_REVIEW.md`
+
+---
+
 ## [2025-12-03] - Code Consolidation & Monthly NCF Sensitivity
 
 ### Major Changes
