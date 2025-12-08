@@ -2,6 +2,28 @@
 
 All notable changes to the Engelberg Property Investment Simulation will be documented in this file.
 
+## [2025-12-09] - Operating Assumptions Update & Docs Refresh
+
+### Assumptions & Economics
+- Base occupancy set to 70% (25% for 90-day restriction case)
+- Property appreciation standardized to 4% across all cases
+- Cleaning cost increased to CHF 150 per stay (separate from mgmt)
+- OTA/platform fees modeled as ~15% of gross (50% bookings at 30% fee)
+- Management fee at 20% of gross revenue
+
+### Documentation
+- README and QUICK_START updated with new key metrics (Equity IRR ~5.7%, MOIC ~2.82x, NPV @5% ~CHF 11.7k, CF/owner ≈ -7.1k/yr)
+- Added 90-day restriction case to the scenarios list
+- Updated economic/operating assumptions tables
+
+### Frontend
+- Model tab assumptions summary now pulls live values from `assumptions.json`/config (financing, rental, expenses, projection)
+
+### Validation
+- Full regeneration of data and validation: 217/217 passes (warning expected: parameters not sorted by impact due to canonical ordering)
+
+---
+
 ## [2025-12-03] - Tornado Chart Harmonization & Cleanup
 
 ### Dashboard Visual Improvements
@@ -11,11 +33,13 @@ All notable changes to the Engelberg Property Investment Simulation will be docu
 All three sensitivity tornado charts now have consistent, compact styling:
 
 - **Reduced Chart Size**:
+
   - Height: `Math.max(420, 300 + params * 40)` (was 550-600)
   - Margins: `{ l: 200, r: 30, t: 50, b: 60 }` (was l: 240-250, r: 50)
   - Min-height: 400px (was 650px)
 
 - **Unified Visual Elements**:
+
   - Zero line width: 2px (was 3-4px)
   - Font sizes: 11-13px (was 13-15px)
   - Consistent `hovermode: "closest"` on all charts
@@ -23,6 +47,7 @@ All three sensitivity tornado charts now have consistent, compact styling:
   - Same background colors (`#fafbfc`)
 
 - **Compact Info Boxes**:
+
   - Padding: 14px 18px (was 20px)
   - Border radius: 8px (was 12px)
   - Single-line concise descriptions

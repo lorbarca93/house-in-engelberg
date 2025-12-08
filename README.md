@@ -92,25 +92,26 @@ The dashboard (`website/index.html`) provides:
 
 ## Available Cases
 
-The system supports 5 investment scenarios:
+The system supports 6 investment scenarios:
 
-| Case          | File                        | LTV | Interest | Amort | Owners |
-| ------------- | --------------------------- | --- | -------- | ----- | ------ |
-| **Base Case** | `assumptions.json`          | 75% | 1.3%     | 1%    | 4      |
-| **Migros**    | `assumptions_migros.json`   | 60% | 1.8%     | 0%    | 4      |
-| **3 Owners**  | `assumptions_3_owners.json` | 75% | 1.3%     | 1%    | 3      |
-| **5 Owners**  | `assumptions_5_owners.json` | 75% | 1.3%     | 1%    | 5      |
-| **6 Owners**  | `assumptions_6_owners.json` | 75% | 1.3%     | 1%    | 6      |
+| Case                          | File                          | LTV | Interest | Amort | Owners |
+| ----------------------------- | ----------------------------- | --- | -------- | ----- | ------ |
+| **Base Case**                 | `assumptions.json`            | 75% | 1.3%     | 1%    | 4      |
+| **Migros**                    | `assumptions_migros.json`     | 60% | 1.8%     | 0%    | 4      |
+| **3 Owners**                  | `assumptions_3_owners.json`   | 75% | 1.3%     | 1%    | 3      |
+| **5 Owners**                  | `assumptions_5_owners.json`   | 75% | 1.3%     | 1%    | 5      |
+| **6 Owners**                  | `assumptions_6_owners.json`   | 75% | 1.3%     | 1%    | 6      |
+| **90-Day Airbnb Restriction** | `assumptions_90day_restriction.json` | 75% | 1.3% | 1% | 4 |
 
 ## Key Metrics (Base Case)
 
 | Metric              | Value           | Description                    |
 | ------------------- | --------------- | ------------------------------ |
-| **Equity IRR**      | 4.63%           | Return on equity over 15 years |
-| **Project IRR**     | 2.53%           | Unlevered return (no debt)     |
-| **NPV @ 5%**        | -CHF 5,007      | Present value at 5% discount   |
-| **MOIC**            | 2.17×           | Multiple on invested capital   |
-| **Cash Flow/Owner** | -CHF 2,870/year | Annual net cash flow           |
+| **Equity IRR**      | 5.71%           | Return on equity over 15 years |
+| **Project IRR**     | 3.14%           | Unlevered return (no debt)     |
+| **NPV @ 5%**        | CHF 11,665      | Present value at 5% discount   |
+| **MOIC**            | 2.82×           | Multiple on invested capital   |
+| **Cash Flow/Owner** | -CHF 7,145/year | Annual net cash flow           |
 | **Payback Period**  | 15 years        | With property sale             |
 
 ## Repository Structure
@@ -207,13 +208,13 @@ To create a new investment scenario:
 
 ### Current Economic Assumptions
 
-| Parameter                 | Value     | Description                    |
-| ------------------------- | --------- | ------------------------------ |
-| **Inflation**             | 1.0%/year | Revenue and expense growth     |
-| **Property Appreciation** | 2.5%/year | Annual property value increase |
-| **Discount Rate**         | 5.0%      | NPV calculation rate           |
-| **Maintenance Reserve**   | 0.5%/year | Of property value              |
-| **Selling Costs**         | 7.8%      | Broker + notary + transfer tax |
+| Parameter                 | Value        | Description                    |
+| ------------------------- | ------------ | ------------------------------ |
+| **Inflation**             | 1.0%/year    | Revenue and expense growth     |
+| **Property Appreciation** | 4.0%/year    | Annual property value increase |
+| **Discount Rate**         | 5.0%         | NPV calculation rate           |
+| **Maintenance Reserve**   | 0.5%/year    | Of property value              |
+| **Selling Costs**         | 7.8%         | Broker + notary + transfer tax |
 
 ### Selling Costs Breakdown (7.8% total)
 
@@ -222,6 +223,14 @@ To create a new investment scenario:
 | Broker Fee   | 3.0% | Agent commission     |
 | Notary Fees  | 1.5% | Legal documentation  |
 | Transfer Tax | 3.3% | Canton Obwalden rate |
+
+### Operating Assumptions (Base Case)
+
+- **Occupancy**: 70% (90-day restriction case: 25%)
+- **Mgmt fee**: 20% of gross revenue
+- **Cleaning**: CHF 150 per stay
+- **OTA/platform**: ~15% effective fee (50% bookings at 30%)
+- **ADR**: Winter 250, Summer 200, Off-peak 150
 
 ### Modifying Assumptions
 

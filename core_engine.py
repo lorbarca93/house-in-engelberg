@@ -529,6 +529,9 @@ def compute_annual_cash_flows(config: BaseCaseConfig) -> Dict[str, float]:
     # Note: In base case, cleaning is included in property management fee (30%)
     # But if cleaning_cost_per_stay > 0, it means cleaning is separate and should be included
     property_management_cost = e.property_management_cost(gross_rental_income)
+
+    # Platform/OTA fees: 50% of bookings via OTA at 30% fee => effective 15% of gross
+    platform_fee = gross_rental_income * 0.15
     
     # Calculate cleaning cost if it's separate (not included in management fee)
     # If cleaning_cost_per_stay is 0, cleaning is included in management fee
@@ -545,6 +548,7 @@ def compute_annual_cash_flows(config: BaseCaseConfig) -> Dict[str, float]:
 
     total_operating_expenses = (
         property_management_cost
+        + platform_fee
         + cleaning_cost  # Separate cleaning cost (80 CHF per stay, can vary 60-130)
         + tourist_tax
         + insurance
@@ -580,6 +584,7 @@ def compute_annual_cash_flows(config: BaseCaseConfig) -> Dict[str, float]:
         
         # Operating Expenses (detailed)
         "property_management_cost": property_management_cost,
+        "platform_fee": platform_fee,
         "cleaning_cost": cleaning_cost,
         "tourist_tax": tourist_tax,
         "insurance": insurance,

@@ -1,0 +1,111 @@
+{
+  "_comment": "90-Day Airbnb Restriction Case - Local Policy Limitation",
+  "_description": "This case models a scenario where local regulations restrict Airbnb rentals to a maximum of 90 days per year. With reduced rental income, this case assumes 5% annual property appreciation to offset some of the revenue loss. Owner nights are increased to utilize the property more for personal use.",
+  "_case_metadata": {
+    "display_name": "90-Day Airbnb Restriction",
+    "description": "Airbnb limited to 90 nights/year due to local policy. 5% property appreciation. More owner use (30 nights per owner).",
+    "enabled": true
+  },
+
+  "financing": {
+    "_explanation": "Financing assumptions remain the same as base case - standard Swiss mortgage terms.",
+
+    "purchase_price": 1300000.0,
+    "ltv": 0.75,
+    "interest_rate": 0.013,
+    "amortization_rate": 0.01,
+    "num_owners": 4
+  },
+
+  "rental": {
+    "_explanation": "Rental is restricted to exactly 90 nights per year due to local Airbnb policy. Owner nights are increased to 30 per person (120 total) to utilize the property more for personal use. The remaining 155 days remain empty/unused.",
+
+    "owner_nights_per_person": 30,
+    "_owner_nights_explanation": "30 nights per owner per year (120 total) allows significant personal use while the property is restricted to 90 rental nights. This is a 6x increase from base case (5 nights) to take advantage of the property availability.",
+
+    "days_per_year": 365,
+    "legacy_occupancy_rate": 0.25,
+    "_legacy_occupancy_explanation": "25% overall occupancy rate reflects the 90-night restriction (90 nights / 365 days). This is much lower than base case (63%) due to policy limitations.",
+
+    "legacy_average_daily_rate": 200.0,
+    "_legacy_adr_explanation": "Average daily rate remains the same as base case, but with only 90 rental nights, total revenue is significantly reduced.",
+
+    "owner_nights_distribution": {
+      "_explanation": "Owner nights are distributed across seasons, with more allocated to peak periods when rental would be most valuable.",
+      "winter": 40,
+      "_winter_nights_explanation": "40 owner nights during winter peak (Dec-Mar) - owners prioritize high-value ski season for personal use.",
+      "summer": 35,
+      "_summer_nights_explanation": "35 owner nights during summer peak (Jun-Sep) - good balance for hiking and outdoor activities.",
+      "offpeak": 45,
+      "_offpeak_nights_explanation": "45 owner nights during off-peak shoulder seasons (Apr-May, Oct-Nov) - maximize personal use during lower-demand periods."
+    }
+  },
+
+  "seasonal": {
+    "_explanation": "Seasonal breakdown distributes exactly 90 rental nights proportionally across seasons based on base case ratios. Occupancy rates are adjusted to achieve exactly 90 total nights while maintaining seasonal pricing.",
+
+    "winter_peak": {
+      "_explanation": "Winter Peak (December through March) - adjusted to 25% occupancy per restriction scenario.",
+      "name": "Winter Peak (Ski Season)",
+      "months": [12, 1, 2, 3],
+      "occupancy_rate": 0.25,
+      "_occupancy_rate_explanation": "25% occupancy assumption per restriction scenario.",
+      "average_daily_rate": 250.0,
+      "_adr_explanation": "250 CHF per night during ski season - premium pricing maintained despite lower occupancy."
+    },
+
+    "summer_peak": {
+      "_explanation": "Summer Peak (June through September) - adjusted to 25% occupancy per restriction scenario.",
+      "name": "Summer Peak (Hiking Season)",
+      "months": [6, 7, 8, 9],
+      "occupancy_rate": 0.25,
+      "_occupancy_rate_explanation": "25% occupancy assumption per restriction scenario.",
+      "average_daily_rate": 200.0,
+      "_adr_explanation": "200 CHF per night during summer - moderate pricing maintained."
+    },
+
+    "offpeak": {
+      "_explanation": "Off-Peak periods (April-May and October-November) - adjusted to 25% occupancy per restriction scenario.",
+      "name": "Off-Peak (Shoulder Seasons)",
+      "months": [4, 5, 10, 11],
+      "occupancy_rate": 0.25,
+      "_occupancy_rate_explanation": "25% occupancy assumption per restriction scenario.",
+      "average_daily_rate": 150.0,
+      "_adr_explanation": "150 CHF per night during off-peak - discounted pricing maintained."
+    }
+  },
+
+  "expenses": {
+    "_explanation": "Expense assumptions remain the same as base case. With fewer rental nights, cleaning costs and management fees will be proportionally lower.",
+
+    "property_management_fee_rate": 0.2,
+    "cleaning_cost_per_stay": 70.0,
+    "average_length_of_stay": 1.7,
+    "tourist_tax_per_person_per_night": 3.0,
+    "avg_guests_per_night": 2.0,
+    "insurance_rate": 0.004,
+    "nubbing_costs_annual": 2000.0,
+    "electricity_internet_annual": 1000.0,
+    "maintenance_rate": 0.005
+  },
+
+  "projection": {
+    "_explanation": "Projection assumptions - key change is 5% property appreciation rate (vs 2.5% in base case) to help offset revenue loss from rental restrictions.",
+
+    "start_year": 2026,
+    "projection_years": 15,
+    "inflation_rate": 0.01,
+
+    "property_appreciation_rate": 0.04,
+    "_property_appreciation_explanation": "4% annual property appreciation applied consistently across all cases per latest guidance.",
+
+    "discount_rate": 0.05,
+
+    "selling_costs": {
+      "broker_fee_rate": 0.03,
+      "notary_fee_rate": 0.015,
+      "transfer_tax_rate": 0.033,
+      "total_rate": 0.078
+    }
+  }
+}

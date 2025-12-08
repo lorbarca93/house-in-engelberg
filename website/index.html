@@ -45,52 +45,72 @@
 
       /* Top Navigation Bar */
       .top-bar {
-        background: linear-gradient(
-          135deg,
-          var(--primary) 0%,
-          var(--secondary) 100%
-        );
+        background: linear-gradient(135deg, #111827 0%, #1f2937 50%, #293352 100%);
         color: white;
-        padding: 15px 30px;
-        box-shadow: var(--shadow);
+        padding: 16px 28px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
         display: flex;
         align-items: center;
         justify-content: space-between;
         z-index: 1000;
+        position: sticky;
+        top: 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       }
 
       .top-bar h1 {
-        font-size: 1.5em;
+        font-size: 1.45em;
         font-weight: 700;
         display: flex;
         align-items: center;
         gap: 10px;
+        letter-spacing: 0.2px;
+      }
+
+      .top-bar h1 small {
+        font-size: 0.8em;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.8);
       }
 
       .case-selector {
         display: flex;
         gap: 10px;
         align-items: center;
+        background: rgba(255, 255, 255, 0.06);
+        padding: 8px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
       }
 
       .case-selector label {
         font-weight: 600;
-        margin-right: 10px;
+        margin-right: 4px;
+        color: rgba(255, 255, 255, 0.9);
       }
 
       .case-selector select {
-        padding: 8px 15px;
-        border-radius: 6px;
-        border: none;
-        background: white;
+        padding: 9px 14px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        background: rgba(255, 255, 255, 0.9);
         color: var(--primary);
         font-size: 0.95em;
         cursor: pointer;
-        min-width: 200px;
+        min-width: 210px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        transition: all 0.15s ease;
+      }
+
+      .case-selector select:hover {
+        background: #fff;
+        border-color: rgba(255, 255, 255, 0.4);
       }
 
       .case-selector select:focus {
-        outline: 2px solid var(--accent);
+        outline: 2px solid rgba(102, 126, 234, 0.6);
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
       }
 
       /* Main Layout */
@@ -106,44 +126,82 @@
         background: white;
         border-right: 1px solid var(--border);
         overflow-y: auto;
-        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+        box-shadow: 2px 0 12px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        z-index: 2;
       }
 
       .sidebar-header {
-        padding: 20px;
-        background: var(--light);
-        border-bottom: 1px solid var(--border);
-        font-weight: 600;
-        color: var(--primary);
+        padding: 18px 20px;
+        background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+        color: white;
+        font-weight: 700;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        letter-spacing: 0.2px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
       }
 
       .sidebar-menu {
         list-style: none;
-        padding: 10px 0;
+        padding: 12px 0 16px;
+        margin: 0;
       }
 
       .sidebar-menu-item {
         padding: 12px 20px;
         cursor: pointer;
-        transition: all 0.2s;
-        border-left: 3px solid transparent;
-      }
-
-      .sidebar-menu-item:hover {
-        background: var(--light);
-        border-left-color: var(--accent);
-      }
-
-      .sidebar-menu-item.active {
-        background: rgba(102, 126, 234, 0.1);
-        border-left-color: var(--accent);
-        font-weight: 600;
-        color: var(--accent);
+        transition: all 0.2s ease;
+        border-left: 4px solid transparent;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #3c4b5f;
+        font-weight: 500;
       }
 
       .sidebar-menu-item i {
         width: 20px;
-        margin-right: 10px;
+        text-align: center;
+        color: #9aa6b2;
+        font-size: 0.95em;
+      }
+
+      .sidebar-menu-item:hover {
+        background: #f4f6fb;
+        border-left-color: var(--accent);
+        color: var(--accent);
+      }
+
+      .sidebar-menu-item:hover i {
+        color: var(--accent);
+      }
+
+      .sidebar-menu-item.active {
+        background: linear-gradient(
+          90deg,
+          rgba(102, 126, 234, 0.14) 0%,
+          rgba(118, 75, 162, 0.10) 100%
+        );
+        border-left-color: var(--accent);
+        font-weight: 700;
+        color: var(--accent);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+      }
+
+      .sidebar-menu-item.active i {
+        color: var(--accent);
+      }
+
+      /* Sidebar footer */
+      .sidebar-footer {
+        margin-top: auto;
+        padding: 14px 18px;
+        background: #f8f9fb;
+        border-top: 1px solid var(--border);
+        font-size: 0.85em;
+        color: #6c7a89;
       }
 
       /* Main Content Area */
@@ -322,7 +380,10 @@
   <body>
     <!-- Top Navigation Bar -->
     <div class="top-bar">
-      <h1><i class="fas fa-chart-line"></i> Engelberg Property Investment</h1>
+      <h1>
+        <i class="fas fa-chart-line"></i> Engelberg Property Investment
+        <small>Dynamic dashboard • Sensitivities aligned</small>
+      </h1>
       <div class="case-selector">
         <label for="caseSelect">Case:</label>
         <select id="caseSelect">
@@ -340,21 +401,49 @@
         </div>
         <ul class="sidebar-menu" id="analysisMenu">
           <li class="sidebar-menu-item active" data-analysis="base_case">
-            <i class="fas fa-home"></i> Simulation KPIs
+            <i class="fas fa-home"></i>
+            <div>
+              <div style="font-weight: 700;">Model</div>
+              <div style="font-size: 0.85em; color: #6c7a89;">KPIs & 15-year projection</div>
+            </div>
           </li>
           <li class="sidebar-menu-item" data-analysis="sensitivity">
-            <i class="fas fa-sliders-h"></i> Sensitivity - Equity IRR
+            <i class="fas fa-sliders-h"></i>
+            <div>
+              <div style="font-weight: 700;">Sensitivity - Equity IRR</div>
+              <div style="font-size: 0.85em; color: #6c7a89;">15 parameters ranked by impact</div>
+            </div>
           </li>
           <li class="sidebar-menu-item" data-analysis="sensitivity_coc">
-            <i class="fas fa-dollar-sign"></i> Sensitivity - Cash-on-Cash
+            <i class="fas fa-dollar-sign"></i>
+            <div>
+              <div style="font-weight: 700;">Sensitivity - Cash-on-Cash</div>
+              <div style="font-size: 0.85em; color: #6c7a89;">Year 1 cash yield levers</div>
+            </div>
           </li>
           <li class="sidebar-menu-item" data-analysis="sensitivity_ncf">
-            <i class="fas fa-wallet"></i> Sensitivity - Monthly NCF
+            <i class="fas fa-wallet"></i>
+            <div>
+              <div style="font-weight: 700;">Sensitivity - Monthly NCF</div>
+              <div style="font-size: 0.85em; color: #6c7a89;">Monthly cash per owner</div>
+            </div>
           </li>
           <li class="sidebar-menu-item" data-analysis="monte_carlo">
-            <i class="fas fa-dice"></i> Monte Carlo
+            <i class="fas fa-dice"></i>
+            <div>
+              <div style="font-weight: 700;">Monte Carlo</div>
+              <div style="font-size: 0.85em; color: #6c7a89;">1,000+ simulation outcomes</div>
+            </div>
           </li>
         </ul>
+        <div class="sidebar-footer">
+          <div style="font-weight: 600; color: #3c4b5f; margin-bottom: 6px;">Quick Tips</div>
+          <div style="line-height: 1.6;">
+            • Switch cases via dropdown<br>
+            • Hover charts for details<br>
+            • Sensitivities aligned across tabs
+          </div>
+        </div>
       </div>
 
       <!-- Main Content Area -->
@@ -527,6 +616,15 @@
           const kpis = data.kpis || {};
           const irr = data.irr_results || {};
           const projection = data.projection_15yr || [];
+          const config = data.config || {};
+          const financing = config.financing || {};
+          const rental = config.rental || {};
+          const expenses = config.expenses || {};
+          const proj = config.projection || {};
+          const selling = proj.selling_costs || {};
+          const startYear = proj.start_year || 2026;
+          const projectionYears = proj.projection_years || 15;
+          const endYear = startYear + projectionYears - 1;
 
           let html = `
                     <div class="section">
@@ -653,34 +751,28 @@
                         <!-- Assumptions Summary -->
                         <div class="chart-container" style="background: #f8f9fa; border-left: 4px solid var(--accent);">
                             <h3 style="color: var(--primary); margin-bottom: 15px;">📋 Main Assumptions</h3>
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; font-size: 0.9em;">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 15px; font-size: 0.9em;">
                                 <div>
                                     <strong style="color: var(--secondary);">Financing</strong>
                                     <div style="margin-top: 8px; line-height: 1.8;">
                                         • Purchase Price: <strong>CHF ${(
-                                          data.config?.financing
-                                            ?.purchase_price || 0
+                                          financing.purchase_price || 0
                                         ).toLocaleString()}</strong><br>
                                         • LTV: <strong>${(
-                                          (data.config?.financing?.ltv || 0) *
-                                          100
+                                          (financing.ltv || 0) * 100
                                         ).toFixed(0)}%</strong> (Loan: CHF ${(
-            data.config?.financing?.loan_amount || 0
+            financing.loan_amount || 0
           ).toLocaleString()})<br>
                                         • Interest Rate: <strong>${(
-                                          (data.config?.financing
-                                            ?.interest_rate || 0) * 100
+                                          (financing.interest_rate || 0) * 100
                                         ).toFixed(2)}%</strong><br>
                                         • Amortization: <strong>${(
-                                          (data.config?.financing
-                                            ?.amortization_rate || 0) * 100
+                                          (financing.amortization_rate || 0) *
+                                          100
                                         ).toFixed(1)}%</strong> per year<br>
-                                        • Owners: <strong>${
-                                          data.config?.financing?.num_owners ||
-                                          0
+                                        • Owners: <strong>${financing.num_owners || 0
                                         }</strong> (Equity: CHF ${(
-            (data.config?.financing?.equity_total || 0) /
-            (data.config?.financing?.num_owners || 1)
+            (financing.equity_total || 0) / (financing.num_owners || 1)
           ).toLocaleString()}/owner)
                                     </div>
                                 </div>
@@ -688,12 +780,10 @@
                                     <strong style="color: var(--secondary);">Rental Income</strong>
                                     <div style="margin-top: 8px; line-height: 1.8;">
                                         • Occupancy Rate: <strong>${(
-                                          (data.config?.rental
-                                            ?.occupancy_rate || 0) * 100
+                                          (rental.occupancy_rate || 0) * 100
                                         ).toFixed(0)}%</strong><br>
                                         • Average Daily Rate: <strong>CHF ${(
-                                          data.config?.rental
-                                            ?.average_daily_rate || 0
+                                          rental.average_daily_rate || 0
                                         ).toFixed(0)}</strong><br>
                                         • Rentable Nights: <strong>${
                                           results.rentable_nights || 0
@@ -702,19 +792,34 @@
                                           results.rented_nights || 0
                                         }</strong> nights/year<br>
                                         • Owner Nights: <strong>${
-                                          data.config?.rental
-                                            ?.owner_nights_per_person || 0
-                                        } per owner</strong>
+                                          rental.owner_nights_per_person || 0
+                                        } per owner</strong><br>
+                                        • Mgmt Fee: <strong>${(
+                                          (expenses.property_management_fee_rate || 0) *
+                                          100
+                                        ).toFixed(0)}%</strong> of gross<br>
+                                        • Cleaning per stay: <strong>CHF ${(
+                                          expenses.cleaning_cost_per_stay || 0
+                                        ).toFixed(0)}</strong><br>
+                                        • OTA fee: <strong>~15%</strong> (50% bookings × 30% fee)
                                     </div>
                                 </div>
                                 <div>
                                     <strong style="color: var(--secondary);">Projections & Exit</strong>
                                     <div style="margin-top: 8px; line-height: 1.8;">
-                                        • Inflation: <strong>1.0%</strong> per year<br>
-                                        • Property Appreciation: <strong>1.5%</strong> per year<br>
-                                        • Projection Period: <strong>15 years</strong> (2026-2040)<br>
-                                        • Selling Costs (Year 15): <strong>7.8%</strong><br>
-                                        • Discount Rate (NPV): <strong>5.0%</strong>
+                                        • Inflation: <strong>${(
+                                          (proj.inflation_rate || 0) * 100
+                                        ).toFixed(1)}%</strong> per year<br>
+                                        • Property Appreciation: <strong>${(
+                                          (proj.property_appreciation_rate || 0) * 100
+                                        ).toFixed(1)}%</strong> per year<br>
+                                        • Projection Period: <strong>${projectionYears} years</strong> (${startYear}-${endYear})<br>
+                                        • Selling Costs (Year ${projectionYears}): <strong>${(
+                                          (selling.total_rate || 0) * 100
+                                        ).toFixed(1)}%</strong><br>
+                                        • Discount Rate (NPV): <strong>${(
+                                          (proj.discount_rate || 0) * 100
+                                        ).toFixed(1)}%</strong>
                                     </div>
                                 </div>
                             </div>
@@ -844,6 +949,8 @@
           const content = document.getElementById("contentArea");
           const sensitivities = data.sensitivities || [];
           const baseIRR = data.base_irr || 0;
+          const sortedByImpact = [...sensitivities].sort((a, b) => b.impact - a.impact);
+          const topImpact = sortedByImpact[0] || { impact: 0, parameter: "N/A" };
 
           // Parameter explanations and rationales
           const parameterInfo = {
@@ -967,10 +1074,10 @@
                             <div class="kpi-card" style="padding: 12px;">
                                 <h3 style="font-size: 0.75em;">Top Impact</h3>
                                 <div class="value" style="color: var(--warning); font-size: 1.4em;">±${(
-                                  sensitivities[0]?.impact || 0
+                                  topImpact.impact || 0
                                 ).toFixed(2)}%</div>
                                 <div class="unit" style="font-size: 0.7em;">${
-                                  sensitivities[0]?.parameter || "N/A"
+                                  topImpact.parameter || "N/A"
                                 }</div>
                             </div>
                             <div class="kpi-card" style="padding: 12px;">
@@ -1005,7 +1112,7 @@
                         <div style="background: #f8f9fa; border-left: 5px solid #667eea; padding: 25px; border-radius: 8px; margin-bottom: 35px;">
                             <h3 style="margin-top: 0; color: var(--primary); font-size: 1.2em;">🔍 Key Insights</h3>
                             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 15px;">
-                                ${sensitivities
+                                ${sortedByImpact
                                   .slice(0, 3)
                                   .map((sens, i) => {
                                     const info = parameterInfo[
@@ -1390,6 +1497,8 @@
           const content = document.getElementById("contentArea");
           const sensitivities = data.sensitivities || [];
           const baseCoC = data.base_coc || 0;
+          const sortedByImpact = [...sensitivities].sort((a, b) => b.impact - a.impact);
+          const topImpact = sortedByImpact[0] || { impact: 0, parameter: "N/A" };
 
           // Parameter explanations
           const parameterInfo = {
@@ -1487,7 +1596,7 @@
               <h2 class="section-title">💰 Cash-on-Cash Sensitivity Analysis</h2>
               
               <!-- Info Box -->
-              <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px;">
+              <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px;">
                 <p style="margin: 0; font-size: 0.85em; line-height: 1.5; opacity: 0.95;">
                   💡 <strong>Cash-on-Cash = Year 1 Cash / Equity</strong> — First year cash yield like a bond. Ignores appreciation. Hover for details.
                 </p>
@@ -1495,7 +1604,7 @@
               
               <!-- Summary KPIs -->
               <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;">
-                <div class="kpi-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border: none; color: white; padding: 12px;">
+                <div class="kpi-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; padding: 12px;">
                   <h3 style="color: rgba(255,255,255,0.9); font-size: 0.75em;">Base CoC</h3>
                   <div class="value" style="color: white; font-size: 1.4em;">${baseCoC.toFixed(
                     2
@@ -1510,10 +1619,10 @@
                 <div class="kpi-card" style="padding: 12px;">
                   <h3 style="font-size: 0.75em;">Top Impact</h3>
                   <div class="value" style="color: var(--warning); font-size: 1.4em;">±${(
-                    sensitivities[0]?.impact || 0
+                    topImpact.impact || 0
                   ).toFixed(2)}%</div>
                   <div class="unit" style="font-size: 0.7em;">${
-                    sensitivities[0]?.parameter || "N/A"
+                    topImpact.parameter || "N/A"
                   }</div>
                 </div>
                 <div class="kpi-card" style="padding: 12px;">
@@ -1532,7 +1641,7 @@
               
               <!-- Tornado Chart -->
               <div class="chart-container" style="padding: 20px; margin-bottom: 25px;">
-                <h3 style="margin-bottom: 12px; font-size: 1.1em; color: #f5576c; font-weight: 600;">
+                <h3 style="margin-bottom: 12px; font-size: 1.1em; color: #667eea; font-weight: 600;">
                   📊 Tornado Chart - Impact on Year 1 Cash Yield
                 </h3>
                 <p style="color: #7f8c8d; margin-bottom: 15px; font-size: 0.85em; line-height: 1.5;">
@@ -1547,10 +1656,10 @@
               <div style="clear: both; height: 20px;"></div>
               
               <!-- Insights Panel -->
-              <div style="background: #fff5f5; border-left: 5px solid #f5576c; padding: 25px; border-radius: 8px; margin-bottom: 35px;">
-                <h3 style="margin-top: 0; color: #f5576c; font-size: 1.2em;">🔍 Key Cash Flow Insights</h3>
+              <div style="background: #f8f9fa; border-left: 5px solid #667eea; padding: 25px; border-radius: 8px; margin-bottom: 35px;">
+                <h3 style="margin-top: 0; color: #667eea; font-size: 1.2em;">🔍 Key Cash Flow Insights</h3>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 15px;">
-                  ${sensitivities
+                  ${sortedByImpact
                     .filter((s) => s.impact > 0)
                     .slice(0, 3)
                     .map((sens, i) => {
@@ -1559,7 +1668,7 @@
                         range: "N/A",
                       };
                       return `
-                      <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #fee;">
+                      <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #e0e7ff;">
                         <div style="font-size: 1.8em; margin-bottom: 8px;">${
                           info.icon || "📌"
                         }</div>
@@ -1590,12 +1699,12 @@
               
               <!-- Parameter Details Table -->
               <div class="data-table" style="margin-top: 40px; clear: both;">
-                <h3 style="padding: 20px; margin: 0; border-bottom: 2px solid var(--border); background: #fff5f5;">
+                <h3 style="padding: 20px; margin: 0; border-bottom: 2px solid var(--border); background: #f8f9fa;">
                   📋 Detailed Cash-on-Cash Analysis
                 </h3>
                 <table>
                   <thead>
-                    <tr style="background: #fff5f5;">
+                    <tr style="background: #f8f9fa;">
                       <th style="text-align: left; padding: 15px;">Parameter</th>
                       <th style="text-align: center;">Base Value</th>
                       <th style="text-align: center;">Low Scenario</th>
@@ -1808,7 +1917,7 @@
                 },
                 zeroline: true,
                 zerolinewidth: 2,
-                zerolinecolor: "#f5576c",
+                zerolinecolor: "#667eea",
                 gridcolor: "#e8ecef",
                 tickfont: { size: 11, color: "#5a6c7d" },
               },
@@ -1838,9 +1947,9 @@
                   xanchor: "left",
                   yanchor: "top",
                   showarrow: false,
-                  font: { size: 11, color: "#f5576c" },
+                font: { size: 11, color: "#667eea" },
                   bgcolor: "rgba(255,255,255,0.9)",
-                  bordercolor: "#f5576c",
+                bordercolor: "#667eea",
                   borderwidth: 1,
                   borderpad: 4,
                 },
@@ -1875,6 +1984,8 @@
           const content = document.getElementById("contentArea");
           const sensitivities = data.sensitivities || [];
           const baseNCF = data.base_ncf || 0;
+          const sortedByImpact = [...sensitivities].sort((a, b) => b.impact - a.impact);
+          const topImpact = sortedByImpact[0] || { impact: 0, parameter: "N/A" };
 
           // Parameter info for NCF sensitivity
           const parameterInfo = {
@@ -1908,11 +2019,11 @@
                 "Maintenance reserve affects monthly cash flow directly. At 0.5%, this is ~CHF 625/month total = CHF 156/month per owner set aside.",
               icon: "🔧",
             },
-            "Management Fee Rate": {
-              range: "18% to 22% of rental income",
+            "Property Management Fee": {
+              range: "15% to 25% of rental income",
               rationale:
-                "Management fees are a percentage of gross rental income. At 20%, this is ~CHF 10k/year = CHF 208/month per owner.",
-              icon: "👔",
+                "Management fees are a percentage of gross rental income. At ~20%, this is ~CHF 10k/year = CHF 208/month per owner.",
+              icon: "🏢",
             },
             "Loan-to-Value (LTV)": {
               range: "67.5% to 82.5% (±10%)",
@@ -1977,20 +2088,20 @@
 
           let html = `
             <div class="section">
-              <h2 class="section-title" style="color: #16a085;">
+              <h2 class="section-title" style="color: #667eea;">
                 <i class="fas fa-wallet"></i> Sensitivity Analysis - Monthly Net Cash Flow
               </h2>
               
               <!-- Info Box -->
-              <div style="background: linear-gradient(135deg, #16a085 0%, #1abc9c 100%); color: white; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px;">
+              <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px;">
                 <p style="margin: 0; font-size: 0.85em; line-height: 1.5; opacity: 0.95;">
                   💡 <strong>Monthly NCF = Annual Cash / 12 / Owners</strong> — Actual CHF hitting your bank each month after all costs.
                 </p>
               </div>
               
-              <!-- KPI Summary Cards - Teal Theme -->
+              <!-- KPI Summary Cards -->
               <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;">
-                <div class="kpi-card" style="background: linear-gradient(135deg, #16a085 0%, #1abc9c 100%); border: none; color: white; padding: 12px;">
+                <div class="kpi-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; padding: 12px;">
                   <h3 style="color: rgba(255,255,255,0.9); font-size: 0.75em;">Base NCF</h3>
                   <div class="value" style="color: white; font-size: 1.4em;">CHF ${baseNCF.toFixed(
                     0
@@ -1998,17 +2109,17 @@
                 </div>
                 <div class="kpi-card" style="padding: 12px;">
                   <h3 style="font-size: 0.75em;">Parameters</h3>
-                  <div class="value" style="color: #16a085; font-size: 1.4em;">${
+                  <div class="value" style="color: #667eea; font-size: 1.4em;">${
                     meaningfulSensitivities.length
                   }/${sensitivities.length}</div>
                 </div>
                 <div class="kpi-card" style="padding: 12px;">
                   <h3 style="font-size: 0.75em;">Top Impact</h3>
                   <div class="value" style="color: var(--warning); font-size: 1.4em;">±CHF ${(
-                    sensitivities[0]?.impact || 0
+                    topImpact.impact || 0
                   ).toFixed(0)}</div>
                   <div class="unit" style="font-size: 0.7em;">${
-                    sensitivities[0]?.parameter || "N/A"
+                    topImpact.parameter || "N/A"
                   }</div>
                 </div>
                 <div class="kpi-card" style="padding: 12px;">
@@ -2023,7 +2134,7 @@
               
               <!-- Tornado Chart -->
               <div class="chart-container" style="padding: 20px; margin-bottom: 25px;">
-                <h3 style="margin-bottom: 12px; font-size: 1.1em; color: #16a085; font-weight: 600;">
+                <h3 style="margin-bottom: 12px; font-size: 1.1em; color: #667eea; font-weight: 600;">
                   📊 Tornado Chart - Impact on Monthly Cash Flow
                 </h3>
                 <p style="color: #7f8c8d; margin-bottom: 15px; font-size: 0.85em; line-height: 1.5;">
@@ -2036,12 +2147,12 @@
 
               <!-- Data Table -->
               <div class="chart-container" style="padding: 30px; margin-bottom: 40px; overflow-x: auto;">
-                <h3 style="margin-bottom: 20px; font-size: 1.3em; color: #16a085; font-weight: 600;">
+                <h3 style="margin-bottom: 20px; font-size: 1.3em; color: #667eea; font-weight: 600;">
                   📋 Detailed Parameter Analysis
                 </h3>
                 <table style="width: 100%; border-collapse: collapse; font-size: 0.95em;">
                   <thead>
-                    <tr style="background: linear-gradient(135deg, #16a085, #1abc9c); color: white;">
+                    <tr style="background: #f8f9fa; color: #2c3e50;">
                       <th style="padding: 15px; text-align: left; border-radius: 8px 0 0 0;">Parameter</th>
                       <th style="padding: 15px; text-align: center;">Base Value</th>
                       <th style="padding: 15px; text-align: center;">Low Scenario</th>
@@ -2068,10 +2179,10 @@
 
                         return `
                       <tr style="border-bottom: 1px solid #f0f0f0; ${
-                        index < 3 ? "background: #e8f8f5;" : ""
+                        index < 3 ? "background: #fffbf0;" : ""
                       } ${!hasImpact ? "opacity: 0.5;" : ""}">
                         <td style="padding: 15px;">
-                          <div style="font-weight: 600; color: #16a085;">
+                          <div style="font-weight: 600; color: var(--primary);">
                             ${info.icon || ""} ${sens.parameter}
                           </div>
                           ${
@@ -2112,7 +2223,7 @@
                         </td>
                         <td style="text-align: center; padding: 15px;">
                           <div style="background: ${
-                            index < 3 ? "#16a085" : "#e9ecef"
+                            index < 3 ? "#667eea" : "#e9ecef"
                           }; color: ${
                           index < 3 ? "white" : "#666"
                         }; padding: 6px 12px; border-radius: 20px; display: inline-block; font-weight: bold;">
@@ -2128,8 +2239,8 @@
               </div>
 
               <!-- Insights Panel -->
-              <div class="chart-container" style="padding: 25px; background: linear-gradient(135deg, #e8f8f5, #d5f4e6); border-left: 4px solid #16a085;">
-                <h3 style="margin-bottom: 15px; color: #16a085; font-size: 1.2em;">
+              <div class="chart-container" style="padding: 25px; background: #f8f9fa; border-left: 4px solid #667eea;">
+                <h3 style="margin-bottom: 15px; color: #667eea; font-size: 1.2em;">
                   💡 Monthly Cash Flow Insights
                 </h3>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
@@ -2254,9 +2365,9 @@
                 "<br><b>💡 Why this matters:</b><br>%{customdata.rationale}" +
                 "<extra></extra>",
               hoverlabel: {
-                bgcolor: "rgba(22, 160, 133, 0.97)",
+                bgcolor: "rgba(102, 126, 234, 0.97)",
                 font: { size: 12, color: "white", family: "Segoe UI, Arial" },
-                bordercolor: "#0e6655",
+                bordercolor: "#4c51bf",
                 namelength: -1,
                 align: "left",
               },
@@ -2273,7 +2384,7 @@
                 },
                 zeroline: true,
                 zerolinewidth: 2,
-                zerolinecolor: "#16a085",
+                zerolinecolor: "#667eea",
                 gridcolor: "#e8ecef",
                 tickformat: "+,.0f",
                 tickprefix: "CHF ",
@@ -2305,9 +2416,9 @@
                   xanchor: "left",
                   yanchor: "top",
                   showarrow: false,
-                  font: { size: 11, color: "#16a085" },
+                  font: { size: 11, color: "#667eea" },
                   bgcolor: "rgba(255,255,255,0.9)",
-                  bordercolor: "#16a085",
+                  bordercolor: "#667eea",
                   borderwidth: 1,
                   borderpad: 4,
                 },

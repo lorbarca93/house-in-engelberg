@@ -54,7 +54,7 @@ import os
 import sys
 import json
 import argparse
-from typing import Dict, List, Callable
+from typing import Dict, List, Callable, Tuple
 from dataclasses import replace
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -387,6 +387,66 @@ def create_sensitivity_result(param_name: str, base_value: float,
     }
 
 
+def scale_low_high(base_value: float, low_factor: float, high_factor: float,
+                   clamp_min: float = None, clamp_max: float = None) -> Tuple[float, float]:
+    """
+    Scale sensitivity ranges from the case-specific base value using fixed multipliers.
+    Preserves the original relative swing (derived from legacy absolute deltas) while
+    adapting to each case. Applies optional bounds to keep values sensible.
+    """
+    low = base_value * low_factor
+    high = base_value * high_factor
+
+    if clamp_min is not None:
+        low = max(low, clamp_min)
+        high = max(high, clamp_min)
+
+    if clamp_max is not None:
+        low = min(low, clamp_max)
+        high = min(high, clamp_max)
+
+    return low, high
+
+
+# Legacy-relative multipliers derived from the previous absolute deltas.
+# These keep the same proportional swing while adapting to each case's base value.
+SENSITIVITY_FACTORS = {
+    'property_appreciation': (0.6, 1.4),          # 1.5%–3.5% on 2.5% base
+    'maintenance': (0.0, 2.0),                    # 0%–1.0% on 0.5% base
+    'management_fee': (0.75, 1.25),               # 15%–25% on 20% base
+    'purchase_price': (0.90, 1.10),               # ±10%
+    'occupancy': (0.90, 1.10),                    # ±10%
+    'average_daily_rate': (0.80, 1.20),           # ±20%
+    'interest_rate': (0.230769, 1.769231),        # ±1% on 1.3% base
+    'ltv': (0.90, 1.10),                          # ±10% (capped at 95%)
+    'inflation': (0.50, 1.50),                    # ±0.5% on 1.0% base
+    'amortization': (0.0, 2.0),                   # 0%–2% on 1% base
+    'cleaning_cost': (0.70, 1.30),                # ±30%
+    'length_of_stay': (0.70, 1.30),               # ±30%
+    'insurance_rate': (0.75, 1.25),               # 0.3%–0.5% on 0.4% base
+    'winter_occupancy': (0.85, 1.15),             # ±15%
+    'selling_costs': (0.743589, 1.256410)         # 5.8%–9.8% on 7.8% base
+}
+
+# Canonical parameter order to keep all three sensitivities aligned
+SENSITIVITY_ORDER = [
+    'Property Appreciation Rate',
+    'Maintenance Reserve Rate',
+    'Property Management Fee',
+    'Purchase Price',
+    'Occupancy Rate',
+    'Average Daily Rate',
+    'Interest Rate',
+    'Loan-to-Value (LTV)',
+    'Inflation Rate',
+    'Amortization Rate',
+    'Cleaning Cost per Stay',
+    'Average Length of Stay',
+    'Insurance Rate',
+    'Winter Season Occupancy',
+    'Selling Costs Rate',
+]
+
 def test_parameter_sensitivity(base_config: BaseCaseConfig, json_path: str,
                                param_name: str, base_value: float,
                                low_value: float, high_value: float,
@@ -486,8 +546,10 @@ def run_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = Tru
     
     proj_defaults = get_projection_defaults(json_path)
     base_appr = proj_defaults['property_appreciation_rate']
-    low_appr = 0.015  # 1.5%
-    high_appr = 0.035  # 3.5%
+    low_appr, high_appr = scale_low_high(
+        base_appr, *SENSITIVITY_FACTORS['property_appreciation'],
+        clamp_min=0.0, clamp_max=1.0
+    )
     
     base_irr_appr = calculate_equity_irr(base_config, json_path, base_appr)
     low_irr_appr = calculate_equity_irr(base_config, json_path, low_appr)
@@ -505,10 +567,14 @@ def run_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = Tru
     # Testing 0.2% to 1.2% range
     
     base_maint = base_config.expenses.maintenance_rate
+    low_maint, high_maint = scale_low_high(
+        base_maint, *SENSITIVITY_FACTORS['maintenance'],
+        clamp_min=0.0
+    )
     sensitivities.append(test_parameter_sensitivity(
         base_config, json_path,
         'Maintenance Reserve Rate', base_maint,
-        base_maint - 0.005, base_maint + 0.005,
+        low_maint, high_maint,
         lambda cfg, val: replace(cfg, expenses=replace(cfg.expenses, maintenance_rate=val)),
         100
     ))
@@ -519,10 +585,14 @@ def run_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = Tru
     # Management fee is 20% of gross revenue (can range 15-25%)
     
     base_mgmt = base_config.expenses.property_management_fee_rate
+    low_mgmt, high_mgmt = scale_low_high(
+        base_mgmt, *SENSITIVITY_FACTORS['management_fee'],
+        clamp_min=0.0, clamp_max=1.0
+    )
     sensitivities.append(test_parameter_sensitivity(
         base_config, json_path,
         'Property Management Fee', base_mgmt,
-        base_mgmt - 0.05, base_mgmt + 0.05,
+        low_mgmt, high_mgmt,
         lambda cfg, val: replace(cfg, expenses=replace(cfg.expenses, property_management_fee_rate=val)),
         50
     ))
@@ -533,10 +603,13 @@ def run_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = Tru
     # Tests sensitivity to negotiation and market timing
     
     base_price = base_config.financing.purchase_price
+    low_price, high_price = scale_low_high(
+        base_price, *SENSITIVITY_FACTORS['purchase_price']
+    )
     sensitivities.append(test_parameter_sensitivity(
         base_config, json_path,
         'Purchase Price', base_price,
-        base_price * 0.90, base_price * 1.10,
+        low_price, high_price,
         lambda cfg, val: replace(cfg, financing=replace(cfg.financing, purchase_price=val)),
         20
     ))
@@ -548,6 +621,10 @@ def run_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = Tru
     # NOTE: Must modify seasonal occupancy rates, not just the legacy field
     
     base_occ = base_config.rental.occupancy_rate
+    low_occ, high_occ = scale_low_high(
+        base_occ, *SENSITIVITY_FACTORS['occupancy'],
+        clamp_min=0.0, clamp_max=1.0
+    )
     def modify_occupancy(cfg, multiplier):
         new_seasons = []
         for season in cfg.rental.seasons:
@@ -558,8 +635,8 @@ def run_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = Tru
     sensitivities.append(test_parameter_sensitivity(
         base_config, json_path,
         'Occupancy Rate', base_occ,
-        base_occ * 0.90, base_occ * 1.10,
-        lambda cfg, val: modify_occupancy(cfg, val / base_occ),
+        low_occ, high_occ,
+        lambda cfg, val: modify_occupancy(cfg, val / base_occ if base_occ != 0 else 1.0),
         20
     ))
     
@@ -570,6 +647,10 @@ def run_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = Tru
     # NOTE: Must modify seasonal rates, not just the legacy field
     
     base_rate = base_config.rental.average_daily_rate
+    low_rate, high_rate = scale_low_high(
+        base_rate, *SENSITIVITY_FACTORS['average_daily_rate'],
+        clamp_min=0.0
+    )
     def modify_daily_rate(cfg, multiplier):
         new_seasons = []
         for season in cfg.rental.seasons:
@@ -580,8 +661,8 @@ def run_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = Tru
     sensitivities.append(test_parameter_sensitivity(
         base_config, json_path,
         'Average Daily Rate', base_rate,
-        base_rate * 0.80, base_rate * 1.20,
-        lambda cfg, val: modify_daily_rate(cfg, val / base_rate),
+        low_rate, high_rate,
+        lambda cfg, val: modify_daily_rate(cfg, val / base_rate if base_rate != 0 else 1.0),
         40
     ))
     
@@ -591,10 +672,14 @@ def run_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = Tru
     # Tests refinancing risk or different financing options
     
     base_int = base_config.financing.interest_rate
+    low_int, high_int = scale_low_high(
+        base_int, *SENSITIVITY_FACTORS['interest_rate'],
+        clamp_min=0.0
+    )
     sensitivities.append(test_parameter_sensitivity(
         base_config, json_path,
         'Interest Rate', base_int,
-        base_int - 0.01, base_int + 0.01,
+        low_int, high_int,
         lambda cfg, val: replace(cfg, financing=replace(cfg.financing, interest_rate=val)),
         154
     ))
@@ -605,10 +690,14 @@ def run_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = Tru
     # Tests different leverage scenarios
     
     base_ltv = base_config.financing.ltv
+    low_ltv, high_ltv = scale_low_high(
+        base_ltv, *SENSITIVITY_FACTORS['ltv'],
+        clamp_min=0.0, clamp_max=0.95
+    )
     sensitivities.append(test_parameter_sensitivity(
         base_config, json_path,
         'Loan-to-Value (LTV)', base_ltv,
-        base_ltv * 0.90, min(base_ltv * 1.10, 0.95),
+        low_ltv, high_ltv,
         lambda cfg, val: replace(cfg, financing=replace(cfg.financing, ltv=val)),
         20
     ))
@@ -620,6 +709,10 @@ def run_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = Tru
     # Inflation affects both revenue growth and expense growth over 15 years
     
     base_inflation = proj_defaults['inflation_rate']
+    low_inflation, high_inflation = scale_low_high(
+        base_inflation, *SENSITIVITY_FACTORS['inflation'],
+        clamp_min=0.0
+    )
     # For inflation, we need a special approach since it's a projection parameter
     def test_inflation_sensitivity(base_cfg, inflation_rate):
         results = compute_annual_cash_flows(base_cfg)
@@ -641,8 +734,6 @@ def run_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = Tru
         )
         return irr_results['equity_irr_with_sale_pct']
     
-    low_inflation = base_inflation - 0.005
-    high_inflation = base_inflation + 0.005
     base_irr_inflation = test_inflation_sensitivity(base_config, base_inflation)
     low_irr_inflation = test_inflation_sensitivity(base_config, low_inflation)
     high_irr_inflation = test_inflation_sensitivity(base_config, high_inflation)
@@ -659,10 +750,14 @@ def run_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = Tru
     # Lower amortization = better cash flow but more debt at exit
     
     base_amort = base_config.financing.amortization_rate
+    low_amort, high_amort = scale_low_high(
+        base_amort, *SENSITIVITY_FACTORS['amortization'],
+        clamp_min=0.0
+    )
     sensitivities.append(test_parameter_sensitivity(
         base_config, json_path,
         'Amortization Rate', base_amort,
-        0.0, 0.02,
+        low_amort, high_amort,
         lambda cfg, val: replace(cfg, financing=replace(cfg.financing, amortization_rate=val)),
         200
     ))
@@ -674,10 +769,14 @@ def run_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = Tru
     # With ~130 turnovers/year, this is a meaningful expense
     
     base_clean = base_config.expenses.cleaning_cost_per_stay
+    low_clean, high_clean = scale_low_high(
+        base_clean, *SENSITIVITY_FACTORS['cleaning_cost'],
+        clamp_min=0.0
+    )
     sensitivities.append(test_parameter_sensitivity(
         base_config, json_path,
         'Cleaning Cost per Stay', base_clean,
-        base_clean * 0.70, base_clean * 1.30,
+        low_clean, high_clean,
         lambda cfg, val: replace(cfg, expenses=replace(cfg.expenses, cleaning_cost_per_stay=val)),
         60
     ))
@@ -689,10 +788,14 @@ def run_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = Tru
     # Longer stays = fewer turnovers = lower cleaning costs
     
     base_los = base_config.expenses.average_length_of_stay
+    low_los, high_los = scale_low_high(
+        base_los, *SENSITIVITY_FACTORS['length_of_stay'],
+        clamp_min=0.1
+    )
     sensitivities.append(test_parameter_sensitivity(
         base_config, json_path,
         'Average Length of Stay', base_los,
-        base_los * 0.70, base_los * 1.30,
+        low_los, high_los,
         lambda cfg, val: replace(cfg, expenses=replace(cfg.expenses, average_length_of_stay=val)),
         60
     ))
@@ -703,13 +806,15 @@ def run_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = Tru
     # Tests shopping around for better insurance rates
     # Range: 0.3% to 0.5% of property value
     
-    base_insurance_rate = 0.004  # Current rate from assumptions
+    base_insurance_rate = base_config.expenses.insurance_annual / base_config.financing.purchase_price
+    low_insurance_rate, high_insurance_rate = scale_low_high(
+        base_insurance_rate, *SENSITIVITY_FACTORS['insurance_rate'],
+        clamp_min=0.0
+    )
     def modify_insurance(cfg, new_rate):
         new_insurance = cfg.financing.purchase_price * new_rate
         return replace(cfg, expenses=replace(cfg.expenses, insurance_annual=new_insurance))
     
-    low_insurance_rate = 0.003
-    high_insurance_rate = 0.005
     sensitivities.append(test_parameter_sensitivity(
         base_config, json_path,
         'Insurance Rate', base_insurance_rate,
@@ -726,6 +831,10 @@ def run_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = Tru
     
     winter_season = [s for s in base_config.rental.seasons if s.name == "Winter Peak (Ski Season)"][0]
     base_winter_occ = winter_season.occupancy_rate
+    low_winter_occ, high_winter_occ = scale_low_high(
+        base_winter_occ, *SENSITIVITY_FACTORS['winter_occupancy'],
+        clamp_min=0.0, clamp_max=0.95
+    )
     
     def modify_winter_occupancy(cfg, new_occ_rate):
         new_seasons = []
@@ -740,7 +849,7 @@ def run_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = Tru
     sensitivities.append(test_parameter_sensitivity(
         base_config, json_path,
         'Winter Season Occupancy', base_winter_occ,
-        base_winter_occ * 0.85, min(base_winter_occ * 1.15, 0.95),
+        low_winter_occ, high_winter_occ,
         lambda cfg, val: modify_winter_occupancy(cfg, val),
         30
     ))
@@ -751,6 +860,10 @@ def run_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = Tru
     # Tests impact of transaction costs at sale (broker, notary, transfer tax)
     
     base_selling_rate = proj_defaults['selling_costs_rate']
+    low_selling, high_selling = scale_low_high(
+        base_selling_rate, *SENSITIVITY_FACTORS['selling_costs'],
+        clamp_min=0.05
+    )
     # Special approach for selling costs since it affects IRR calculation
     def test_selling_costs_irr(base_cfg, selling_rate):
         results = compute_annual_cash_flows(base_cfg)
@@ -772,8 +885,6 @@ def run_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = Tru
         )
         return irr_results['equity_irr_with_sale_pct']
     
-    low_selling = max(base_selling_rate - 0.02, 0.05)
-    high_selling = base_selling_rate + 0.02
     base_irr_selling = test_selling_costs_irr(base_config, base_selling_rate)
     low_irr_selling = test_selling_costs_irr(base_config, low_selling)
     high_irr_selling = test_selling_costs_irr(base_config, high_selling)
@@ -783,8 +894,9 @@ def run_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = Tru
         base_irr_selling, low_irr_selling, high_irr_selling, 26
     ))
     
-    # Sort by impact (most impactful first - for tornado chart)
-    sensitivities.sort(key=lambda x: x['impact'], reverse=True)
+    # Keep canonical order for consistency across analyses
+    order_map = {name: idx for idx, name in enumerate(SENSITIVITY_ORDER)}
+    sensitivities.sort(key=lambda x: order_map.get(x['parameter'], 999))
     
     if verbose:
         print(f"\n  Top 5 impactful parameters:")
@@ -864,40 +976,59 @@ def run_cash_on_cash_sensitivity_analysis(json_path: str, case_name: str, verbos
     
     # 1. Property Appreciation (doesn't affect Year 1 CoC, but include for consistency)
     base_appr = proj_defaults['property_appreciation_rate']
+    low_appr, high_appr = scale_low_high(
+        base_appr, *SENSITIVITY_FACTORS['property_appreciation'],
+        clamp_min=0.0, clamp_max=1.0
+    )
     sensitivities.append(create_sensitivity_result(
-        'Property Appreciation Rate', base_appr, 0.015, 0.035,
+        'Property Appreciation Rate', base_appr, low_appr, high_appr,
         base_coc, base_coc, base_coc, 40  # No impact on Year 1 cash
     ))
     
     # 2. Maintenance Reserve Rate
     base_maint = base_config.expenses.maintenance_rate
+    low_maint, high_maint = scale_low_high(
+        base_maint, *SENSITIVITY_FACTORS['maintenance'],
+        clamp_min=0.0
+    )
     sensitivities.append(test_coc_parameter(
         base_config, 'Maintenance Reserve Rate', base_maint,
-        base_maint - 0.005, base_maint + 0.005,
+        low_maint, high_maint,
         lambda cfg, val: replace(cfg, expenses=replace(cfg.expenses, maintenance_rate=val)),
         100
     ))
     
     # 3. Property Management Fee
     base_mgmt = base_config.expenses.property_management_fee_rate
+    low_mgmt, high_mgmt = scale_low_high(
+        base_mgmt, *SENSITIVITY_FACTORS['management_fee'],
+        clamp_min=0.0, clamp_max=1.0
+    )
     sensitivities.append(test_coc_parameter(
         base_config, 'Property Management Fee', base_mgmt,
-        base_mgmt - 0.05, base_mgmt + 0.05,
+        low_mgmt, high_mgmt,
         lambda cfg, val: replace(cfg, expenses=replace(cfg.expenses, property_management_fee_rate=val)),
         50
     ))
     
     # 4. Purchase Price
     base_price = base_config.financing.purchase_price
+    low_price, high_price = scale_low_high(
+        base_price, *SENSITIVITY_FACTORS['purchase_price']
+    )
     sensitivities.append(test_coc_parameter(
         base_config, 'Purchase Price', base_price,
-        base_price * 0.90, base_price * 1.10,
+        low_price, high_price,
         lambda cfg, val: replace(cfg, financing=replace(cfg.financing, purchase_price=val)),
         20
     ))
     
     # 5. Occupancy Rate (modify seasonal data)
     base_occ = base_config.rental.occupancy_rate
+    low_occ, high_occ = scale_low_high(
+        base_occ, *SENSITIVITY_FACTORS['occupancy'],
+        clamp_min=0.0, clamp_max=1.0
+    )
     def modify_occupancy(cfg, multiplier):
         new_seasons = []
         for season in cfg.rental.seasons:
@@ -907,13 +1038,17 @@ def run_cash_on_cash_sensitivity_analysis(json_path: str, case_name: str, verbos
     
     sensitivities.append(test_coc_parameter(
         base_config, 'Occupancy Rate', base_occ,
-        base_occ * 0.90, base_occ * 1.10,
-        lambda cfg, val: modify_occupancy(cfg, val / base_occ),
+        low_occ, high_occ,
+        lambda cfg, val: modify_occupancy(cfg, val / base_occ if base_occ != 0 else 1.0),
         20
     ))
     
     # 6. Average Daily Rate (modify seasonal data)
     base_rate = base_config.rental.average_daily_rate
+    low_rate, high_rate = scale_low_high(
+        base_rate, *SENSITIVITY_FACTORS['average_daily_rate'],
+        clamp_min=0.0
+    )
     def modify_daily_rate(cfg, multiplier):
         new_seasons = []
         for season in cfg.rental.seasons:
@@ -923,71 +1058,100 @@ def run_cash_on_cash_sensitivity_analysis(json_path: str, case_name: str, verbos
     
     sensitivities.append(test_coc_parameter(
         base_config, 'Average Daily Rate', base_rate,
-        base_rate * 0.80, base_rate * 1.20,
-        lambda cfg, val: modify_daily_rate(cfg, val / base_rate),
+        low_rate, high_rate,
+        lambda cfg, val: modify_daily_rate(cfg, val / base_rate if base_rate != 0 else 1.0),
         40
     ))
     
     # 7. Interest Rate
     base_int = base_config.financing.interest_rate
+    low_int, high_int = scale_low_high(
+        base_int, *SENSITIVITY_FACTORS['interest_rate'],
+        clamp_min=0.0
+    )
     sensitivities.append(test_coc_parameter(
         base_config, 'Interest Rate', base_int,
-        base_int - 0.01, base_int + 0.01,
+        low_int, high_int,
         lambda cfg, val: replace(cfg, financing=replace(cfg.financing, interest_rate=val)),
         154
     ))
     
     # 8. LTV
     base_ltv = base_config.financing.ltv
+    low_ltv, high_ltv = scale_low_high(
+        base_ltv, *SENSITIVITY_FACTORS['ltv'],
+        clamp_min=0.0, clamp_max=0.95
+    )
     sensitivities.append(test_coc_parameter(
         base_config, 'Loan-to-Value (LTV)', base_ltv,
-        base_ltv * 0.90, min(base_ltv * 1.10, 0.95),
+        low_ltv, high_ltv,
         lambda cfg, val: replace(cfg, financing=replace(cfg.financing, ltv=val)),
         20
     ))
     
     # 9. Inflation Rate (doesn't affect Year 1, but include for consistency)
     base_inflation = proj_defaults['inflation_rate']
+    low_inflation, high_inflation = scale_low_high(
+        base_inflation, *SENSITIVITY_FACTORS['inflation'],
+        clamp_min=0.0
+    )
     sensitivities.append(create_sensitivity_result(
-        'Inflation Rate', base_inflation, base_inflation - 0.005, base_inflation + 0.005,
+        'Inflation Rate', base_inflation, low_inflation, high_inflation,
         base_coc, base_coc, base_coc, 100  # No impact on Year 1 cash
     ))
     
     # 10. Amortization Rate
     base_amort = base_config.financing.amortization_rate
+    low_amort, high_amort = scale_low_high(
+        base_amort, *SENSITIVITY_FACTORS['amortization'],
+        clamp_min=0.0
+    )
     sensitivities.append(test_coc_parameter(
         base_config, 'Amortization Rate', base_amort,
-        0.0, 0.02,
+        low_amort, high_amort,
         lambda cfg, val: replace(cfg, financing=replace(cfg.financing, amortization_rate=val)),
         200
     ))
     
     # 11. Cleaning Cost per Stay
     base_clean = base_config.expenses.cleaning_cost_per_stay
+    low_clean, high_clean = scale_low_high(
+        base_clean, *SENSITIVITY_FACTORS['cleaning_cost'],
+        clamp_min=0.0
+    )
     sensitivities.append(test_coc_parameter(
         base_config, 'Cleaning Cost per Stay', base_clean,
-        base_clean * 0.70, base_clean * 1.30,
+        low_clean, high_clean,
         lambda cfg, val: replace(cfg, expenses=replace(cfg.expenses, cleaning_cost_per_stay=val)),
         60
     ))
     
     # 12. Average Length of Stay
     base_los = base_config.expenses.average_length_of_stay
+    low_los, high_los = scale_low_high(
+        base_los, *SENSITIVITY_FACTORS['length_of_stay'],
+        clamp_min=0.1
+    )
     sensitivities.append(test_coc_parameter(
         base_config, 'Average Length of Stay', base_los,
-        base_los * 0.70, base_los * 1.30,
+        low_los, high_los,
         lambda cfg, val: replace(cfg, expenses=replace(cfg.expenses, average_length_of_stay=val)),
         60
     ))
     
     # 13. Insurance Rate
+    base_insurance_rate = base_config.expenses.insurance_annual / base_config.financing.purchase_price
+    low_insurance_rate, high_insurance_rate = scale_low_high(
+        base_insurance_rate, *SENSITIVITY_FACTORS['insurance_rate'],
+        clamp_min=0.0
+    )
     def modify_insurance(cfg, new_rate):
         new_insurance = cfg.financing.purchase_price * new_rate
         return replace(cfg, expenses=replace(cfg.expenses, insurance_annual=new_insurance))
     
     sensitivities.append(test_coc_parameter(
-        base_config, 'Insurance Rate', 0.004,
-        0.003, 0.005,
+        base_config, 'Insurance Rate', base_insurance_rate,
+        low_insurance_rate, high_insurance_rate,
         lambda cfg, val: modify_insurance(cfg, val),
         50
     ))
@@ -995,6 +1159,10 @@ def run_cash_on_cash_sensitivity_analysis(json_path: str, case_name: str, verbos
     # 14. Winter Season Occupancy
     winter_season = [s for s in base_config.rental.seasons if s.name == "Winter Peak (Ski Season)"][0]
     base_winter_occ = winter_season.occupancy_rate
+    low_winter_occ, high_winter_occ = scale_low_high(
+        base_winter_occ, *SENSITIVITY_FACTORS['winter_occupancy'],
+        clamp_min=0.0, clamp_max=0.95
+    )
     
     def modify_winter_occupancy(cfg, new_occ_rate):
         new_seasons = []
@@ -1008,21 +1176,26 @@ def run_cash_on_cash_sensitivity_analysis(json_path: str, case_name: str, verbos
     
     sensitivities.append(test_coc_parameter(
         base_config, 'Winter Season Occupancy', base_winter_occ,
-        base_winter_occ * 0.85, min(base_winter_occ * 1.15, 0.95),
+        low_winter_occ, high_winter_occ,
         lambda cfg, val: modify_winter_occupancy(cfg, val),
         30
     ))
     
     # 15. Selling Costs Rate (doesn't affect Year 1 CoC, but include for consistency)
     base_selling_rate = proj_defaults['selling_costs_rate']
+    low_selling, high_selling = scale_low_high(
+        base_selling_rate, *SENSITIVITY_FACTORS['selling_costs'],
+        clamp_min=0.05
+    )
     sensitivities.append(create_sensitivity_result(
         'Selling Costs Rate', base_selling_rate, 
-        max(base_selling_rate - 0.02, 0.05), base_selling_rate + 0.02,
+        low_selling, high_selling,
         base_coc, base_coc, base_coc, 26  # No impact on Year 1 cash
     ))
     
-    # Sort by impact
-    sensitivities.sort(key=lambda x: x['impact'], reverse=True)
+    # Keep canonical order for consistency across analyses
+    order_map = {name: idx for idx, name in enumerate(SENSITIVITY_ORDER)}
+    sensitivities.sort(key=lambda x: order_map.get(x['parameter'], 999))
     
     if verbose:
         print(f"\n  Top 5 impactful parameters:")
@@ -1102,116 +1275,161 @@ def run_monthly_ncf_sensitivity_analysis(json_path: str, case_name: str, verbose
     
     # 1. Property Appreciation (NO IMPACT on monthly cash flow - only affects exit)
     base_appr = proj_defaults['property_appreciation_rate']
+    low_appr, high_appr = scale_low_high(
+        base_appr, *SENSITIVITY_FACTORS['property_appreciation'],
+        clamp_min=0.0, clamp_max=1.0
+    )
     sensitivities.append(create_sensitivity_result(
-        'Property Appreciation Rate', base_appr, 0.015, 0.035,
+        'Property Appreciation Rate', base_appr, low_appr, high_appr,
         base_ncf, base_ncf, base_ncf, 40  # No impact
     ))
     
     # 2. Maintenance Reserve Rate
     base_maint = base_config.expenses.maintenance_rate
+    low_maint, high_maint = scale_low_high(
+        base_maint, *SENSITIVITY_FACTORS['maintenance'],
+        clamp_min=0.0
+    )
     sensitivities.append(test_ncf_parameter(
         base_config, 'Maintenance Reserve Rate', base_maint,
-        base_maint - 0.0025, base_maint + 0.0025,
+        low_maint, high_maint,
         lambda cfg, val: replace(cfg, expenses=replace(cfg.expenses, maintenance_rate=val)),
         100
     ))
     
     # 3. Property Management Fee
     base_mgmt = base_config.expenses.property_management_fee_rate
+    low_mgmt, high_mgmt = scale_low_high(
+        base_mgmt, *SENSITIVITY_FACTORS['management_fee'],
+        clamp_min=0.0, clamp_max=1.0
+    )
     sensitivities.append(test_ncf_parameter(
-        base_config, 'Management Fee Rate', base_mgmt,
-        base_mgmt - 0.02, base_mgmt + 0.02,
+        base_config, 'Property Management Fee', base_mgmt,
+        low_mgmt, high_mgmt,
         lambda cfg, val: replace(cfg, expenses=replace(cfg.expenses, property_management_fee_rate=val)),
         20
     ))
     
     # 4. Purchase Price
     base_price = base_config.financing.purchase_price
+    low_price, high_price = scale_low_high(
+        base_price, *SENSITIVITY_FACTORS['purchase_price']
+    )
     sensitivities.append(test_ncf_parameter(
         base_config, 'Purchase Price', base_price,
-        base_price * 0.85, base_price * 1.15,
+        low_price, high_price,
         lambda cfg, val: replace(cfg, financing=replace(cfg.financing, purchase_price=val)),
         30
     ))
     
     # 5. Interest Rate - MAJOR IMPACT on monthly payments
     base_rate = base_config.financing.interest_rate
+    low_int, high_int = scale_low_high(
+        base_rate, *SENSITIVITY_FACTORS['interest_rate'],
+        clamp_min=0.0
+    )
     sensitivities.append(test_ncf_parameter(
         base_config, 'Interest Rate', base_rate,
-        base_rate - 0.01, base_rate + 0.01,
+        low_int, high_int,
         lambda cfg, val: replace(cfg, financing=replace(cfg.financing, interest_rate=val)),
         150
     ))
     
     # 6. Loan-to-Value (LTV)
     base_ltv = base_config.financing.ltv
+    low_ltv, high_ltv = scale_low_high(
+        base_ltv, *SENSITIVITY_FACTORS['ltv'],
+        clamp_min=0.0, clamp_max=0.95
+    )
     sensitivities.append(test_ncf_parameter(
         base_config, 'Loan-to-Value (LTV)', base_ltv,
-        base_ltv * 0.9, base_ltv * 1.1,
+        low_ltv, high_ltv,
         lambda cfg, val: replace(cfg, financing=replace(cfg.financing, ltv=val)),
         20
     ))
     
     # 7. Average Daily Rate (ADR)
-    def modify_adr(cfg, new_adr_multiplier):
+    def modify_adr(cfg, multiplier):
         new_seasons = []
         for season in cfg.rental.seasons:
-            new_seasons.append(replace(season, average_daily_rate=season.average_daily_rate * new_adr_multiplier))
-        return replace(cfg, rental=replace(cfg.rental, seasons=new_seasons))
+            new_seasons.append(replace(season, average_daily_rate=season.average_daily_rate * multiplier))
+        return replace(cfg, rental=replace(cfg.rental, seasons=new_seasons, average_daily_rate=base_adr * multiplier))
     
-    base_adr = sum(s.average_daily_rate for s in base_config.rental.seasons) / len(base_config.rental.seasons)
-    low_ncf = calculate_monthly_ncf(modify_adr(base_config, 0.85), json_path)
-    high_ncf = calculate_monthly_ncf(modify_adr(base_config, 1.15), json_path)
+    base_adr = base_config.rental.average_daily_rate
+    low_adr, high_adr = scale_low_high(
+        base_adr, *SENSITIVITY_FACTORS['average_daily_rate'], clamp_min=0.0
+    )
+    low_ncf = calculate_monthly_ncf(modify_adr(base_config, low_adr / base_adr if base_adr != 0 else 1.0), json_path)
+    high_ncf = calculate_monthly_ncf(modify_adr(base_config, high_adr / base_adr if base_adr != 0 else 1.0), json_path)
     sensitivities.append(create_sensitivity_result(
-        'Average Daily Rate', base_adr, base_adr * 0.85, base_adr * 1.15,
+        'Average Daily Rate', base_adr, low_adr, high_adr,
         base_ncf, low_ncf, high_ncf, 30
     ))
     
     # 8. Occupancy Rate
-    def modify_occupancy(cfg, new_occ_multiplier):
+    def modify_occupancy(cfg, multiplier):
         new_seasons = []
         for season in cfg.rental.seasons:
-            new_seasons.append(replace(season, occupancy_rate=min(0.95, season.occupancy_rate * new_occ_multiplier)))
-        return replace(cfg, rental=replace(cfg.rental, seasons=new_seasons))
+            new_seasons.append(replace(season, occupancy_rate=season.occupancy_rate * multiplier))
+        return replace(cfg, rental=replace(cfg.rental, seasons=new_seasons, occupancy_rate=base_occ * multiplier))
     
-    base_occ = sum(s.occupancy_rate for s in base_config.rental.seasons) / len(base_config.rental.seasons)
-    low_ncf = calculate_monthly_ncf(modify_occupancy(base_config, 0.85), json_path)
-    high_ncf = calculate_monthly_ncf(modify_occupancy(base_config, 1.15), json_path)
+    base_occ = base_config.rental.occupancy_rate
+    low_occ, high_occ = scale_low_high(
+        base_occ, *SENSITIVITY_FACTORS['occupancy'], clamp_min=0.0, clamp_max=1.0
+    )
+    low_ncf = calculate_monthly_ncf(modify_occupancy(base_config, low_occ / base_occ if base_occ != 0 else 1.0), json_path)
+    high_ncf = calculate_monthly_ncf(modify_occupancy(base_config, high_occ / base_occ if base_occ != 0 else 1.0), json_path)
     sensitivities.append(create_sensitivity_result(
-        'Occupancy Rate', base_occ, base_occ * 0.85, min(0.95, base_occ * 1.15),
+        'Occupancy Rate', base_occ, low_occ, min(high_occ, 0.95),
         base_ncf, low_ncf, high_ncf, 30
     ))
     
     # 9. Inflation Rate (minimal monthly impact - mostly long-term)
     base_infl = proj_defaults['inflation_rate']
+    low_infl, high_infl = scale_low_high(
+        base_infl, *SENSITIVITY_FACTORS['inflation'],
+        clamp_min=0.0
+    )
     sensitivities.append(create_sensitivity_result(
-        'Inflation Rate', base_infl, 0.005, 0.015,
+        'Inflation Rate', base_infl, low_infl, high_infl,
         base_ncf, base_ncf, base_ncf, 100  # No Year 1 impact
     ))
     
     # 10. Amortization Rate - MAJOR IMPACT (principal paydown)
     base_amort = base_config.financing.amortization_rate
+    low_amort, high_amort = scale_low_high(
+        base_amort, *SENSITIVITY_FACTORS['amortization'],
+        clamp_min=0.0
+    )
     sensitivities.append(test_ncf_parameter(
         base_config, 'Amortization Rate', base_amort,
-        0.0, 0.02,  # 0% (interest-only) to 2%
+        low_amort, high_amort,  # 0% (interest-only) to 2%
         lambda cfg, val: replace(cfg, financing=replace(cfg.financing, amortization_rate=val)),
         200
     ))
     
     # 11. Cleaning Cost per Stay
     base_cleaning = base_config.expenses.cleaning_cost_per_stay
+    low_clean, high_clean = scale_low_high(
+        base_cleaning, *SENSITIVITY_FACTORS['cleaning_cost'],
+        clamp_min=0.0
+    )
     sensitivities.append(test_ncf_parameter(
         base_config, 'Cleaning Cost per Stay', base_cleaning,
-        base_cleaning * 0.7, base_cleaning * 1.3,
+        low_clean, high_clean,
         lambda cfg, val: replace(cfg, expenses=replace(cfg.expenses, cleaning_cost_per_stay=val)),
         60
     ))
     
     # 12. Average Length of Stay (in ExpenseParams, affects cleaning frequency)
     base_length = base_config.expenses.average_length_of_stay
+    low_length, high_length = scale_low_high(
+        base_length, *SENSITIVITY_FACTORS['length_of_stay'],
+        clamp_min=0.1
+    )
     sensitivities.append(test_ncf_parameter(
         base_config, 'Average Length of Stay', base_length,
-        base_length * 0.7, base_length * 1.3,
+        low_length, high_length,
         lambda cfg, val: replace(cfg, expenses=replace(cfg.expenses, average_length_of_stay=val)),
         60
     ))
@@ -1220,12 +1438,15 @@ def run_monthly_ncf_sensitivity_analysis(json_path: str, case_name: str, verbose
     base_ins = base_config.expenses.insurance_annual
     purchase_price = base_config.financing.purchase_price
     base_ins_rate = base_ins / purchase_price if purchase_price > 0 else 0.004
-    # Test ±0.1% insurance rate
-    low_ins = purchase_price * 0.003   # 0.3% rate
-    high_ins = purchase_price * 0.005  # 0.5% rate
+    low_ins_rate, high_ins_rate = scale_low_high(
+        base_ins_rate, *SENSITIVITY_FACTORS['insurance_rate'],
+        clamp_min=0.0
+    )
+    low_ins = purchase_price * low_ins_rate
+    high_ins = purchase_price * high_ins_rate
     sensitivities.append(test_ncf_parameter(
         base_config, 'Insurance Rate', base_ins_rate,
-        0.003, 0.005,
+        low_ins_rate, high_ins_rate,
         lambda cfg, val: replace(cfg, expenses=replace(cfg.expenses, insurance_annual=purchase_price * val)),
         50
     ))
@@ -1234,29 +1455,38 @@ def run_monthly_ncf_sensitivity_analysis(json_path: str, case_name: str, verbose
     def modify_winter_occupancy(cfg, new_winter_occ):
         new_seasons = []
         for season in cfg.rental.seasons:
-            if season.name == 'Winter':
+            if season.name == "Winter Peak (Ski Season)":
                 new_seasons.append(replace(season, occupancy_rate=new_winter_occ))
             else:
                 new_seasons.append(season)
         return replace(cfg, rental=replace(cfg.rental, seasons=new_seasons))
     
-    base_winter_occ = next((s.occupancy_rate for s in base_config.rental.seasons if s.name == 'Winter'), 0.75)
+    base_winter_occ = next((s.occupancy_rate for s in base_config.rental.seasons if s.name == "Winter Peak (Ski Season)"), 0.75)
+    low_winter_occ, high_winter_occ = scale_low_high(
+        base_winter_occ, *SENSITIVITY_FACTORS['winter_occupancy'],
+        clamp_min=0.0, clamp_max=0.95
+    )
     sensitivities.append(test_ncf_parameter(
         base_config, 'Winter Season Occupancy', base_winter_occ,
-        base_winter_occ * 0.85, min(0.95, base_winter_occ * 1.15),
+        low_winter_occ, high_winter_occ,
         modify_winter_occupancy,
         30
     ))
     
     # 15. Selling Costs Rate (NO IMPACT on monthly cash - only at exit)
     base_sell = proj_defaults['selling_costs_rate']
+    low_sell, high_sell = scale_low_high(
+        base_sell, *SENSITIVITY_FACTORS['selling_costs'],
+        clamp_min=0.05
+    )
     sensitivities.append(create_sensitivity_result(
-        'Selling Costs Rate', base_sell, 0.058, 0.098,
+        'Selling Costs Rate', base_sell, low_sell, high_sell,
         base_ncf, base_ncf, base_ncf, 50  # No impact on monthly
     ))
     
-    # Sort by impact (highest first)
-    sensitivities.sort(key=lambda x: x['impact'], reverse=True)
+    # Keep canonical order for consistency across analyses
+    order_map = {name: idx for idx, name in enumerate(SENSITIVITY_ORDER)}
+    sensitivities.sort(key=lambda x: order_map.get(x['parameter'], 999))
     
     if verbose:
         print(f"\n  Top 5 impactful parameters:")

@@ -88,7 +88,7 @@ python -m http.server 8080
 | `generate_all_data.py` | Batch data generator |
 | `validate_system.py` | System validator (198 checks) |
 
-### Configuration (5 scenarios)
+### Configuration (6 scenarios)
 | File | Description |
 |------|-------------|
 | `assumptions.json` | Base case (4 owners, 75% LTV, 1.3% interest) |
@@ -96,6 +96,7 @@ python -m http.server 8080
 | `assumptions_3_owners.json` | 3 owners scenario |
 | `assumptions_5_owners.json` | 5 owners scenario |
 | `assumptions_6_owners.json` | 6 owners scenario |
+| `assumptions_90day_restriction.json` | 90-day Airbnb restriction (25% occupancy) |
 
 ### Output
 - `website/index.html` - Dynamic dashboard
@@ -118,7 +119,7 @@ Edit `assumptions.json`:
   },
   "projection": {
     "inflation_rate": 0.01,
-    "property_appreciation_rate": 0.025,
+    "property_appreciation_rate": 0.04,
     "discount_rate": 0.05,
     "selling_costs": {
       "total_rate": 0.078
@@ -137,45 +138,45 @@ python generate_all_data.py
 ## 📈 Sensitivity Analysis Overview
 
 ### Top 5 Most Impactful Parameters (Equity IRR)
-1. **Property Appreciation** (±4.09% IRR impact)
-2. **Interest Rate** (±3.52% IRR impact)
-3. **Average Daily Rate** (±2.94% IRR impact)
-4. **Maintenance Reserve** (±2.93% IRR impact)
-5. **Loan-to-Value** (±1.21% IRR impact)
+1. **Property Appreciation** (±6.06% IRR impact)
+2. **Interest Rate** (±2.91% IRR impact)
+3. **Average Daily Rate** (±2.60% IRR impact)
+4. **Maintenance Reserve** (±2.64% IRR impact)
+5. **Loan-to-Value** (±1.32% IRR impact)
 
 ### Top 5 for Monthly Cash Flow
-1. **Interest Rate** (±CHF 406/month)
-2. **Amortization Rate** (±CHF 406/month)
-3. **Average Daily Rate** (±CHF 225/month)
-4. **Occupancy Rate** (±CHF 160/month)
-5. **Purchase Price** (±CHF 140/month)
+1. **Interest Rate** (largest CHF/month swing)
+2. **Amortization Rate** (principal paydown hits cash)
+3. **Average Daily Rate**
+4. **Occupancy Rate**
+5. **Purchase Price**
 
 ---
 
 ## 🎓 Understanding Negative Cash Flow
 
-**Monthly Cash Flow: -CHF 239/month per owner**
+**Monthly Cash Flow: ~-CHF 595/month per owner**
 
 This means you contribute ~CHF 240/month. Why?
 
 ### The Math:
 ```
-Revenue:          CHF  51,360
-- Expenses:       CHF  40,413
-= NOI:            CHF  10,946
-- Debt Service:   CHF  22,426  (2× higher than NOI!)
-= Cash Flow:      CHF -11,479
-÷ 4 owners:       CHF  -2,870/year
-÷ 12 months:      CHF    -239/month
+Revenue:          CHF  48,160
+- Expenses:       CHF  54,314
+= NOI:            CHF  -6,154
+- Debt Service:   CHF  22,425
+= Cash Flow:      CHF -28,579
+÷ 4 owners:       CHF  -7,145/year
+÷ 12 months:      CHF    -595/month
 ```
 
 ### But You're Building Wealth:
 ```
 Negative Cash:    -CHF   2,870/year
 + Equity Buildup: +CHF   2,437/year (amortization)
-+ Appreciation:   +CHF   8,125/year (2.5% × CHF 325k share)
++ Appreciation:   +CHF  13,000/year (4% × CHF 325k share)
 + Personal Use:   +CHF   1,000/year (5 nights @ CHF 200)
-= Economic Value: +CHF   8,692/year  ✅ POSITIVE!
+= Economic Value: +CHF   9,291/year  ✅ POSITIVE!
 ```
 
 ---

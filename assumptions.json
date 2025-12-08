@@ -31,8 +31,8 @@
     "days_per_year": 365,
     "_days_per_year_explanation": "Standard calendar year. The property is available for rental 365 days minus owner nights.",
 
-    "legacy_occupancy_rate": 0.63,
-    "_legacy_occupancy_explanation": "63% overall occupancy rate is calibrated to actual Engelberg Airbnb market data. This represents the weighted average across all seasons. Engelberg's strong tourism demand (ski in winter, hiking in summer) supports this occupancy level. This is a legacy parameter - actual occupancy varies by season as defined in the seasonal breakdown below.",
+    "legacy_occupancy_rate": 0.7,
+    "_legacy_occupancy_explanation": "70% overall occupancy (updated) aligned to manager guidance; seasonals below apply per season.",
 
     "legacy_average_daily_rate": 200.0,
     "_legacy_adr_explanation": "200 CHF average daily rate is calibrated to actual Engelberg Airbnb market data. This is the weighted average across all seasons. Premium rates during ski season (250 CHF) and moderate rates in summer (200 CHF) average to approximately 200 CHF overall. This is a legacy parameter - actual rates vary by season as defined below.",
@@ -55,8 +55,8 @@
       "_explanation": "Winter Peak (December through March) is the ski season, representing the highest demand and premium pricing period. Engelberg's proximity to Mount Titlis and world-class skiing drives strong demand.",
       "name": "Winter Peak (Ski Season)",
       "months": [12, 1, 2, 3],
-      "occupancy_rate": 0.75,
-      "_occupancy_rate_explanation": "75% occupancy during ski season reflects strong demand from skiers and winter sports enthusiasts. This is the peak season with highest demand. Comparable properties in Engelberg achieve 70-80% occupancy during ski season based on Airbnb analytics.",
+      "occupancy_rate": 0.7,
+      "_occupancy_rate_explanation": "Updated to 70% occupancy assumption per latest guidance.",
       "average_daily_rate": 250.0,
       "_adr_explanation": "250 CHF per night during ski season reflects premium pricing due to high demand. Ski season commands the highest rates in Engelberg. This is based on actual market data showing 240-260 CHF range for comparable properties during peak winter months."
     },
@@ -65,8 +65,8 @@
       "_explanation": "Summer Peak (June through September) is the hiking and mountain activities season. Engelberg offers excellent hiking, mountain biking, and outdoor activities during summer months.",
       "name": "Summer Peak (Hiking Season)",
       "months": [6, 7, 8, 9],
-      "occupancy_rate": 0.65,
-      "_occupancy_rate_explanation": "65% occupancy during summer reflects good demand from hikers and outdoor enthusiasts. While not as strong as winter, summer tourism in Engelberg is robust. Based on Airbnb analytics, comparable properties achieve 60-70% occupancy during summer months.",
+      "occupancy_rate": 0.7,
+      "_occupancy_rate_explanation": "Updated to 70% occupancy assumption per latest guidance.",
       "average_daily_rate": 200.0,
       "_adr_explanation": "200 CHF per night during summer reflects moderate pricing. Summer rates are lower than winter but still strong due to hiking and outdoor activity demand. Market data shows 190-210 CHF range for comparable properties during summer months."
     },
@@ -75,8 +75,8 @@
       "_explanation": "Off-Peak periods (April-May and October-November) are shoulder seasons with lower tourism demand. These periods experience reduced occupancy and discounted rates.",
       "name": "Off-Peak (Shoulder Seasons)",
       "months": [4, 5, 10, 11],
-      "occupancy_rate": 0.5,
-      "_occupancy_rate_explanation": "50% occupancy during shoulder seasons reflects lower demand. These periods between peak seasons experience reduced tourism. Based on market data, comparable properties achieve 45-55% occupancy during shoulder seasons.",
+      "occupancy_rate": 0.7,
+      "_occupancy_rate_explanation": "Updated to 70% occupancy assumption per latest guidance.",
       "average_daily_rate": 150.0,
       "_adr_explanation": "150 CHF per night during off-peak reflects discounted pricing to maintain occupancy. Lower rates help fill available nights during slower periods. Market data shows 140-160 CHF range for comparable properties during shoulder seasons."
     }
@@ -86,10 +86,10 @@
     "_explanation": "Operating expense assumptions are based on typical Swiss vacation rental property costs. These include property management, utilities, insurance, and maintenance reserves.",
 
     "property_management_fee_rate": 0.2,
-    "_management_fee_explanation": "20% of gross rental income for property management is standard for Swiss vacation rentals. This typically includes booking management, guest communication, and coordination. Cleaning is separate (see cleaning_cost_per_stay). Management fees in Switzerland typically range from 18-25% for vacation rentals.",
+    "_management_fee_explanation": "20% of gross rental income for property management (updated per manager quote). Cleaning is separate (see cleaning_cost_per_stay).",
 
-    "cleaning_cost_per_stay": 70.0,
-    "_cleaning_cost_explanation": "70 CHF per stay for cleaning reflects a competitive rate for professional cleaning services in Switzerland. This is charged separately from management fees. With good negotiation and efficient cleaning operations, 70 CHF provides thorough professional cleaning while optimizing costs. This covers linens, deep cleaning, and guest preparation.",
+    "cleaning_cost_per_stay": 150.0,
+    "_cleaning_cost_explanation": "150 CHF per stay for cleaning per latest property manager quote. Charged separately from management fees.",
 
     "average_length_of_stay": 1.7,
     "_length_of_stay_explanation": "1.7 nights average length of stay is based on Engelberg Airbnb analytics. Most guests stay 1-3 nights, with weekend stays common. This affects the number of cleaning cycles and tourist tax calculations.",
@@ -125,24 +125,24 @@
     "inflation_rate": 0.01,
     "_inflation_rate_explanation": "1% annual inflation is conservative for Switzerland. The Swiss National Bank targets 2%, but using 1% provides a more cautious forecast. This affects both revenue (rents increase) and expenses (costs increase) over time.",
 
-    "property_appreciation_rate": 0.025,
-    "_property_appreciation_explanation": "2.5% annual property appreciation is realistic for Swiss mountain resort real estate. Engelberg has strong appreciation potential due to limited supply, strong tourism demand, and its position as a premium ski destination. This aligns with historical Swiss mountain resort property performance.",
+    "property_appreciation_rate": 0.04,
+    "_property_appreciation_explanation": "4.0% annual property appreciation (updated) applied consistently across all cases per latest guidance.",
 
     "discount_rate": 0.05,
     "_discount_rate_explanation": "5% discount rate for NPV calculations reflects the opportunity cost of capital and investment risk. This is a typical required return for real estate investments in Switzerland.",
 
     "selling_costs": {
       "_explanation": "Selling costs incurred when the property is sold at year 15. These are deducted from sale proceeds in IRR calculations.",
-      
+
       "broker_fee_rate": 0.03,
       "_broker_fee_explanation": "3% broker/agent commission is standard in Switzerland for property sales. This is negotiable but typically 2-4%.",
-      
+
       "notary_fee_rate": 0.015,
       "_notary_fee_explanation": "1.5% notary and legal fees for property transfer documentation, title transfer, and legal work. Swiss notaries handle all real estate transactions.",
-      
+
       "transfer_tax_rate": 0.033,
       "_transfer_tax_explanation": "3.3% transfer tax (Handänderungssteuer) in Canton Obwalden. This varies by canton (1-3.3%). Obwalden has one of the highest rates in Switzerland.",
-      
+
       "total_rate": 0.078,
       "_total_explanation": "Total selling costs = 7.8% of sale price (3% broker + 1.5% notary + 3.3% transfer tax). This significantly impacts net proceeds and thus IRR."
     }

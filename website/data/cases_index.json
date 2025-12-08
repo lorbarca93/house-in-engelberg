@@ -57,6 +57,20 @@
       "errors": []
     },
     {
+      "case_name": "90day_restriction",
+      "display_name": "90-Day Airbnb Restriction",
+      "assumptions_file": "assumptions_90day_restriction.json",
+      "data_files": {
+        "base_case_analysis": "90day_restriction_base_case_analysis.json",
+        "sensitivity": "90day_restriction_sensitivity.json",
+        "sensitivity_coc": "90day_restriction_sensitivity_coc.json",
+        "sensitivity_ncf": "90day_restriction_sensitivity_ncf.json",
+        "monte_carlo": "90day_restriction_monte_carlo.json"
+      },
+      "status": "success",
+      "errors": []
+    },
+    {
       "case_name": "migros",
       "display_name": "Migros Scenario",
       "assumptions_file": "assumptions_migros.json",
@@ -71,6 +85,6 @@
       "errors": []
     }
   ],
-  "generated_at": "2025-12-03T08:06:23.340981",
-  "total_cases": 5
+  "generated_at": "2025-12-08T14:15:26.837893",
+  "total_cases": 6
 }
