@@ -71,6 +71,48 @@
       "errors": []
     },
     {
+      "case_name": "climate_risk",
+      "display_name": "Climate Risk Scenario",
+      "assumptions_file": "assumptions_climate_risk.json",
+      "data_files": {
+        "base_case_analysis": "climate_risk_base_case_analysis.json",
+        "sensitivity": "climate_risk_sensitivity.json",
+        "sensitivity_coc": "climate_risk_sensitivity_coc.json",
+        "sensitivity_ncf": "climate_risk_sensitivity_ncf.json",
+        "monte_carlo": "climate_risk_monte_carlo.json"
+      },
+      "status": "success",
+      "errors": []
+    },
+    {
+      "case_name": "early_exit",
+      "display_name": "Early Exit (Poor Performance)",
+      "assumptions_file": "assumptions_early_exit.json",
+      "data_files": {
+        "base_case_analysis": "early_exit_base_case_analysis.json",
+        "sensitivity": "early_exit_sensitivity.json",
+        "sensitivity_coc": "early_exit_sensitivity_coc.json",
+        "sensitivity_ncf": "early_exit_sensitivity_ncf.json",
+        "monte_carlo": "early_exit_monte_carlo.json"
+      },
+      "status": "success",
+      "errors": []
+    },
+    {
+      "case_name": "interest_rate_spike",
+      "display_name": "Interest Rate Spike",
+      "assumptions_file": "assumptions_interest_rate_spike.json",
+      "data_files": {
+        "base_case_analysis": "interest_rate_spike_base_case_analysis.json",
+        "sensitivity": "interest_rate_spike_sensitivity.json",
+        "sensitivity_coc": "interest_rate_spike_sensitivity_coc.json",
+        "sensitivity_ncf": "interest_rate_spike_sensitivity_ncf.json",
+        "monte_carlo": "interest_rate_spike_monte_carlo.json"
+      },
+      "status": "success",
+      "errors": []
+    },
+    {
       "case_name": "migros",
       "display_name": "Migros Scenario",
       "assumptions_file": "assumptions_migros.json",
@@ -85,6 +127,9 @@
       "errors": []
     }
   ],
-  "generated_at": "2025-12-08T14:28:03.488651",
-  "total_cases": 6
+  "generated_at": "2025-12-08T15:29:06.444544",
+  "total_cases": 9,
+  "assumptions_version": "2025-12-10",
+  "assumptions_hash": "21bea0be89beac6de43f14784559deff9d17827e09bc8b67eefa1e14c401289f",
+  "assumptions_last_updated": "2025-12-10T00:00:00Z"
 }

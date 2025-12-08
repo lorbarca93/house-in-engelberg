@@ -1,4 +1,9 @@
 {
+  "assumptions_file": "assumptions_migros.json",
+  "assumptions_version": null,
+  "assumptions_last_updated": null,
+  "assumptions_hash": "85b96edf256c4a6c33d41b4fa1364a10a458ce8b8053e9ef3944142a1fc572ac",
+  "generated_at": "2025-12-08T14:29:01.735833Z",
   "base_coc": -3.8834276018099545,
   "sensitivities": [
     {

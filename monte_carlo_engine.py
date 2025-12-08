@@ -346,7 +346,9 @@ def apply_enhanced_sensitivity(
             nubbing_costs_annual=nubbing_costs_annual if nubbing_costs_annual is not None else config.expenses.nubbing_costs_annual,
             electricity_internet_annual=electricity_internet_annual if electricity_internet_annual is not None else config.expenses.electricity_internet_annual,
             maintenance_rate=maintenance_rate if maintenance_rate is not None else config.expenses.maintenance_rate,
-            property_value=config.expenses.property_value
+            property_value=config.expenses.property_value,
+            ota_booking_percentage=config.expenses.ota_booking_percentage,
+            ota_fee_rate=config.expenses.ota_fee_rate
         )
     
     return config

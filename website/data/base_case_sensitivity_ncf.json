@@ -1,4 +1,9 @@
 {
+  "assumptions_file": "assumptions.json",
+  "assumptions_version": "2025-12-10",
+  "assumptions_last_updated": "2025-12-10T00:00:00Z",
+  "assumptions_hash": "21bea0be89beac6de43f14784559deff9d17827e09bc8b67eefa1e14c401289f",
+  "generated_at": "2025-12-08T14:28:17.366346Z",
   "case_name": "base_case",
   "base_ncf": -595.3921568627451,
   "sensitivities": [

@@ -32,7 +32,7 @@ This script:
 - Auto-detects all `assumptions_*.json` files
 - Generates base case, sensitivity (3 types), and Monte Carlo data for each case
 - Creates `website/data/cases_index.json` with metadata
-- Produces 26 JSON data files
+- Produces 45+ JSON data files (9 cases × 5 analyses each)
 
 **Option B: Run Individual Analyses**
 
@@ -70,13 +70,13 @@ python validate_system.py    # 198 comprehensive checks
 
 The dashboard (`website/index.html`) provides:
 
-- **Top Navigation Bar**: Case selector dropdown (Base Case, Migros, 3 Owners, 5 Owners, 6 Owners)
+- **Top Navigation Bar**: Case selector dropdown (9 scenarios: Base Case, Migros, 3/5/6 Owners, 90-Day Restriction, Climate Risk, Interest Rate Spike, Early Exit)
 - **Left Sidebar**: Analysis type selector with 5 options:
   - **Model** (Simulation KPIs): Base case metrics and 15-year projection
   - **Sensitivity - Equity IRR**: How parameters affect your equity return
   - **Sensitivity - Cash-on-Cash**: How parameters affect Year 1 cash yield
   - **Sensitivity - Monthly NCF**: How parameters affect monthly cash flow
-  - **Monte Carlo**: Probabilistic simulation with 1,000+ scenarios
+  - **Monte Carlo**: Probabilistic simulation with 10,000 scenarios for stable statistics
 - **Dynamic Content Area**:
   - KPI cards with key metrics (12+ per page)
   - Interactive Plotly.js tornado charts
@@ -92,16 +92,19 @@ The dashboard (`website/index.html`) provides:
 
 ## Available Cases
 
-The system supports 6 investment scenarios:
+The system supports 9 investment scenarios:
 
-| Case                          | File                          | LTV | Interest | Amort | Owners |
-| ----------------------------- | ----------------------------- | --- | -------- | ----- | ------ |
-| **Base Case**                 | `assumptions.json`            | 75% | 1.3%     | 1%    | 4      |
-| **Migros**                    | `assumptions_migros.json`     | 60% | 1.8%     | 0%    | 4      |
-| **3 Owners**                  | `assumptions_3_owners.json`   | 75% | 1.3%     | 1%    | 3      |
-| **5 Owners**                  | `assumptions_5_owners.json`   | 75% | 1.3%     | 1%    | 5      |
-| **6 Owners**                  | `assumptions_6_owners.json`   | 75% | 1.3%     | 1%    | 6      |
-| **90-Day Airbnb Restriction** | `assumptions_90day_restriction.json` | 75% | 1.3% | 1% | 4 |
+| Case                          | File                          | LTV | Interest | Amort | Owners | Key Feature |
+| ----------------------------- | ----------------------------- | --- | -------- | ----- | ------ | ----------- |
+| **Base Case**                 | `assumptions.json`            | 75% | 1.3%     | 1%    | 4      | Standard assumptions |
+| **Migros**                    | `assumptions_migros.json`     | 60% | 1.8%     | 0%    | 4      | Lower LTV, no amort |
+| **3 Owners**                  | `assumptions_3_owners.json`   | 75% | 1.3%     | 1%    | 3      | Fewer owners |
+| **5 Owners**                  | `assumptions_5_owners.json`   | 75% | 1.3%     | 1%    | 5      | More owners |
+| **6 Owners**                  | `assumptions_6_owners.json`   | 75% | 1.3%     | 1%    | 6      | Most owners |
+| **90-Day Airbnb Restriction** | `assumptions_90day_restriction.json` | 75% | 1.3% | 1% | 4 | 25% occupancy, 90-night cap |
+| **Climate Risk**              | `assumptions_climate_risk.json` | 75% | 1.3% | 1% | 4 | Winter -25%, Summer +10% occupancy |
+| **Interest Rate Spike**       | `assumptions_interest_rate_spike.json` | 75% | 1.3%→3.5% | 1% | 4 | Refinances to 3.5% at year 6 |
+| **Early Exit**                | `assumptions_early_exit.json` | 75% | 1.3% | 1% | 4 | 40% occupancy, exit at year 6 |
 
 ## Key Metrics (Base Case)
 
@@ -119,7 +122,7 @@ The system supports 6 investment scenarios:
 ```
 .
 ├── assumptions.json                 # Base case assumptions (single source of truth)
-├── assumptions_*.json               # Case-specific assumption overrides (4 files)
+├── assumptions_*.json               # Case-specific assumption overrides (8 scenario files)
 ├── analyze.py                       # 🆕 Unified analysis script (1,500+ lines)
 ├── core_engine.py                   # 🆕 Core calculation engine (1,250+ lines)
 ├── monte_carlo_engine.py            # Monte Carlo simulation engine (1,870+ lines)
@@ -128,7 +131,7 @@ The system supports 6 investment scenarios:
 ├── requirements.txt                 # Python dependencies
 ├── website/
 │   ├── index.html                   # Dynamic single-page dashboard
-│   └── data/                        # JSON data files (26 files)
+│   └── data/                        # JSON data files (45+ files)
 │       ├── cases_index.json         # Master index of all cases
 │       ├── {case}_base_case_analysis.json
 │       ├── {case}_sensitivity.json
@@ -169,10 +172,12 @@ The system supports 6 investment scenarios:
 
 ### 5. Monte Carlo Simulation
 
-- **1,000+ simulations**: Probabilistic outcomes
-- **Statistics**: Mean, median, std dev, percentiles
-- **Distribution charts**: NPV and IRR histograms
-- **Risk metrics**: Probability of negative NPV, VaR
+- **10,000 simulations**: Probabilistic outcomes with stable statistics
+- **Statistics**: Mean, median, std dev, percentiles (5th, 10th, 25th, 75th, 90th, 95th)
+- **Distribution charts**: NPV and IRR histograms with mean indicators
+- **Cumulative probability**: Percentile curves for risk assessment
+- **Scatter analysis**: Occupancy vs Daily Rate correlation visualization
+- **Risk metrics**: Probability of negative NPV, VaR, worst/best case scenarios
 
 ## Creating New Cases
 
@@ -329,6 +334,7 @@ The dashboard (`website/index.html`) uses:
 
 ---
 
-**Last Updated**: December 3, 2025  
+**Last Updated**: December 9, 2025  
 **Status**: Production Ready ✅  
-**Validation**: 198/198 checks passing
+**Validation**: 198/198 checks passing  
+**Scenarios**: 9 investment cases (Base, Migros, 3/5/6 Owners, 90-Day Restriction, Climate Risk, Interest Rate Spike, Early Exit)

@@ -1,4 +1,6 @@
 {
+  "_version": "2025-12-10",
+  "_last_updated": "2025-12-10T00:00:00Z",
   "_comment": "Engelberg Property Investment - Base Case Assumptions",
   "_description": "This file contains all assumption parameters used across all analyses. This is the SINGLE SOURCE OF TRUTH for all financial modeling assumptions.",
   "_calibration_note": "All assumptions are calibrated to real Engelberg Airbnb market data: 63% average occupancy, 200 CHF average nightly rate, approximately 46,000 CHF annual revenue. These values are based on actual performance data from comparable properties in Engelberg, Switzerland.",
@@ -110,7 +112,13 @@
     "_electricity_internet_explanation": "1,000 CHF annually for electricity and internet. Swiss electricity costs are moderate, and internet is essential for vacation rentals (guests expect WiFi). This covers both utilities and is based on typical consumption for a 3-4 bedroom vacation rental property.",
 
     "maintenance_rate": 0.005,
-    "_maintenance_rate_explanation": "0.5% of property value annually for maintenance reserve is realistic for a newer property in good condition. This equals CHF 6,500/year and covers routine maintenance and minor repairs while maintaining healthy cash flow. Major capital expenditures can be funded separately if needed. This aligns with industry best practices of 5-10% of gross revenue for maintenance."
+    "_maintenance_rate_explanation": "0.5% of property value annually for maintenance reserve is realistic for a newer property in good condition. This equals CHF 6,500/year and covers routine maintenance and minor repairs while maintaining healthy cash flow. Major capital expenditures can be funded separately if needed. This aligns with industry best practices of 5-10% of gross revenue for maintenance.",
+
+    "ota_booking_percentage": 0.5,
+    "_ota_booking_percentage_explanation": "50% of bookings come through Online Travel Agencies (OTAs) like Airbnb or Booking.com. The remaining 50% come through direct bookings or other channels. This percentage can be adjusted based on actual booking channel mix.",
+
+    "ota_fee_rate": 0.3,
+    "_ota_fee_rate_explanation": "30% fee charged by OTAs (Airbnb, Booking.com) on gross revenue for bookings made through their platform. This covers their services for listing, marketing, payment processing, and customer support. The effective platform fee on total revenue is calculated as ota_booking_percentage × ota_fee_rate (50% × 30% = 15%)."
   },
 
   "projection": {

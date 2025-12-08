@@ -257,6 +257,7 @@
         box-shadow: var(--shadow);
         border-left: 4px solid var(--accent);
         min-width: 140px;
+        position: relative;
       }
 
       .kpi-card h3 {
@@ -280,6 +281,36 @@
 
       .kpi-card .value.negative {
         color: var(--danger);
+      }
+
+      /* KPI tooltips */
+      .kpi-card[data-tooltip]:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        left: 50%;
+        bottom: calc(100% + 10px);
+        transform: translateX(-50%);
+        background: rgba(17, 24, 39, 0.95);
+        color: #fff;
+        padding: 10px 12px;
+        border-radius: 6px;
+        font-size: 0.85em;
+        line-height: 1.4;
+        width: 260px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+        z-index: 20;
+        pointer-events: none;
+        text-align: left;
+      }
+      .kpi-card[data-tooltip]:hover::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        bottom: 100%;
+        transform: translateX(-50%);
+        border: 8px solid transparent;
+        border-top-color: rgba(17, 24, 39, 0.95);
+        z-index: 19;
       }
 
       /* Chart Container */
@@ -629,21 +660,27 @@
           let html = `
                     <div class="section">
                         <h2 class="section-title">Model</h2>
+                        <div style="font-size: 0.85em; color: #6c7a89; margin-bottom: 10px;">
+                          Data generated from: <strong>${data.assumptions_file || 'assumptions.json'}</strong>
+                          @ <strong>${data.assumptions_version || 'n/a'}</strong>
+                          (hash: ${(data.assumptions_hash || '').slice(0,8) || 'n/a'}) 
+                          • Generated: ${data.generated_at || 'n/a'}
+                        </div>
                         
                         <div class="kpi-grid">
-                            <div class="kpi-card">
+                            <div class="kpi-card" data-tooltip="Equity IRR with sale after 15 years, using leverage and all cash flows.">
                                 <h3>Equity IRR (15Y)</h3>
                                 <div class="value positive">${(
                                   irr.equity_irr_with_sale_pct || 0
                                 ).toFixed(2)}%</div>
                             </div>
-                            <div class="kpi-card">
+                            <div class="kpi-card" data-tooltip="Project IRR assumes 100% equity (no debt). Useful to compare to unlevered benchmarks.">
                                 <h3>Project IRR</h3>
                                 <div class="value positive">${(
                                   irr.project_irr_with_sale_pct || 0
                                 ).toFixed(2)}%</div>
                             </div>
-                            <div class="kpi-card">
+                            <div class="kpi-card" data-tooltip="Net Present Value at 5% discount rate. Positive means the investment meets the 5% hurdle.">
                                 <h3>NPV @ 5%</h3>
                                 <div class="value ${
                                   (irr.npv_at_5pct || 0) >= 0
@@ -658,21 +695,13 @@
             }
           )}</div>
                             </div>
-                            <div class="kpi-card">
+                            <div class="kpi-card" data-tooltip="Multiple on Invested Capital: total cash returned ÷ initial equity.">
                                 <h3>MOIC</h3>
                                 <div class="value ${
                                   (irr.moic || 0) >= 1 ? "positive" : "negative"
                                 }">${(irr.moic || 0).toFixed(2)}x</div>
                             </div>
-                            <div class="kpi-card">
-                                <h3>Payback Period</h3>
-                                <div class="value">${
-                                  irr.payback_period_years
-                                    ? irr.payback_period_years + "Y"
-                                    : "N/A"
-                                }</div>
-                            </div>
-                            <div class="kpi-card">
+                            <div class="kpi-card" data-tooltip="Annual net operating income before debt. Negative indicates expenses exceed gross rent.">
                                 <h3>Net Operating Income</h3>
                                 <div class="value">${(
                                   results.net_operating_income || 0
@@ -682,7 +711,7 @@
                                   maximumFractionDigits: 0,
                                 })}</div>
                             </div>
-                            <div class="kpi-card">
+                            <div class="kpi-card" data-tooltip="Annual cash flow after interest + principal. Negative means owners must fund the shortfall.">
                                 <h3>Cash Flow After DS</h3>
                                 <div class="value ${
                                   results.cash_flow_after_debt_service >= 0
@@ -698,7 +727,7 @@
                                     })}
                                 </div>
                             </div>
-                            <div class="kpi-card">
+                            <div class="kpi-card" data-tooltip="Annual cash flow per owner after debt service.">
                                 <h3>Cash Flow per Owner</h3>
                                 <div class="value ${
                                   results.cash_flow_per_owner >= 0
@@ -714,13 +743,29 @@
                                     })}
                                 </div>
                             </div>
-                            <div class="kpi-card">
+                            <div class="kpi-card" data-tooltip="Monthly cash per owner after debt service. Quick view of monthly burn/surplus.">
+                                <h3>Cash / Owner / Month</h3>
+                                <div class="value ${
+                                  results.cash_flow_per_owner >= 0
+                                    ? "positive"
+                                    : "negative"
+                                }">
+                                    ${(
+                                      (results.cash_flow_per_owner || 0) / 12
+                                    ).toLocaleString("en-US", {
+                                      style: "currency",
+                                      currency: "CHF",
+                                      maximumFractionDigits: 0,
+                                    })}
+                                </div>
+                            </div>
+                            <div class="kpi-card" data-tooltip="Debt Service Coverage Ratio = NOI ÷ Debt Service. <1.0 means debt not covered by NOI.">
                                 <h3>Debt Service Coverage</h3>
                                 <div class="value">${(
                                   results.debt_coverage_ratio || 0
                                 ).toFixed(2)}x</div>
                             </div>
-                            <div class="kpi-card">
+                            <div class="kpi-card" data-tooltip="Monthly interest cost.">
                                 <h3>Interest / Month</h3>
                                 <div class="value">${(
                                   (results.interest_payment || 0) / 12
@@ -730,7 +775,7 @@
                                   maximumFractionDigits: 0,
                                 })}</div>
                             </div>
-                            <div class="kpi-card">
+                            <div class="kpi-card" data-tooltip="Monthly principal repayment (amortization).">
                                 <h3>Principal / Month</h3>
                                 <div class="value">${(
                                   (results.amortization_payment || 0) / 12
@@ -740,11 +785,15 @@
                                   maximumFractionDigits: 0,
                                 })}</div>
                             </div>
-                            <div class="kpi-card">
+                            <div class="kpi-card" data-tooltip="Cap rate = NOI ÷ Purchase Price. A snapshot yield ignoring debt.">
                                 <h3>Cap Rate</h3>
                                 <div class="value">${(
                                   kpis.cap_rate_pct || 0
                                 ).toFixed(2)}%</div>
+                            </div>
+                            <div class="kpi-card" data-tooltip="Effective OTA platform fee = OTA Booking % × OTA Fee Rate. Currently ${((expenses.ota_booking_percentage || 0.5) * 100).toFixed(0)}% bookings × ${((expenses.ota_fee_rate || 0.3) * 100).toFixed(0)}% fee = ${(((expenses.ota_booking_percentage || 0.5) * (expenses.ota_fee_rate || 0.3)) * 100).toFixed(1)}% of gross revenue.">
+                                <h3>Platform Fee</h3>
+                                <div class="value">${(((expenses.ota_booking_percentage || 0.5) * (expenses.ota_fee_rate || 0.3)) * 100).toFixed(1)}%</div>
                             </div>
                         </div>
                         
@@ -801,7 +850,9 @@
                                         • Cleaning per stay: <strong>CHF ${(
                                           expenses.cleaning_cost_per_stay || 0
                                         ).toFixed(0)}</strong><br>
-                                        • OTA fee: <strong>~15%</strong> (50% bookings × 30% fee)
+                                        • OTA booking %: <strong>${((expenses.ota_booking_percentage || 0.5) * 100).toFixed(0)}%</strong><br>
+                                        • OTA fee rate: <strong>${((expenses.ota_fee_rate || 0.3) * 100).toFixed(0)}%</strong><br>
+                                        • Effective platform fee: <strong>${(((expenses.ota_booking_percentage || 0.5) * (expenses.ota_fee_rate || 0.3)) * 100).toFixed(1)}%</strong> of gross revenue
                                     </div>
                                 </div>
                                 <div>
@@ -1049,6 +1100,12 @@
           let html = `
                     <div class="section">
                         <h2 class="section-title">🎯 Sensitivity Analysis</h2>
+                        <div style="font-size: 0.85em; color: #6c7a89; margin-bottom: 10px;">
+                          Data generated from: <strong>${data.assumptions_file || 'assumptions.json'}</strong>
+                          @ <strong>${data.assumptions_version || 'n/a'}</strong>
+                          (hash: ${(data.assumptions_hash || '').slice(0,8) || 'n/a'}) 
+                          • Generated: ${data.generated_at || 'n/a'}
+                        </div>
                         
                         <!-- Info Box -->
                         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px;">
@@ -1594,6 +1651,12 @@
           let html = `
             <div class="section">
               <h2 class="section-title">💰 Cash-on-Cash Sensitivity Analysis</h2>
+              <div style="font-size: 0.85em; color: #6c7a89; margin-bottom: 10px;">
+                Data generated from: <strong>${data.assumptions_file || 'assumptions.json'}</strong>
+                @ <strong>${data.assumptions_version || 'n/a'}</strong>
+                (hash: ${(data.assumptions_hash || '').slice(0,8) || 'n/a'}) 
+                • Generated: ${data.generated_at || 'n/a'}
+              </div>
               
               <!-- Info Box -->
               <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px;">
@@ -2091,6 +2154,12 @@
               <h2 class="section-title" style="color: #667eea;">
                 <i class="fas fa-wallet"></i> Sensitivity Analysis - Monthly Net Cash Flow
               </h2>
+              <div style="font-size: 0.85em; color: #6c7a89; margin-bottom: 10px;">
+                Data generated from: <strong>${data.assumptions_file || 'assumptions.json'}</strong>
+                @ <strong>${data.assumptions_version || 'n/a'}</strong>
+                (hash: ${(data.assumptions_hash || '').slice(0,8) || 'n/a'}) 
+                • Generated: ${data.generated_at || 'n/a'}
+              </div>
               
               <!-- Info Box -->
               <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px;">
@@ -2448,71 +2517,380 @@
         renderMonteCarlo(data) {
           const content = document.getElementById("contentArea");
           const stats = data.statistics || {};
+          const totalSims = data.total_simulations || 0;
+          const npvStats = stats.npv || {};
+          const irrStats = stats.irr_with_sale || {};
+          const cashFlowStats = stats.annual_cash_flow || {};
 
           let html = `
                     <div class="section">
                         <h2 class="section-title">Monte Carlo Simulation</h2>
+                        <div style="font-size: 0.85em; color: #6c7a89; margin-bottom: 20px;">
+                          Based on <strong>${totalSims.toLocaleString()}</strong> simulations with correlated parameter variations
+                        </div>
                         
                         <div class="kpi-grid">
-                            <div class="kpi-card">
+                            <div class="kpi-card" data-tooltip="Average Net Present Value across all simulations. This represents the expected value of the investment.">
                                 <h3>Mean NPV</h3>
-                                <div class="value">${(
-                                  stats.npv?.mean || 0
+                                <div class="value ${(npvStats.mean || 0) >= 0 ? 'positive' : 'negative'}">${(
+                                  npvStats.mean || 0
                                 ).toLocaleString("en-US", {
                                   style: "currency",
                                   currency: "CHF",
                                   maximumFractionDigits: 0,
                                 })}</div>
                             </div>
-                            <div class="kpi-card">
+                            <div class="kpi-card" data-tooltip="Median (50th percentile) NPV. Half of simulations show better results, half show worse.">
                                 <h3>Median NPV</h3>
-                                <div class="value">${(
-                                  stats.npv?.median || 0
+                                <div class="value ${(npvStats.median || 0) >= 0 ? 'positive' : 'negative'}">${(
+                                  npvStats.median || 0
                                 ).toLocaleString("en-US", {
                                   style: "currency",
                                   currency: "CHF",
                                   maximumFractionDigits: 0,
                                 })}</div>
                             </div>
-                            <div class="kpi-card">
+                            <div class="kpi-card" data-tooltip="Probability that the investment generates positive NPV. Higher is better.">
                                 <h3>Probability NPV > 0</h3>
                                 <div class="value">${(
-                                  (stats.npv?.positive_prob || 0) * 100
+                                  (npvStats.positive_prob || 0) * 100
+                                ).toFixed(1)}%</div>
+                            </div>
+                            <div class="kpi-card" data-tooltip="Average Equity IRR (with property sale) across all simulations.">
+                                <h3>Mean IRR</h3>
+                                <div class="value positive">${(
+                                  irrStats.mean || 0
+                                ).toFixed(2)}%</div>
+                            </div>
+                            <div class="kpi-card" data-tooltip="10th percentile NPV. 90% of simulations show better results than this (worst case scenario).">
+                                <h3>10th Percentile</h3>
+                                <div class="value ${(npvStats.p10 || 0) >= 0 ? 'positive' : 'negative'}">${(
+                                  npvStats.p10 || 0
+                                ).toLocaleString("en-US", {
+                                  style: "currency",
+                                  currency: "CHF",
+                                  maximumFractionDigits: 0,
+                                })}</div>
+                            </div>
+                            <div class="kpi-card" data-tooltip="90th percentile NPV. Only 10% of simulations show better results than this (best case scenario).">
+                                <h3>90th Percentile</h3>
+                                <div class="value positive">${(
+                                  npvStats.p90 || 0
+                                ).toLocaleString("en-US", {
+                                  style: "currency",
+                                  currency: "CHF",
+                                  maximumFractionDigits: 0,
+                                })}</div>
+                            </div>
+                            <div class="kpi-card" data-tooltip="Standard deviation of NPV. Higher values indicate more uncertainty and risk.">
+                                <h3>Std Deviation</h3>
+                                <div class="value">${(
+                                  npvStats.std || 0
+                                ).toLocaleString("en-US", {
+                                  style: "currency",
+                                  currency: "CHF",
+                                  maximumFractionDigits: 0,
+                                })}</div>
+                            </div>
+                            <div class="kpi-card" data-tooltip="Probability of positive annual cash flow. Indicates likelihood of covering operating costs.">
+                                <h3>Prob Positive CF</h3>
+                                <div class="value">${(
+                                  (cashFlowStats.positive_prob || 0) * 100
                                 ).toFixed(1)}%</div>
                             </div>
                         </div>
                         
                         <div class="chart-container">
                             <h3>NPV Distribution</h3>
-                            <div class="chart-wrapper" id="npvChart"></div>
+                            <div class="chart-wrapper" id="npvChart" style="min-height: 400px;"></div>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <h3>IRR Distribution</h3>
+                            <div class="chart-wrapper" id="irrChart" style="min-height: 400px;"></div>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <h3>Cumulative Probability Distribution</h3>
+                            <div class="chart-wrapper" id="cumulativeChart" style="min-height: 400px;"></div>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <h3>NPV vs Key Parameters</h3>
+                            <div class="chart-wrapper" id="scatterChart" style="min-height: 400px;"></div>
+                        </div>
+                        
+                        <div class="chart-container" style="background: #f8f9fa; border-left: 4px solid var(--accent);">
+                            <h3 style="color: var(--primary); margin-bottom: 15px;">📊 Statistical Summary</h3>
+                            <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
+                                <thead>
+                                    <tr style="background: var(--primary); color: white;">
+                                        <th style="padding: 12px; text-align: left;">Metric</th>
+                                        <th style="padding: 12px; text-align: right;">NPV (CHF)</th>
+                                        <th style="padding: 12px; text-align: right;">IRR (%)</th>
+                                        <th style="padding: 12px; text-align: right;">Annual CF (CHF)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="border-bottom: 1px solid #e8ecef;">
+                                        <td style="padding: 10px; font-weight: 600;">Mean</td>
+                                        <td style="padding: 10px; text-align: right;">${(npvStats.mean || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})}</td>
+                                        <td style="padding: 10px; text-align: right;">${(irrStats.mean || 0).toFixed(2)}%</td>
+                                        <td style="padding: 10px; text-align: right;">${(cashFlowStats.mean || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})}</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid #e8ecef;">
+                                        <td style="padding: 10px; font-weight: 600;">Median</td>
+                                        <td style="padding: 10px; text-align: right;">${(npvStats.median || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})}</td>
+                                        <td style="padding: 10px; text-align: right;">${(irrStats.median || 0).toFixed(2)}%</td>
+                                        <td style="padding: 10px; text-align: right;">${(cashFlowStats.median || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})}</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid #e8ecef;">
+                                        <td style="padding: 10px; font-weight: 600;">Std Deviation</td>
+                                        <td style="padding: 10px; text-align: right;">${(npvStats.std || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})}</td>
+                                        <td style="padding: 10px; text-align: right;">${(irrStats.std || 0).toFixed(2)}%</td>
+                                        <td style="padding: 10px; text-align: right;">${(cashFlowStats.std || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})}</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid #e8ecef;">
+                                        <td style="padding: 10px; font-weight: 600;">5th Percentile</td>
+                                        <td style="padding: 10px; text-align: right;">${(npvStats.p5 || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})}</td>
+                                        <td style="padding: 10px; text-align: right;">${(irrStats.p5 || 0).toFixed(2)}%</td>
+                                        <td style="padding: 10px; text-align: right;">-</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid #e8ecef;">
+                                        <td style="padding: 10px; font-weight: 600;">25th Percentile</td>
+                                        <td style="padding: 10px; text-align: right;">${(npvStats.p25 || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})}</td>
+                                        <td style="padding: 10px; text-align: right;">-</td>
+                                        <td style="padding: 10px; text-align: right;">-</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid #e8ecef;">
+                                        <td style="padding: 10px; font-weight: 600;">75th Percentile</td>
+                                        <td style="padding: 10px; text-align: right;">${(npvStats.p75 || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})}</td>
+                                        <td style="padding: 10px; text-align: right;">-</td>
+                                        <td style="padding: 10px; text-align: right;">-</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid #e8ecef;">
+                                        <td style="padding: 10px; font-weight: 600;">95th Percentile</td>
+                                        <td style="padding: 10px; text-align: right;">${(npvStats.p95 || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})}</td>
+                                        <td style="padding: 10px; text-align: right;">${(irrStats.p95 || 0).toFixed(2)}%</td>
+                                        <td style="padding: 10px; text-align: right;">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 10px; font-weight: 600;">Min / Max</td>
+                                        <td style="padding: 10px; text-align: right;">${(npvStats.min || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})} / ${(npvStats.max || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})}</td>
+                                        <td style="padding: 10px; text-align: right;">${(irrStats.min || 0).toFixed(2)}% / ${(irrStats.max || 0).toFixed(2)}%</td>
+                                        <td style="padding: 10px; text-align: right;">${(cashFlowStats.min || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})} / ${(cashFlowStats.max || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 `;
 
           content.innerHTML = html;
 
-          // Render distribution chart if sample data available
+          // Render charts if sample data available
           if (data.sample_data && data.sample_data.length > 0) {
-            const npvValues = data.sample_data
-              .map((d) => d.npv || 0)
-              .filter((v) => v !== null);
-
+            const sampleData = data.sample_data;
+            
+            // Chart 1: NPV Distribution Histogram
+            const npvValues = sampleData.map((d) => d.npv || 0).filter((v) => v !== null && !isNaN(v));
             if (npvValues.length > 0) {
-              const trace = {
+              const npvTrace = {
                 x: npvValues,
                 type: "histogram",
-                nbinsx: 50,
-                marker: { color: "#667eea" },
+                nbinsx: 60,
+                marker: { 
+                  color: "#667eea",
+                  line: { color: "#ffffff", width: 1 }
+                },
+                name: "NPV Distribution",
+                hovertemplate: "<b>NPV Range</b><br>Value: %{x:,.0f} CHF<br>Frequency: %{y}<extra></extra>"
               };
 
-              const layout = {
+              const npvLayout = {
                 title: "",
-                xaxis: { title: "NPV (CHF)" },
-                yaxis: { title: "Frequency" },
+                xaxis: { 
+                  title: "NPV (CHF)",
+                  showgrid: true,
+                  gridcolor: "#e8ecef"
+                },
+                yaxis: { 
+                  title: "Frequency",
+                  showgrid: true,
+                  gridcolor: "#e8ecef"
+                },
                 hovermode: "closest",
+                margin: { l: 60, r: 30, t: 20, b: 60 },
+                plot_bgcolor: "white",
+                paper_bgcolor: "white",
+                shapes: [
+                  {
+                    type: "line",
+                    x0: npvStats.mean || 0,
+                    x1: npvStats.mean || 0,
+                    y0: 0,
+                    y1: 1,
+                    yref: "paper",
+                    line: { color: "red", width: 2, dash: "dash" },
+                    annotation: { text: `Mean: ${(npvStats.mean || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})}`, xanchor: "right" }
+                  },
+                  {
+                    type: "line",
+                    x0: 0,
+                    x1: 0,
+                    y0: 0,
+                    y1: 1,
+                    yref: "paper",
+                    line: { color: "black", width: 2 },
+                    annotation: { text: "Break-even" }
+                  }
+                ]
               };
 
-              Plotly.newPlot("npvChart", [trace], layout, { responsive: true });
+              Plotly.newPlot("npvChart", [npvTrace], npvLayout, { responsive: true });
+            }
+
+            // Chart 2: IRR Distribution Histogram
+            const irrValues = sampleData.map((d) => d.irr_with_sale || 0).filter((v) => v !== null && !isNaN(v));
+            if (irrValues.length > 0) {
+              const irrTrace = {
+                x: irrValues,
+                type: "histogram",
+                nbinsx: 60,
+                marker: { 
+                  color: "#28a745",
+                  line: { color: "#ffffff", width: 1 }
+                },
+                name: "IRR Distribution",
+                hovertemplate: "<b>IRR Range</b><br>Value: %{x:.2f}%<br>Frequency: %{y}<extra></extra>"
+              };
+
+              const irrLayout = {
+                title: "",
+                xaxis: { 
+                  title: "IRR (%)",
+                  showgrid: true,
+                  gridcolor: "#e8ecef"
+                },
+                yaxis: { 
+                  title: "Frequency",
+                  showgrid: true,
+                  gridcolor: "#e8ecef"
+                },
+                hovermode: "closest",
+                margin: { l: 60, r: 30, t: 20, b: 60 },
+                plot_bgcolor: "white",
+                paper_bgcolor: "white",
+                shapes: [
+                  {
+                    type: "line",
+                    x0: irrStats.mean || 0,
+                    x1: irrStats.mean || 0,
+                    y0: 0,
+                    y1: 1,
+                    yref: "paper",
+                    line: { color: "red", width: 2, dash: "dash" },
+                    annotation: { text: `Mean: ${(irrStats.mean || 0).toFixed(2)}%` }
+                  }
+                ]
+              };
+
+              Plotly.newPlot("irrChart", [irrTrace], irrLayout, { responsive: true });
+            }
+
+            // Chart 3: Cumulative Probability Distribution
+            if (npvValues.length > 0) {
+              const sortedNPV = [...npvValues].sort((a, b) => a - b);
+              const cumulativeProb = sortedNPV.map((_, i) => ((i + 1) / sortedNPV.length) * 100);
+
+              const cumTrace = {
+                x: sortedNPV,
+                y: cumulativeProb,
+                type: "scatter",
+                mode: "lines",
+                line: { color: "#667eea", width: 3 },
+                name: "Cumulative Probability",
+                hovertemplate: "<b>Cumulative Probability</b><br>NPV: %{x:,.0f} CHF<br>Probability: %{y:.1f}%<extra></extra>"
+              };
+
+              const cumLayout = {
+                title: "",
+                xaxis: { 
+                  title: "NPV (CHF)",
+                  showgrid: true,
+                  gridcolor: "#e8ecef"
+                },
+                yaxis: { 
+                  title: "Cumulative Probability (%)",
+                  showgrid: true,
+                  gridcolor: "#e8ecef"
+                },
+                hovermode: "closest",
+                margin: { l: 70, r: 30, t: 20, b: 60 },
+                plot_bgcolor: "white",
+                paper_bgcolor: "white",
+                shapes: [
+                  {
+                    type: "line",
+                    y0: 50,
+                    y1: 50,
+                    x0: sortedNPV[0],
+                    x1: sortedNPV[sortedNPV.length - 1],
+                    xref: "x",
+                    line: { color: "gray", width: 1, dash: "dash" },
+                    annotation: { text: "50th Percentile (Median)", yanchor: "bottom" }
+                  }
+                ]
+              };
+
+              Plotly.newPlot("cumulativeChart", [cumTrace], cumLayout, { responsive: true });
+            }
+
+            // Chart 4: Scatter Plot - Occupancy vs Daily Rate (colored by NPV)
+            const occupancyValues = sampleData.map((d) => (d.occupancy_rate || 0) * 100).filter((v) => v !== null && !isNaN(v));
+            const dailyRateValues = sampleData.map((d) => d.daily_rate || 0).filter((v) => v !== null && !isNaN(v));
+            if (occupancyValues.length > 0 && dailyRateValues.length > 0 && npvValues.length > 0) {
+              const scatterTrace = {
+                x: occupancyValues,
+                y: dailyRateValues,
+                mode: "markers",
+                type: "scatter",
+                marker: {
+                  size: 5,
+                  color: npvValues,
+                  colorscale: "RdYlGn",
+                  showscale: true,
+                  colorbar: { title: "NPV (CHF)" },
+                  opacity: 0.6,
+                  line: { width: 0.5, color: "rgba(255, 255, 255, 0.3)" }
+                },
+                text: sampleData.map((d, i) => 
+                  `NPV: ${(npvValues[i] || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})}<br>IRR: ${(irrValues[i] || 0).toFixed(2)}%`
+                ),
+                hovertemplate: "<b>Simulation</b><br>Occupancy: %{x:.1f}%<br>Daily Rate: %{y:.0f} CHF<br>%{text}<extra></extra>",
+                name: "Simulations"
+              };
+
+              const scatterLayout = {
+                title: "",
+                xaxis: { 
+                  title: "Occupancy Rate (%)",
+                  showgrid: true,
+                  gridcolor: "#e8ecef"
+                },
+                yaxis: { 
+                  title: "Daily Rate (CHF)",
+                  showgrid: true,
+                  gridcolor: "#e8ecef"
+                },
+                hovermode: "closest",
+                margin: { l: 70, r: 30, t: 20, b: 60 },
+                plot_bgcolor: "white",
+                paper_bgcolor: "white",
+                showlegend: false
+              };
+
+              Plotly.newPlot("scatterChart", [scatterTrace], scatterLayout, { responsive: true });
             }
           }
         },

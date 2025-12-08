@@ -7,6 +7,7 @@ Creates a cases_index.json file listing all available cases.
 import os
 import json
 import glob
+import hashlib
 from datetime import datetime
 from typing import Dict, List, Optional
 
@@ -80,6 +81,27 @@ def get_case_metadata(assumptions_path: str) -> Dict:
         }
 
 
+def compute_assumptions_meta(base_path: str = "assumptions.json") -> Dict[str, str]:
+    meta = {
+        "assumptions_file": base_path if os.path.exists(base_path) else None,
+        "assumptions_version": None,
+        "assumptions_last_updated": None,
+        "assumptions_hash": None,
+        "generated_at": datetime.utcnow().isoformat() + "Z",
+    }
+    if os.path.exists(base_path):
+        with open(base_path, "rb") as f:
+            meta["assumptions_hash"] = hashlib.sha256(f.read()).hexdigest()
+        with open(base_path, "r", encoding="utf-8") as f:
+            try:
+                parsed = json.load(f)
+                meta["assumptions_version"] = parsed.get("_version")
+                meta["assumptions_last_updated"] = parsed.get("_last_updated")
+            except json.JSONDecodeError:
+                pass
+    return meta
+
+
 def generate_case_data(case_name: str, assumptions_path: str, case_metadata: Dict) -> Dict:
     """
     Generate all JSON data for a specific case.
@@ -142,8 +164,8 @@ def generate_case_data(case_name: str, assumptions_path: str, case_metadata: Dic
                 result['sensitivity_ncf'] = os.path.basename(json_path_ncf)
                 print(f"  [+] NCF Sensitivity JSON: {json_path_ncf}")
             
-            # Run Monte Carlo
-            analyze.run_monte_carlo_analysis(assumptions_path, case_name, n_simulations=1000, verbose=False)
+            # Run Monte Carlo (10,000 simulations for stable statistics)
+            analyze.run_monte_carlo_analysis(assumptions_path, case_name, n_simulations=10000, verbose=False)
             json_path = f"website/data/{case_name}_monte_carlo.json"
             if os.path.exists(json_path):
                 result['monte_carlo'] = os.path.basename(json_path)
@@ -197,6 +219,9 @@ def main():
         print(f"    - {f}")
     print()
     
+    # Base assumptions meta (single source of truth)
+    base_meta = compute_assumptions_meta("assumptions.json")
+
     # Load metadata for each case
     cases = []
     for assumptions_file in assumptions_files:
@@ -233,7 +258,10 @@ def main():
     cases_index = {
         'cases': [],
         'generated_at': datetime.now().isoformat(),
-        'total_cases': len(case_results)
+        'total_cases': len(case_results),
+        'assumptions_version': base_meta.get('assumptions_version'),
+        'assumptions_hash': base_meta.get('assumptions_hash'),
+        'assumptions_last_updated': base_meta.get('assumptions_last_updated')
     }
     
     for result in case_results:
@@ -260,6 +288,12 @@ def main():
         json.dump(cases_index, f, indent=2, ensure_ascii=False)
     
     print(f"[+] Cases index created: {index_path}")
+    
+    # Write stamp file
+    stamp_path = "website/data/.assumptions_hash"
+    with open(stamp_path, 'w', encoding='utf-8') as f:
+        json.dump(base_meta, f, indent=2, ensure_ascii=False)
+    print(f"[+] Assumptions stamp written: {stamp_path}")
     
     # Print summary
     print(f"\n{'='*80}")

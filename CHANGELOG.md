@@ -2,6 +2,146 @@
 
 All notable changes to the Engelberg Property Investment Simulation will be documented in this file.
 
+## [2025-12-09] - New Risk Scenarios: Climate Risk, Interest Rate Spike, Early Exit
+
+### New Scenarios Added
+
+#### 1. Climate Risk Scenario (`assumptions_climate_risk.json`)
+- **Purpose**: Tests impact of climate change on tourism patterns
+- **Key Assumptions**:
+  - Winter Peak Occupancy: 52.5% (down from 70%, -25% reduction)
+  - Summer Peak Occupancy: 77.0% (up from 70%, +10% increase)
+  - Off-Peak Occupancy: 70.0% (unchanged)
+- **Rationale**: Warmer winters reduce ski season demand, while warmer summers increase hiking/outdoor activity demand
+- **Impact**: Lower overall revenue due to loss of premium winter rates, partially offset by increased summer demand
+
+#### 2. Interest Rate Spike Scenario (`assumptions_interest_rate_spike.json`)
+- **Purpose**: Tests refinancing risk and interest rate exposure
+- **Key Assumptions**:
+  - Initial Interest Rate: 1.3% (years 1-5)
+  - Refinanced Rate: 3.5% (years 6-15)
+  - Refinancing Year: Year 6
+- **Rationale**: Models scenario where initial low-rate mortgage requires refinancing at much higher rate
+- **Impact**: Significant cash flow deterioration in years 6-15 due to 2.2 percentage point rate increase
+- **Technical Implementation**:
+  - Added `refinancing_config` parameter to `compute_15_year_projection()`
+  - Supports variable interest rates over projection period
+  - All projection calls updated to pass refinancing configuration
+
+#### 3. Early Exit Scenario (`assumptions_early_exit.json`)
+- **Purpose**: Tests impact of poor performance and early exit decision
+- **Key Assumptions**:
+  - Occupancy Rate: 40% across all seasons (down from 70% base case)
+  - Projection Period: 6 years (early exit instead of 15 years)
+  - Exit Year: 2031 (year 6 of ownership)
+- **Rationale**: Models scenario where investment underperforms expectations and owners decide to exit early
+- **Impact**: 
+  - Negative cash flows due to low occupancy
+  - Reduced returns due to shorter holding period (less appreciation and loan paydown)
+  - Lower Equity IRR (~1.86% vs ~4-5% base case)
+  - MOIC of only 1.14x over 6 years
+- **Technical Implementation**:
+  - Added `num_years` parameter to `compute_15_year_projection()` (default 15)
+  - Supports variable projection periods for early exit scenarios
+  - All projection calls updated to pass `projection_years` from assumptions
+
+### Technical Changes
+
+#### Core Engine Updates
+- **`core_engine.py`**:
+  - `compute_15_year_projection()` now accepts `num_years` parameter (default 15)
+  - `compute_15_year_projection()` now accepts `refinancing_config` parameter
+  - Added `get_interest_rate_for_year()` helper function for variable interest rates
+  - Projection loop now uses `range(1, num_years + 1)` instead of hardcoded 15 years
+  - Inflation and appreciation factors pre-calculated for variable-length projections
+
+#### Analysis Script Updates
+- **`analyze.py`**:
+  - All `compute_15_year_projection()` calls updated to pass `num_years` from `proj_defaults.get('projection_years', 15)`
+  - All `compute_15_year_projection()` calls updated to pass `refinancing_config` from `proj_defaults.get('refinancing_config')`
+  - Base case analysis, sensitivity analyses, and Monte Carlo all support variable projection periods
+
+#### Assumptions File Structure
+- **New Fields in `projection` Section**:
+  - `projection_years`: Number of years to project (default 15, can be 6 for early exit)
+  - `refinancing`: Optional block with:
+    - `refinance_year`: Year when refinancing occurs (e.g., 6)
+    - `new_interest_rate`: Interest rate after refinancing (e.g., 0.035)
+
+### Documentation Updates
+- **README.md**: Updated to show 9 scenarios (was 6)
+- **QUICK_START.md**: Added all 3 new scenarios to configuration table
+- **CHANGELOG.md**: This entry documenting new scenarios
+
+### Data Generation
+- All 3 new scenarios generate complete analysis data:
+  - Base case analysis
+  - Equity IRR sensitivity
+  - Cash-on-Cash sensitivity
+  - Monthly NCF sensitivity
+  - Monte Carlo simulation (10,000 iterations)
+
+### Validation
+- All new scenarios pass system validation
+- Early exit scenario correctly generates 6-year projections
+- Interest rate spike correctly applies rate change at year 6
+- Climate risk scenario correctly applies seasonal occupancy adjustments
+
+---
+
+## [2025-12-09] - Monte Carlo Analysis Enhancement
+
+### Major Improvements
+
+#### 1. Increased Simulation Count
+- **Iterations increased from 1,000 to 10,000** for stable, professional-grade statistics
+- Provides more reliable percentiles, probabilities, and distribution estimates
+- Better convergence for tail risk analysis (5th/95th percentiles)
+
+#### 2. Enhanced Dashboard Visualization
+- **Expanded KPI Cards**: Added 8 comprehensive metrics including:
+  - Mean and Median NPV
+  - Probability NPV > 0
+  - Mean IRR
+  - 10th and 90th Percentiles (worst/best case scenarios)
+  - Standard Deviation (risk measure)
+  - Probability of Positive Cash Flow
+- **Interactive Charts**: Four detailed visualizations:
+  - NPV Distribution Histogram with mean and break-even lines
+  - IRR Distribution Histogram with mean indicator
+  - Cumulative Probability Distribution showing percentile curves
+  - Scatter Plot (Occupancy vs Daily Rate) colored by NPV
+- **Statistical Summary Table**: Comprehensive metrics table showing:
+  - Mean, Median, Std Dev for NPV, IRR, and Annual Cash Flow
+  - Percentiles (5th, 25th, 75th, 95th)
+  - Min/Max ranges
+- **Hover Tooltips**: All KPI cards now have detailed explanations
+
+#### 3. Improved Data Sampling
+- Sample size for JSON export increased from 1,000 to 2,000 rows
+- Better chart quality with more data points for visualization
+
+### Technical Details
+- **`generate_all_data.py`**: Updated to use 10,000 simulations (was 1,000)
+- **`analyze.py`**: Default `n_simulations` parameter increased to 10,000
+- **`core_engine.py`**: `export_monte_carlo_to_json` sample size increased to 2,000
+- **`website/index.html`**: Complete rewrite of `renderMonteCarlo` function with:
+  - 8 KPI cards with tooltips
+  - 4 interactive Plotly charts
+  - Comprehensive statistics table
+  - Professional styling matching other dashboard tabs
+
+### Documentation Updates
+- **README.md**: Updated to reflect 10,000 simulations
+- **QUICK_START.md**: Updated Monte Carlo description
+
+### Performance Notes
+- 10,000 simulations provide excellent statistical stability
+- Typical runtime: 2-5 minutes per case (depending on hardware)
+- Results are cached in JSON files for fast dashboard loading
+
+---
+
 ## [2025-12-09] - Operating Assumptions Update & Docs Refresh
 
 ### Assumptions & Economics

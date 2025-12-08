@@ -133,6 +133,8 @@ class ExpenseParams:
     electricity_internet_annual: float  # CHF, electricity and internet
     maintenance_rate: float             # percent of property value per year, 1%
     property_value: float               # CHF
+    ota_booking_percentage: float       # percentage of bookings coming from OTAs (0.50 = 50%)
+    ota_fee_rate: float                 # fee rate charged by OTAs on revenue (0.30 = 30%)
 
     def property_management_cost(self, gross_rental_income: float) -> float:
         return gross_rental_income * self.property_management_fee_rate
@@ -308,7 +310,7 @@ def load_assumptions_from_json(json_path: str = "assumptions.json") -> Dict:
     return assumptions
 
 
-def get_projection_defaults(json_path: str = "assumptions.json") -> Dict[str, float]:
+def get_projection_defaults(json_path: str = "assumptions.json") -> Dict:
     """
     Get projection default values from JSON.
     
@@ -319,13 +321,22 @@ def get_projection_defaults(json_path: str = "assumptions.json") -> Dict[str, fl
         json_path: Path to the assumptions JSON file (default: "assumptions.json")
     
     Returns:
-        Dictionary with projection parameters including rates, years, and selling costs
+        Dictionary with projection parameters including rates, years, selling costs, and optional refinancing config
     """
     assumptions = load_assumptions_from_json(json_path)
     projection = assumptions['projection']
     selling_costs = projection.get('selling_costs', {})
     
-    return {
+    # Extract refinancing config if present
+    refinancing_config = None
+    if 'refinancing' in projection:
+        ref_config = projection['refinancing']
+        refinancing_config = {
+            'refinance_year': int(ref_config.get('refinance_year', 6)),
+            'new_interest_rate': float(ref_config.get('new_interest_rate', 0.0))
+        }
+    
+    defaults = {
         'inflation_rate': float(projection.get('inflation_rate', 0.01)),
         'property_appreciation_rate': float(projection.get('property_appreciation_rate', 0.015)),
         'start_year': int(projection.get('start_year', 2026)),
@@ -334,8 +345,11 @@ def get_projection_defaults(json_path: str = "assumptions.json") -> Dict[str, fl
         'selling_costs_rate': float(selling_costs.get('total_rate', 0.078)),
         'broker_fee_rate': float(selling_costs.get('broker_fee_rate', 0.03)),
         'notary_fee_rate': float(selling_costs.get('notary_fee_rate', 0.015)),
-        'transfer_tax_rate': float(selling_costs.get('transfer_tax_rate', 0.033))
+        'transfer_tax_rate': float(selling_costs.get('transfer_tax_rate', 0.033)),
+        'refinancing_config': refinancing_config
     }
+    
+    return defaults
 
 
 # -----------------------------
@@ -497,7 +511,9 @@ def create_base_case_config(json_path: str = "assumptions.json") -> BaseCaseConf
         nubbing_costs_annual=float(expenses_data.get('nubbing_costs_annual', 2000.0)),
         electricity_internet_annual=float(expenses_data.get('electricity_internet_annual', 1000.0)),
         maintenance_rate=float(expenses_data.get('maintenance_rate', 0.01)),
-        property_value=purchase_price
+        property_value=purchase_price,
+        ota_booking_percentage=float(expenses_data.get('ota_booking_percentage', 0.50)),
+        ota_fee_rate=float(expenses_data.get('ota_fee_rate', 0.30))
     )
 
     return BaseCaseConfig(
@@ -530,8 +546,9 @@ def compute_annual_cash_flows(config: BaseCaseConfig) -> Dict[str, float]:
     # But if cleaning_cost_per_stay > 0, it means cleaning is separate and should be included
     property_management_cost = e.property_management_cost(gross_rental_income)
 
-    # Platform/OTA fees: 50% of bookings via OTA at 30% fee => effective 15% of gross
-    platform_fee = gross_rental_income * 0.15
+    # Platform/OTA fees: calculated as percentage of bookings × OTA fee rate
+    # Effective fee = ota_booking_percentage × ota_fee_rate (e.g., 50% × 30% = 15%)
+    platform_fee = gross_rental_income * e.ota_booking_percentage * e.ota_fee_rate
     
     # Calculate cleaning cost if it's separate (not included in management fee)
     # If cleaning_cost_per_stay is 0, cleaning is included in management fee
@@ -633,9 +650,11 @@ def compute_annual_cash_flows(config: BaseCaseConfig) -> Dict[str, float]:
 
 
 def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026, 
-                               inflation_rate: float = 0.02, property_appreciation_rate: float = 0.025) -> List[Dict[str, any]]:
+                               inflation_rate: float = 0.02, property_appreciation_rate: float = 0.025,
+                               refinancing_config: Optional[Dict] = None,
+                               num_years: int = 15) -> List[Dict[str, any]]:
     """
-    Compute 15-year projection of cash flows and financial metrics.
+    Compute multi-year projection of cash flows and financial metrics.
     
     Assumptions:
     - Purchase in January of start_year
@@ -643,6 +662,15 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
     - Interest is calculated on remaining loan balance
     - Inflation applied to revenue and variable expenses (default 2%)
     - Property appreciation applied annually (default 2.5% - realistic for Swiss real estate)
+    - Optional refinancing: if refinancing_config is provided, interest rate changes after specified year
+    
+    Args:
+        config: Base case configuration
+        start_year: Starting year for projection
+        inflation_rate: Annual inflation rate
+        property_appreciation_rate: Annual property appreciation rate
+        refinancing_config: Optional dict with 'refinance_year' and 'new_interest_rate'
+        num_years: Number of years to project (default 15, can be set to 6 for early exit scenarios)
     
     Returns a list of dictionaries, one for each year.
     """
@@ -650,6 +678,12 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
     current_loan = config.financing.loan_amount
     initial_loan_amount = config.financing.loan_amount  # Store for amortization calculation
     year = start_year
+    
+    # Determine interest rate for each year (support refinancing)
+    def get_interest_rate_for_year(year_num: int) -> float:
+        if refinancing_config and year_num >= refinancing_config.get('refinance_year', 999):
+            return refinancing_config.get('new_interest_rate', config.financing.interest_rate)
+        return config.financing.interest_rate
     
     # Base year results (no inflation)
     base_result = compute_annual_cash_flows(config)
@@ -663,10 +697,10 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
     base_maintenance = base_result['maintenance_reserve']
     
     # Pre-calculate inflation and appreciation factors for efficiency
-    inflation_factors = [(1 + inflation_rate) ** (year_num - 1) for year_num in range(1, 16)]
-    appreciation_factors = [(1 + property_appreciation_rate) ** (year_num - 1) for year_num in range(1, 16)]
+    inflation_factors = [(1 + inflation_rate) ** (year_num - 1) for year_num in range(1, num_years + 1)]
+    appreciation_factors = [(1 + property_appreciation_rate) ** (year_num - 1) for year_num in range(1, num_years + 1)]
     
-    for year_num in range(1, 16):  # Years 1-15
+    for year_num in range(1, num_years + 1):  # Years 1 to num_years
         # Apply inflation and appreciation (using pre-calculated factors)
         inflation_factor = inflation_factors[year_num - 1]
         appreciation_factor = appreciation_factors[year_num - 1]
@@ -698,8 +732,9 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
         
         net_operating_income = gross_rental_income - total_operating_expenses
         
-        # Calculate debt service based on current loan balance
-        interest_payment = current_loan * config.financing.interest_rate
+        # Calculate debt service based on current loan balance and year-specific interest rate
+        current_interest_rate = get_interest_rate_for_year(year_num)
+        interest_payment = current_loan * current_interest_rate
         amortization_payment = initial_loan_amount * config.financing.amortization_rate  # Use stored initial loan amount
         debt_service = interest_payment + amortization_payment
         
@@ -723,6 +758,7 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
             'gross_rental_income': gross_rental_income,
             'total_operating_expenses': total_operating_expenses,
             'net_operating_income': net_operating_income,
+            'interest_rate': current_interest_rate,
             'interest_payment': interest_payment,
             'amortization_payment': amortization_payment,
             'debt_service': debt_service,
@@ -1030,7 +1066,9 @@ def apply_sensitivity(
         nubbing_costs_annual=base_config.expenses.nubbing_costs_annual,
         electricity_internet_annual=base_config.expenses.electricity_internet_annual,
         maintenance_rate=base_config.expenses.maintenance_rate,
-        property_value=base_config.expenses.property_value
+        property_value=base_config.expenses.property_value,
+        ota_booking_percentage=base_config.expenses.ota_booking_percentage,
+        ota_fee_rate=base_config.expenses.ota_fee_rate
     )
 
     return BaseCaseConfig(
@@ -1219,8 +1257,8 @@ def export_monte_carlo_to_json(df: pd.DataFrame, stats: Dict[str, float]) -> Dic
         Dictionary with Monte Carlo data structured for JSON export
     """
     # Sample a subset of data for charting (to keep JSON size manageable)
-    # Use every Nth row or limit to 1000 rows max
-    sample_size = min(1000, len(df))
+    # Use every Nth row or limit to 2000 rows max for better chart quality
+    sample_size = min(2000, len(df))
     step = max(1, len(df) // sample_size)
     df_sample = df.iloc[::step].copy()
     

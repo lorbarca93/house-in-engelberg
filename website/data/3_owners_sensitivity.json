@@ -1,4 +1,9 @@
 {
+  "assumptions_file": "assumptions_3_owners.json",
+  "assumptions_version": null,
+  "assumptions_last_updated": null,
+  "assumptions_hash": "995116d9b8b8643b4a2f028eb499c5410f5afbdc39f912283c1b0409fe4be922",
+  "generated_at": "2025-12-08T14:28:22.234165Z",
   "base_irr": 5.705369899515059,
   "sensitivities": [
     {

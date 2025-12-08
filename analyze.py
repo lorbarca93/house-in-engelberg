@@ -55,6 +55,8 @@ import sys
 import json
 import argparse
 from typing import Dict, List, Callable, Tuple
+import hashlib
+from datetime import datetime
 from dataclasses import replace
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -143,6 +145,29 @@ def save_json(data: Dict, case_name: str, analysis_type: str) -> str:
     return output_path
 
 
+def compute_assumptions_meta(json_path: str) -> Dict[str, str]:
+    """Compute version/hash/timestamp metadata for the given assumptions file."""
+    meta = {
+        "assumptions_file": os.path.basename(json_path),
+        "assumptions_version": None,
+        "assumptions_last_updated": None,
+        "assumptions_hash": None,
+        "generated_at": datetime.utcnow().isoformat() + "Z",
+    }
+    if os.path.exists(json_path):
+        with open(json_path, "rb") as f:
+            content = f.read()
+            meta["assumptions_hash"] = hashlib.sha256(content).hexdigest()
+        with open(json_path, "r", encoding="utf-8") as f:
+            try:
+                parsed = json.load(f)
+                meta["assumptions_version"] = parsed.get("_version")
+                meta["assumptions_last_updated"] = parsed.get("_last_updated")
+            except json.JSONDecodeError:
+                pass
+    return meta
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 # SECTION 3: BASE CASE ANALYSIS
 # Calculates the core financial metrics for Year 1 and 15-year projection
@@ -186,13 +211,15 @@ def run_base_case_analysis(json_path: str, case_name: str, verbose: bool = True)
     # This computes revenue, all expenses, NOI, debt service, and final cash flow
     results = compute_annual_cash_flows(config)
     
-    # Step 3: Project 15 years forward
+    # Step 3: Project forward (default 15 years, can be shorter for early exit scenarios)
     # Applies inflation to revenue/expenses and appreciation to property value
     projection = compute_15_year_projection(
         config,
         start_year=proj_defaults['start_year'],
         inflation_rate=proj_defaults['inflation_rate'],
-        property_appreciation_rate=proj_defaults['property_appreciation_rate']
+        property_appreciation_rate=proj_defaults['property_appreciation_rate'],
+        refinancing_config=proj_defaults.get('refinancing_config'),
+        num_years=proj_defaults.get('projection_years', 15)
     )
     
     # Step 4: Calculate return metrics
@@ -220,8 +247,9 @@ def run_base_case_analysis(json_path: str, case_name: str, verbose: bool = True)
         print(f"  NPV @ 5%:                    CHF {irr_results['npv_at_5pct']:>15,.0f}")
         print(f"  MOIC:                        {irr_results['moic']:>19.2f}x")
     
-    # Step 6: Export to JSON
+    # Step 6: Export to JSON with meta
     json_data = export_base_case_to_json(config, results, projection, irr_results)
+    json_data.update(compute_assumptions_meta(json_path))
     output_path = save_json(json_data, case_name, 'base_case_analysis')
     
     if verbose:
@@ -263,7 +291,9 @@ def calculate_equity_irr(config: BaseCaseConfig, json_path: str,
         config,
         start_year=proj_defaults['start_year'],
         inflation_rate=proj_defaults['inflation_rate'],
-        property_appreciation_rate=appreciation_rate
+        property_appreciation_rate=appreciation_rate,
+        refinancing_config=proj_defaults.get('refinancing_config'),
+        num_years=proj_defaults.get('projection_years', 15)
     )
     
     # Get IRR
@@ -720,7 +750,9 @@ def run_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = Tru
             base_cfg,
             start_year=proj_defaults['start_year'],
             inflation_rate=inflation_rate,  # VARIED
-            property_appreciation_rate=proj_defaults['property_appreciation_rate']
+            property_appreciation_rate=proj_defaults['property_appreciation_rate'],
+            refinancing_config=proj_defaults.get('refinancing_config'),
+            num_years=proj_defaults.get('projection_years', 15)
         )
         irr_results = calculate_irrs_from_projection(
             projection,
@@ -871,7 +903,9 @@ def run_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = Tru
             base_cfg,
             start_year=proj_defaults['start_year'],
             inflation_rate=proj_defaults['inflation_rate'],
-            property_appreciation_rate=proj_defaults['property_appreciation_rate']
+            property_appreciation_rate=proj_defaults['property_appreciation_rate'],
+            refinancing_config=proj_defaults.get('refinancing_config'),
+            num_years=proj_defaults.get('projection_years', 15)
         )
         irr_results = calculate_irrs_from_projection(
             projection,
@@ -904,7 +938,9 @@ def run_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = Tru
             print(f"    {i}. {sens['parameter']:<35} Impact: ±{sens['impact']:.2f}%")
     
     # Package and export results
+    meta = compute_assumptions_meta(json_path)
     output_data = {
+        **meta,
         'base_irr': base_irr,
         'sensitivities': sensitivities,
         'sorted_by': 'impact',
@@ -1203,7 +1239,9 @@ def run_cash_on_cash_sensitivity_analysis(json_path: str, case_name: str, verbos
             print(f"    {i}. {sens['parameter']:<35} Impact: ±{sens['impact']:.2f}%")
     
     # Package and export results
+    meta = compute_assumptions_meta(json_path)
     output_data = {
+        **meta,
         'base_coc': base_coc,
         'sensitivities': sensitivities,
         'sorted_by': 'impact',
@@ -1494,7 +1532,9 @@ def run_monthly_ncf_sensitivity_analysis(json_path: str, case_name: str, verbose
             print(f"    {i}. {sens['parameter']:<35} Impact: ±CHF {sens['impact']:.0f}")
     
     # Prepare output
+    meta = compute_assumptions_meta(json_path)
     output_data = {
+        **meta,
         'case_name': case_name,
         'base_ncf': base_ncf,
         'sensitivities': sensitivities,
@@ -1517,7 +1557,7 @@ def run_monthly_ncf_sensitivity_analysis(json_path: str, case_name: str, verbose
 # ═══════════════════════════════════════════════════════════════════════════
 
 def run_monte_carlo_analysis(json_path: str, case_name: str, 
-                             n_simulations: int = 1000, verbose: bool = True) -> Dict:
+                             n_simulations: int = 10000, verbose: bool = True) -> Dict:
     """
     Run Monte Carlo simulation to assess investment risk.
     
@@ -1572,6 +1612,7 @@ def run_monte_carlo_analysis(json_path: str, case_name: str,
     
     # Export results
     json_data = export_monte_carlo_to_json(df, stats)
+    json_data.update(compute_assumptions_meta(json_path))
     output_path = save_json(json_data, case_name, 'monte_carlo')
     
     if verbose:

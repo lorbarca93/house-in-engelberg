@@ -15,7 +15,7 @@ python analyze.py --quiet                      # Minimal output
 
 ### Generate All Cases at Once
 ```bash
-python generate_all_data.py  # Generates 5 cases × 5 analyses = 26 files
+python generate_all_data.py  # Generates 9 cases × 5 analyses = 45+ files
 ```
 
 ### Validate System
@@ -36,13 +36,13 @@ python -m http.server 8080
 **Open in browser**: http://localhost:8080/index.html
 
 **Dashboard Features:**
-- 🔄 Switch between 5 cases (Base, Migros, 3/5/6 Owners)
+- 🔄 Switch between 9 cases (Base, Migros, 3/5/6 Owners, 90-Day Restriction, Climate Risk, Interest Rate Spike, Early Exit)
 - 📈 View 5 analysis types:
   - **Model** - Base case KPIs and 15-year projection
   - **Sensitivity - Equity IRR** - Parameter impact on IRR
   - **Sensitivity - Cash-on-Cash** - Parameter impact on Year 1 yield
   - **Sensitivity - Monthly NCF** - Parameter impact on monthly cash
-  - **Monte Carlo** - 1,000 probabilistic simulations
+  - **Monte Carlo** - 10,000 probabilistic simulations with comprehensive statistics and 4 interactive charts
 - 🎨 Interactive Plotly tornado charts with hover explanations
 - 📋 Detailed data tables
 
@@ -65,7 +65,7 @@ python -m http.server 8080
 | Parameter | Value |
 |-----------|-------|
 | **Inflation** | 1.0%/year |
-| **Property Appreciation** | 2.5%/year |
+| **Property Appreciation** | 4.0%/year |
 | **Discount Rate** | 5.0% |
 | **Maintenance Reserve** | 0.5%/year |
 | **Selling Costs @ Year 15** | 7.8% total |
@@ -88,7 +88,7 @@ python -m http.server 8080
 | `generate_all_data.py` | Batch data generator |
 | `validate_system.py` | System validator (198 checks) |
 
-### Configuration (6 scenarios)
+### Configuration (9 scenarios)
 | File | Description |
 |------|-------------|
 | `assumptions.json` | Base case (4 owners, 75% LTV, 1.3% interest) |
@@ -97,10 +97,13 @@ python -m http.server 8080
 | `assumptions_5_owners.json` | 5 owners scenario |
 | `assumptions_6_owners.json` | 6 owners scenario |
 | `assumptions_90day_restriction.json` | 90-day Airbnb restriction (25% occupancy) |
+| `assumptions_climate_risk.json` | Climate change impact (winter -25%, summer +10% occupancy) |
+| `assumptions_interest_rate_spike.json` | Refinancing risk (1.3% → 3.5% at year 6) |
+| `assumptions_early_exit.json` | Poor performance exit (40% occupancy, 6-year exit) |
 
 ### Output
 - `website/index.html` - Dynamic dashboard
-- `website/data/*.json` - 26 data files
+- `website/data/*.json` - 45+ data files (9 cases × 5 analyses)
 
 ---
 
@@ -212,8 +215,9 @@ Expected output:
 ---
 
 **Created**: December 3, 2025  
-**Last Updated**: December 3, 2025  
+**Last Updated**: December 9, 2025  
 **Status**: Production Ready ✅  
-**Validation**: 198/198 checks passing
+**Validation**: 198/198 checks passing  
+**Scenarios**: 9 investment cases available
 
 **Questions?** See README.md for full documentation.
