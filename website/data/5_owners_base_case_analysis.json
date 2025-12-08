@@ -13,7 +13,7 @@
     "rental": {
       "owner_nights_per_person": 5,
       "num_owners": 5,
-      "occupancy_rate": 0.63,
+      "occupancy_rate": 0.7,
       "average_daily_rate": 200.0,
       "days_per_year": 365,
       "gross_rental_income": 48160.0,
@@ -421,5 +421,5 @@
     "debt_coverage_ratio": -0.2744179946225981,
     "operating_expense_ratio_pct": 112.77787277701779
   },
-  "timestamp": "2025-12-08T14:15:24.943704"
+  "timestamp": "2025-12-08T14:24:19.795974"
 }
