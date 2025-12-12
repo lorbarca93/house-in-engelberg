@@ -163,7 +163,7 @@ class BaseCaseConfig:
 # JSON Configuration Loader
 # -----------------------------
 
-def load_assumptions_from_json(json_path: str = "assumptions.json") -> Dict:
+def load_assumptions_from_json(json_path: str = "assumptions/assumptions.json") -> Dict:
     """
     Load assumption parameters from JSON file.
     
@@ -171,7 +171,7 @@ def load_assumptions_from_json(json_path: str = "assumptions.json") -> Dict:
     ensuring a single source of truth for all analyses.
     
     Args:
-        json_path: Path to the JSON assumptions file (default: "assumptions.json")
+        json_path: Path to the JSON assumptions file (default: "assumptions/assumptions.json")
     
     Returns:
         Dictionary containing all assumption parameters organized by category
@@ -185,7 +185,7 @@ def load_assumptions_from_json(json_path: str = "assumptions.json") -> Dict:
     if not os.path.exists(json_path):
         raise FileNotFoundError(
             f"Assumptions file not found: {json_path}\n"
-            f"Please ensure the assumptions.json file exists in the project root."
+            f"Please ensure the assumptions file exists at the specified path."
         )
     
     # Load JSON file
@@ -204,9 +204,10 @@ def load_assumptions_from_json(json_path: str = "assumptions.json") -> Dict:
     missing_sections = [section for section in required_sections if section not in assumptions]
     
     # If missing sections and this isn't the base assumptions.json, merge with base
-    if missing_sections and json_path != "assumptions.json" and os.path.exists("assumptions.json"):
+    base_path = "assumptions/assumptions.json"
+    if missing_sections and json_path != base_path and os.path.exists(base_path):
         # Load base assumptions
-        with open("assumptions.json", 'r', encoding='utf-8') as f:
+        with open(base_path, 'r', encoding='utf-8') as f:
             base_assumptions = json.load(f)
         
         # Merge: scenario overrides base
@@ -310,15 +311,15 @@ def load_assumptions_from_json(json_path: str = "assumptions.json") -> Dict:
     return assumptions
 
 
-def get_projection_defaults(json_path: str = "assumptions.json") -> Dict:
+def get_projection_defaults(json_path: str = "assumptions/assumptions.json") -> Dict:
     """
     Get projection default values from JSON.
     
     This helper function allows analysis scripts to use the same projection defaults
-    as defined in the assumptions.json file, ensuring consistency.
+    as defined in the assumptions JSON file, ensuring consistency.
     
     Args:
-        json_path: Path to the assumptions JSON file (default: "assumptions.json")
+        json_path: Path to the assumptions JSON file (default: "assumptions/assumptions.json")
     
     Returns:
         Dictionary with projection parameters including rates, years, selling costs, and optional refinancing config
@@ -338,7 +339,7 @@ def get_projection_defaults(json_path: str = "assumptions.json") -> Dict:
     
     defaults = {
         'inflation_rate': float(projection.get('inflation_rate', 0.01)),
-        'property_appreciation_rate': float(projection.get('property_appreciation_rate', 0.015)),
+        'property_appreciation_rate': float(projection.get('property_appreciation_rate', 0.025)),  # Default 2.5% to match function signature
         'start_year': int(projection.get('start_year', 2026)),
         'projection_years': int(projection.get('projection_years', 15)),
         'discount_rate': float(projection.get('discount_rate', 0.05)),
@@ -356,7 +357,7 @@ def get_projection_defaults(json_path: str = "assumptions.json") -> Dict:
 # Base case configuration
 # -----------------------------
 
-def create_base_case_config(json_path: str = "assumptions.json") -> BaseCaseConfig:
+def create_base_case_config(json_path: str = "assumptions/assumptions.json") -> BaseCaseConfig:
     """
     Create the base case configuration with seasonal parameters for Engelberg.
     
@@ -368,7 +369,7 @@ def create_base_case_config(json_path: str = "assumptions.json") -> BaseCaseConf
     DO NOT create alternative base case configurations in other scripts.
     Always use this function and then apply variations using apply_sensitivity().
     
-    All assumptions are loaded from assumptions.json file, ensuring a single
+    All assumptions are loaded from the assumptions JSON file, ensuring a single
     source of truth for all parameters across all analyses.
     
     Calibrated to real Engelberg Airbnb analytics:
@@ -382,7 +383,7 @@ def create_base_case_config(json_path: str = "assumptions.json") -> BaseCaseConf
     3. Off-Peak (Apr-May, Oct-Nov): Shoulder seasons with lower demand
     
     Args:
-        json_path: Path to the assumptions JSON file (default: "assumptions.json")
+        json_path: Path to the assumptions JSON file (default: "assumptions/assumptions.json")
     
     Returns:
         BaseCaseConfig with all parameters loaded from JSON file
@@ -856,10 +857,10 @@ def calculate_irrs_from_projection(projection: List[Dict], initial_equity: float
     - Transfer tax: 3.3% (varies by canton, Obwalden has high rate)
     
     Args:
-        projection: 15-year projection data
+        projection: Multi-year projection data (typically 15 years, can be shorter for early exit)
         initial_equity: Initial equity investment per owner
-        final_property_value: Property value at end of 15 years
-        final_loan_balance: Remaining loan balance at end of 15 years
+        final_property_value: Property value at end of projection period
+        final_loan_balance: Remaining loan balance at end of projection period
         num_owners: Number of owners
         purchase_price: Total purchase price (needed for unlevered IRR)
         selling_costs_rate: Total selling costs as % of sale price (default 7.8%)
@@ -919,7 +920,7 @@ def calculate_irrs_from_projection(projection: List[Dict], initial_equity: float
     if payback_period is None:
         cumulative_cash += sale_proceeds_per_owner
         if cumulative_cash >= 0:
-            payback_period = len(equity_cash_flows)  # Payback at year 15 with sale
+            payback_period = len(equity_cash_flows)  # Payback at final year with sale
     
     return {
         'equity_irr_with_sale_pct': equity_irr_with_sale * 100,
@@ -1090,7 +1091,7 @@ def export_base_case_to_json(config: BaseCaseConfig, results: Dict[str, float],
     Args:
         config: Base case configuration
         results: Annual cash flow results from compute_annual_cash_flows
-        projection: 15-year projection from compute_15_year_projection
+        projection: Multi-year projection from compute_15_year_projection (typically 15 years, can be shorter)
         irr_results: IRR calculation results from calculate_irrs_from_projection
     
     Returns:
@@ -1208,7 +1209,8 @@ def export_base_case_to_json(config: BaseCaseConfig, results: Dict[str, float],
     return {
         'config': config_dict,
         'annual_results': annual_results,
-        'projection_15yr': projection,
+        'projection': projection,  # Variable length projection (typically 15 years, can be 6 for early exit)
+        'projection_15yr': projection,  # Legacy key for backward compatibility
         'irr_results': irr_data,
         'kpis': kpis,
         'timestamp': datetime.now().isoformat()

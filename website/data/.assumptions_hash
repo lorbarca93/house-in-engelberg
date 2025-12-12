@@ -1,7 +1,7 @@
 {
-  "assumptions_file": "assumptions.json",
+  "assumptions_file": "assumptions/assumptions.json",
   "assumptions_version": "2025-12-10",
   "assumptions_last_updated": "2025-12-10T00:00:00Z",
-  "assumptions_hash": "21bea0be89beac6de43f14784559deff9d17827e09bc8b67eefa1e14c401289f",
-  "generated_at": "2025-12-08T14:28:17.314134Z"
+  "assumptions_hash": "2da065799d214f5b7dd735ca2e132f2849e36f95f594591523f5a157cc0fbc43",
+  "generated_at": "2025-12-12T07:31:23.422341Z"
 }

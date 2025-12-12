@@ -81,7 +81,7 @@ def get_case_metadata(assumptions_path: str) -> Dict:
         }
 
 
-def compute_assumptions_meta(base_path: str = "assumptions.json") -> Dict[str, str]:
+def compute_assumptions_meta(base_path: str = "assumptions/assumptions.json") -> Dict[str, str]:
     meta = {
         "assumptions_file": base_path if os.path.exists(base_path) else None,
         "assumptions_version": None,
@@ -200,12 +200,13 @@ def main():
     # Find all assumptions files
     assumptions_files = []
     
-    # Check for base assumptions.json
-    if os.path.exists("assumptions.json"):
-        assumptions_files.append("assumptions.json")
-    
-    # Find all assumptions_*.json files
-    for file in glob.glob("assumptions_*.json"):
+    # Check for base assumptions.json in assumptions folder
+    base_path = "assumptions/assumptions.json"
+    if os.path.exists(base_path):
+        assumptions_files.append(base_path)
+
+    # Find all assumptions_*.json files in assumptions folder
+    for file in glob.glob("assumptions/assumptions_*.json"):
         if file not in assumptions_files:
             assumptions_files.append(file)
     
@@ -220,7 +221,7 @@ def main():
     print()
     
     # Base assumptions meta (single source of truth)
-    base_meta = compute_assumptions_meta("assumptions.json")
+    base_meta = compute_assumptions_meta("assumptions/assumptions.json")
 
     # Load metadata for each case
     cases = []

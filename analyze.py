@@ -1663,8 +1663,8 @@ Examples:
     parser.add_argument(
         'assumptions_file', 
         nargs='?', 
-        default='assumptions.json',
-        help='Path to assumptions JSON file (default: assumptions.json)'
+        default='assumptions/assumptions.json',
+        help='Path to assumptions JSON file (default: assumptions/assumptions.json)'
     )
     
     parser.add_argument(

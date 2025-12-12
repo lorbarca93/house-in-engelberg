@@ -95,10 +95,10 @@ def validate_file_structure(result: ValidationResult):
             result.add_fail(f"Script missing: {script} ({description})")
     
     # Required configuration files
-    if os.path.exists('assumptions.json'):
-        result.add_pass("Base assumptions file: assumptions.json")
+    if os.path.exists('assumptions/assumptions.json'):
+        result.add_pass("Base assumptions file: assumptions/assumptions.json")
     else:
-        result.add_fail("Base assumptions file missing: assumptions.json")
+        result.add_fail("Base assumptions file missing: assumptions/assumptions.json")
     
     if os.path.exists('requirements.txt'):
         result.add_pass("Dependencies file: requirements.txt")
@@ -160,7 +160,7 @@ def validate_assumptions_files(result: ValidationResult):
     print("-" * 80)
     
     import glob
-    assumptions_files = glob.glob("assumptions*.json")
+    assumptions_files = glob.glob("assumptions/assumptions*.json")
     
     if not assumptions_files:
         result.add_fail("No assumptions files found")
@@ -182,7 +182,7 @@ def validate_assumptions_files(result: ValidationResult):
             continue
         
         # Validate structure
-        if assumptions_file == "assumptions.json":
+        if assumptions_file == "assumptions/assumptions.json" or assumptions_file.endswith("/assumptions.json"):
             # Base file - must have all sections
             required_sections = ['financing', 'rental', 'expenses', 'seasonal', 'projection']
             for section in required_sections:
@@ -256,8 +256,8 @@ def validate_cross_checks(result: ValidationResult):
         
         # Test 1: Assumptions can be loaded and config created
         try:
-            config = create_base_case_config('assumptions.json')
-            result.add_pass("Cross-check: assumptions.json → config creation successful")
+            config = create_base_case_config('assumptions/assumptions.json')
+            result.add_pass("Cross-check: assumptions/assumptions.json → config creation successful")
             
             # Verify config has expected structure
             if hasattr(config, 'financing') and hasattr(config, 'rental') and hasattr(config, 'expenses'):
@@ -283,7 +283,7 @@ def validate_cross_checks(result: ValidationResult):
         
         # Test 3: Projection defaults can be loaded
         try:
-            proj_defaults = get_projection_defaults('assumptions.json')
+            proj_defaults = get_projection_defaults('assumptions/assumptions.json')
             required_proj_keys = ['inflation_rate', 'property_appreciation_rate', 'selling_costs_rate']
             missing_proj = [k for k in required_proj_keys if k not in proj_defaults]
             
@@ -296,7 +296,7 @@ def validate_cross_checks(result: ValidationResult):
         
         # Test 4: Verify assumptions values match config values
         try:
-            assumptions = json.load(open('assumptions.json'))
+            assumptions = json.load(open('assumptions/assumptions.json'))
             
             # Check financing consistency
             if assumptions['financing']['ltv'] == config.financing.ltv:
@@ -362,7 +362,7 @@ def validate_data_files(result: ValidationResult):
                                     
                                     # Check for required keys based on analysis type
                                     if analysis_type == 'base_case_analysis':
-                                        required_keys = ['config', 'annual_results', 'projection_15yr', 'irr_results']
+                                        required_keys = ['config', 'annual_results', 'irr_results']  # projection_15yr or projection
                                         missing = [k for k in required_keys if k not in data]
                                         if not missing:
                                             result.add_pass(f"Case '{case_name}': Base case structure valid")
@@ -411,7 +411,7 @@ def validate_calculation_consistency(result: ValidationResult):
         config = data['config']
         results = data['annual_results']
         irr_results = data['irr_results']
-        projection = data['projection_15yr']
+        projection = data.get('projection') or data.get('projection_15yr')  # Support both new and legacy keys
         
         # Check 1: LTV calculation
         expected_loan = config['financing']['purchase_price'] * config['financing']['ltv']
@@ -445,11 +445,12 @@ def validate_calculation_consistency(result: ValidationResult):
         else:
             result.add_fail(f"Calculation: Cash Flow mismatch")
         
-        # Check 5: Projection length
-        if len(projection) == 15:
-            result.add_pass("Calculation: Projection has correct length (15 years)")
+        # Check 5: Projection length (should match projection_years from assumptions, default 15)
+        expected_years = config.get('projection', {}).get('projection_years', 15)
+        if len(projection) == expected_years:
+            result.add_pass(f"Calculation: Projection has correct length ({expected_years} years)")
         else:
-            result.add_fail(f"Calculation: Projection has {len(projection)} years (expected 15)")
+            result.add_fail(f"Calculation: Projection has {len(projection)} years (expected {expected_years})")
         
         # Check 6: MOIC calculation
         if 'moic' in irr_results and irr_results['moic'] > 0:
@@ -475,17 +476,178 @@ def validate_calculation_consistency(result: ValidationResult):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# VALIDATION SECTION 6B: OUTPUT KPI SAFETY RANGES
+# ═══════════════════════════════════════════════════════════════════════════
+
+def validate_output_kpi_ranges(result: ValidationResult):
+    """Validate that output KPIs are within reasonable safety ranges to catch calculation errors."""
+    print("\n[6B/12] Validating Output KPI Safety Ranges...")
+    print("-" * 80)
+    
+    try:
+        # Load base case data
+        with open('website/data/base_case_base_case_analysis.json') as f:
+            data = json.load(f)
+        
+        irr_results = data.get('irr_results', {})
+        annual_results = data.get('annual_results', {})
+        projection = data.get('projection') or data.get('projection_15yr', [])
+        config = data.get('config', {})
+        
+        # 1. IRR Validation (Equity IRR and Project IRR)
+        equity_irr = irr_results.get('equity_irr_with_sale_pct', 0)
+        project_irr = irr_results.get('project_irr_with_sale_pct', 0)
+        
+        # IRR should be between -50% and 100% (negative is possible for bad investments, but extreme values suggest errors)
+        if -50 <= equity_irr <= 100:
+            result.add_pass(f"Output KPI: Equity IRR {equity_irr:.2f}% within safety range (-50% to 100%)")
+        else:
+            result.add_fail(f"Output KPI: Equity IRR {equity_irr:.2f}% OUT OF RANGE! Possible calculation error.")
+        
+        if -50 <= project_irr <= 100:
+            result.add_pass(f"Output KPI: Project IRR {project_irr:.2f}% within safety range (-50% to 100%)")
+        else:
+            result.add_fail(f"Output KPI: Project IRR {project_irr:.2f}% OUT OF RANGE! Possible calculation error.")
+        
+        # 2. Cap Rate Validation
+        if projection:
+            # Calculate cap rate from first year
+            first_year = projection[0]
+            property_value = first_year.get('property_value', 0)
+            noi = first_year.get('net_operating_income', 0)
+            
+            if property_value > 0:
+                cap_rate = (noi / property_value) * 100
+                # Cap rate should be between -5% and 20% (negative possible if NOI negative, but extreme values suggest errors)
+                if -5 <= cap_rate <= 20:
+                    result.add_pass(f"Output KPI: Cap Rate {cap_rate:.2f}% within safety range (-5% to 20%)")
+                else:
+                    result.add_fail(f"Output KPI: Cap Rate {cap_rate:.2f}% OUT OF RANGE! Possible calculation error.")
+        
+        # 3. Cash Flow Validation
+        cash_flow = annual_results.get('cash_flow_after_debt_service', 0)
+        purchase_price = config.get('financing', {}).get('purchase_price', 1300000)
+        
+        # Cash flow should be between -50% and +50% of purchase price (extreme values suggest errors)
+        if -purchase_price * 0.5 <= cash_flow <= purchase_price * 0.5:
+            result.add_pass(f"Output KPI: Annual Cash Flow {cash_flow:,.0f} CHF within safety range (±50% of purchase price)")
+        else:
+            result.add_fail(f"Output KPI: Annual Cash Flow {cash_flow:,.0f} CHF OUT OF RANGE! Possible calculation error.")
+        
+        # 4. NPV Validation
+        npv = irr_results.get('npv_at_5pct', 0)
+        # NPV should be between -200% and +200% of initial equity (extreme values suggest errors)
+        initial_equity = config.get('financing', {}).get('equity_total', 325000)
+        if -initial_equity * 2 <= npv <= initial_equity * 2:
+            result.add_pass(f"Output KPI: NPV {npv:,.0f} CHF within safety range (±200% of initial equity)")
+        else:
+            result.add_fail(f"Output KPI: NPV {npv:,.0f} CHF OUT OF RANGE! Possible calculation error.")
+        
+        # 5. MOIC Validation
+        moic = irr_results.get('moic', 0)
+        # MOIC should be between 0x and 10x (0x = total loss, 10x is very high but possible)
+        if 0 <= moic <= 10:
+            result.add_pass(f"Output KPI: MOIC {moic:.2f}x within safety range (0x to 10x)")
+        else:
+            result.add_fail(f"Output KPI: MOIC {moic:.2f}x OUT OF RANGE! Possible calculation error.")
+        
+        # 6. Debt Coverage Ratio Validation
+        if projection:
+            first_year = projection[0]
+            noi = first_year.get('net_operating_income', 0)
+            debt_service = first_year.get('debt_service', 1)
+            
+            if debt_service > 0:
+                dcr = noi / debt_service
+                # DCR should be between -2 and 5 (negative possible if NOI negative, but extreme values suggest errors)
+                if -2 <= dcr <= 5:
+                    result.add_pass(f"Output KPI: Debt Coverage Ratio {dcr:.2f}x within safety range (-2x to 5x)")
+                else:
+                    result.add_fail(f"Output KPI: Debt Coverage Ratio {dcr:.2f}x OUT OF RANGE! Possible calculation error.")
+        
+        # 7. Occupancy Rate Validation
+        # Check both annual_results and projection for occupancy
+        occupancy = None
+        if 'overall_occupancy_rate' in annual_results:
+            occupancy = annual_results.get('overall_occupancy_rate', 0) * 100
+        elif projection and len(projection) > 0:
+            occupancy = projection[0].get('overall_occupancy_rate', 0) * 100
+        
+        if occupancy is not None:
+            # Occupancy should be between 0% and 100%
+            if 0 <= occupancy <= 100:
+                result.add_pass(f"Output KPI: Occupancy Rate {occupancy:.1f}% within safety range (0% to 100%)")
+            else:
+                result.add_fail(f"Output KPI: Occupancy Rate {occupancy:.1f}% OUT OF RANGE! Possible calculation error.")
+        else:
+            result.add_warning("Output KPI: Occupancy Rate not found in data")
+        
+        # 8. Property Value Validation
+        if projection:
+            first_year = projection[0]
+            property_value = first_year.get('property_value', 0)
+            
+            # Property value should be positive and reasonable (between 50% and 200% of purchase price)
+            purchase_price = config.get('financing', {}).get('purchase_price', 1300000)
+            if purchase_price * 0.5 <= property_value <= purchase_price * 2:
+                result.add_pass(f"Output KPI: Property Value {property_value:,.0f} CHF within safety range (50%-200% of purchase price)")
+            else:
+                result.add_fail(f"Output KPI: Property Value {property_value:,.0f} CHF OUT OF RANGE! Possible calculation error.")
+        
+        # 9. Gross Rental Income Validation
+        gross_income = annual_results.get('gross_rental_income', 0)
+        # Gross income should be positive and reasonable (not more than 20% of property value)
+        if property_value > 0:
+            income_rate = (gross_income / property_value) * 100
+            if 0 <= income_rate <= 20:
+                result.add_pass(f"Output KPI: Gross Rental Income {gross_income:,.0f} CHF ({income_rate:.1f}% of property value) within safety range")
+            else:
+                result.add_fail(f"Output KPI: Gross Rental Income {gross_income:,.0f} CHF ({income_rate:.1f}% of property value) OUT OF RANGE! Possible calculation error.")
+        
+        # 10. Loan Balance Validation (should decrease over time)
+        if len(projection) >= 2:
+            initial_loan = projection[0].get('remaining_loan_balance', 0)
+            final_loan = projection[-1].get('remaining_loan_balance', 0)
+            
+            # Loan should decrease (or stay same if no amortization)
+            if final_loan <= initial_loan:
+                result.add_pass(f"Output KPI: Loan balance decreases correctly ({initial_loan:,.0f} → {final_loan:,.0f} CHF)")
+            else:
+                result.add_fail(f"Output KPI: Loan balance INCREASES! ({initial_loan:,.0f} → {final_loan:,.0f} CHF) Possible calculation error.")
+        
+        # 11. Property Value Appreciation Validation (should increase over time if appreciation rate > 0)
+        if len(projection) >= 2:
+            initial_value = projection[0].get('property_value', 0)
+            final_value = projection[-1].get('property_value', 0)
+            
+            # Check if property value increases (should increase if appreciation rate is positive)
+            proj_config = config.get('projection', {})
+            appreciation_rate = proj_config.get('property_appreciation_rate', 0.04)
+            
+            if appreciation_rate > 0:
+                if final_value >= initial_value:
+                    result.add_pass(f"Output KPI: Property value increases with positive appreciation rate ({initial_value:,.0f} → {final_value:,.0f} CHF)")
+                else:
+                    result.add_fail(f"Output KPI: Property value DECREASES despite positive appreciation rate! Possible calculation error.")
+        
+    except FileNotFoundError:
+        result.add_warning("Output KPI: Base case data file not found (run python analyze.py)")
+    except Exception as e:
+        result.add_fail(f"Output KPI: Validation error - {str(e)}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # VALIDATION SECTION 7: ASSUMPTIONS ↔ DATA CROSS-VALIDATION
 # ═══════════════════════════════════════════════════════════════════════════
 
 def validate_assumptions_data_cross_check(result: ValidationResult):
     """Cross-validate that data files reflect assumptions correctly."""
-    print("\n[7/12] Cross-Validating Assumptions ↔ Generated Data...")
+    print("\n[8/12] Cross-Validating Assumptions ↔ Generated Data...")
     print("-" * 80)
     
     try:
         # Load assumptions
-        with open('assumptions.json') as f:
+        with open('assumptions/assumptions.json') as f:
             assumptions = json.load(f)
         
         # Load generated data
@@ -494,28 +656,28 @@ def validate_assumptions_data_cross_check(result: ValidationResult):
         
         # Cross-check: Financing parameters
         if assumptions['financing']['purchase_price'] == data['config']['financing']['purchase_price']:
-            result.add_pass("Cross-check: Purchase price (assumptions.json ↔ data)")
+            result.add_pass("Cross-check: Purchase price (assumptions/assumptions.json ↔ data)")
         else:
             result.add_fail("Cross-check: Purchase price mismatch")
         
         if assumptions['financing']['ltv'] == data['config']['financing']['ltv']:
-            result.add_pass("Cross-check: LTV (assumptions.json ↔ data)")
+            result.add_pass("Cross-check: LTV (assumptions/assumptions.json ↔ data)")
         else:
             result.add_fail("Cross-check: LTV mismatch")
         
         if assumptions['financing']['interest_rate'] == data['config']['financing']['interest_rate']:
-            result.add_pass("Cross-check: Interest rate (assumptions.json ↔ data)")
+            result.add_pass("Cross-check: Interest rate (assumptions/assumptions.json ↔ data)")
         else:
             result.add_fail("Cross-check: Interest rate mismatch")
         
         # Cross-check: Expense parameters
         if assumptions['expenses']['maintenance_rate'] == data['config']['expenses']['maintenance_rate']:
-            result.add_pass("Cross-check: Maintenance rate (assumptions.json ↔ data)")
+            result.add_pass("Cross-check: Maintenance rate (assumptions/assumptions.json ↔ data)")
         else:
             result.add_fail("Cross-check: Maintenance rate mismatch")
         
         if assumptions['expenses']['cleaning_cost_per_stay'] == data['config']['expenses']['cleaning_cost_per_stay']:
-            result.add_pass("Cross-check: Cleaning cost (assumptions.json ↔ data)")
+            result.add_pass("Cross-check: Cleaning cost (assumptions/assumptions.json ↔ data)")
         else:
             result.add_fail("Cross-check: Cleaning cost mismatch")
         
@@ -544,7 +706,7 @@ def validate_assumptions_data_cross_check(result: ValidationResult):
 
 def validate_sensitivity_analysis(result: ValidationResult):
     """Validate sensitivity analysis calculations and consistency."""
-    print("\n[8/12] Validating Sensitivity Analysis...")
+    print("\n[9/12] Validating Sensitivity Analysis...")
     print("-" * 80)
     
     try:
@@ -604,7 +766,7 @@ def validate_sensitivity_analysis(result: ValidationResult):
 
 def validate_monte_carlo(result: ValidationResult):
     """Validate Monte Carlo simulation results."""
-    print("\n[9/12] Validating Monte Carlo Simulation...")
+    print("\n[10/12] Validating Monte Carlo Simulation...")
     print("-" * 80)
     
     try:
@@ -652,7 +814,7 @@ def validate_monte_carlo(result: ValidationResult):
 
 def validate_dashboard(result: ValidationResult):
     """Validate dashboard HTML and JavaScript components."""
-    print("\n[10/12] Validating Dashboard Components...")
+    print("\n[11/12] Validating Dashboard Components...")
     print("-" * 80)
     
     if not os.path.exists('website/index.html'):
@@ -697,7 +859,7 @@ def validate_dashboard(result: ValidationResult):
 
 def validate_script_integration(result: ValidationResult):
     """Test that scripts can call each other correctly."""
-    print("\n[11/12] Validating Script Integration...")
+    print("\n[12/13] Validating Script Integration...")
     print("-" * 80)
     
     try:
@@ -736,7 +898,7 @@ def validate_script_integration(result: ValidationResult):
 
 def validate_end_to_end(result: ValidationResult):
     """Perform end-to-end validation across entire system."""
-    print("\n[12/12] Validating End-to-End Consistency...")
+    print("\n[13/13] Validating End-to-End Consistency...")
     print("-" * 80)
     
     try:
@@ -747,11 +909,13 @@ def validate_end_to_end(result: ValidationResult):
         for case in index['cases']:
             case_name = case['case_name']
             assumptions_file = case['assumptions_file']
+            # Check both with and without assumptions/ prefix for backward compatibility
+            assumptions_path = assumptions_file if os.path.exists(assumptions_file) else f"assumptions/{assumptions_file}"
             
-            if os.path.exists(assumptions_file):
-                result.add_pass(f"E2E: Case '{case_name}' has assumptions file: {assumptions_file}")
+            if os.path.exists(assumptions_path):
+                result.add_pass(f"E2E: Case '{case_name}' has assumptions file: {assumptions_path}")
             else:
-                result.add_fail(f"E2E: Case '{case_name}' missing assumptions: {assumptions_file}")
+                result.add_fail(f"E2E: Case '{case_name}' missing assumptions: {assumptions_path}")
             
             # Check data files match case name
             for analysis_type, filename in case.get('data_files', {}).items():
@@ -762,7 +926,7 @@ def validate_end_to_end(result: ValidationResult):
         
         # Check that number of cases matches
         import glob
-        assumptions_files = glob.glob("assumptions*.json")
+        assumptions_files = glob.glob("assumptions/assumptions*.json")
         if len(index['cases']) == len(assumptions_files):
             result.add_pass(f"E2E: Case count matches ({len(index['cases'])} cases)")
         else:
@@ -792,6 +956,7 @@ def main():
     validate_cross_checks(result)
     validate_data_files(result)
     validate_calculation_consistency(result)
+    validate_output_kpi_ranges(result)
     validate_assumptions_data_cross_check(result)
     validate_sensitivity_analysis(result)
     validate_monte_carlo(result)

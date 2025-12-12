@@ -45,72 +45,63 @@
 
       /* Top Navigation Bar */
       .top-bar {
-        background: linear-gradient(135deg, #111827 0%, #1f2937 50%, #293352 100%);
-        color: white;
-        padding: 16px 28px;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+        background: #ffffff;
+        color: #2c3e50;
+        padding: 12px 20px;
+        border-bottom: 1px solid #e0e0e0;
         display: flex;
         align-items: center;
         justify-content: space-between;
         z-index: 1000;
         position: sticky;
         top: 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       }
 
       .top-bar h1 {
-        font-size: 1.45em;
-        font-weight: 700;
+        font-size: 1.1em;
+        font-weight: 500;
         display: flex;
         align-items: center;
-        gap: 10px;
-        letter-spacing: 0.2px;
+        gap: 8px;
+        color: #2c3e50;
       }
 
       .top-bar h1 small {
-        font-size: 0.8em;
-        font-weight: 500;
-        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.75em;
+        font-weight: 400;
+        color: #7f8c8d;
+        margin-left: 8px;
       }
 
       .case-selector {
         display: flex;
-        gap: 10px;
+        gap: 8px;
         align-items: center;
-        background: rgba(255, 255, 255, 0.06);
-        padding: 8px 12px;
-        border-radius: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
       }
 
       .case-selector label {
-        font-weight: 600;
-        margin-right: 4px;
-        color: rgba(255, 255, 255, 0.9);
+        font-weight: 400;
+        font-size: 0.85em;
+        color: #7f8c8d;
       }
 
       .case-selector select {
-        padding: 9px 14px;
-        border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        background: rgba(255, 255, 255, 0.9);
-        color: var(--primary);
-        font-size: 0.95em;
+        padding: 6px 10px;
+        border-radius: 4px;
+        border: 1px solid #d0d0d0;
+        background: #ffffff;
+        color: #2c3e50;
+        font-size: 0.85em;
         cursor: pointer;
-        min-width: 210px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-        transition: all 0.15s ease;
+        min-width: 180px;
       }
 
       .case-selector select:hover {
-        background: #fff;
-        border-color: rgba(255, 255, 255, 0.4);
+        border-color: #95a5a6;
       }
 
       .case-selector select:focus {
-        outline: 2px solid rgba(102, 126, 234, 0.6);
-        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+        outline: 1px solid #95a5a6;
       }
 
       /* Main Layout */
@@ -123,10 +114,9 @@
       /* Sidebar */
       .sidebar {
         width: var(--sidebar-width);
-        background: white;
-        border-right: 1px solid var(--border);
+        background: #ffffff;
+        border-right: 1px solid #e0e0e0;
         overflow-y: auto;
-        box-shadow: 2px 0 12px rgba(0, 0, 0, 0.05);
         display: flex;
         flex-direction: column;
         position: relative;
@@ -134,74 +124,63 @@
       }
 
       .sidebar-header {
-        padding: 18px 20px;
-        background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
-        color: white;
-        font-weight: 700;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        letter-spacing: 0.2px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        padding: 12px 16px;
+        background: #f8f9fa;
+        color: #2c3e50;
+        font-weight: 500;
+        font-size: 0.85em;
+        border-bottom: 1px solid #e0e0e0;
       }
 
       .sidebar-menu {
         list-style: none;
-        padding: 12px 0 16px;
+        padding: 8px 0;
         margin: 0;
       }
 
       .sidebar-menu-item {
-        padding: 12px 20px;
+        padding: 10px 16px;
         cursor: pointer;
-        transition: all 0.2s ease;
-        border-left: 4px solid transparent;
+        transition: background 0.15s ease;
+        border-left: 2px solid transparent;
         display: flex;
         align-items: center;
         gap: 10px;
-        color: #3c4b5f;
-        font-weight: 500;
+        color: #2c3e50;
+        font-weight: 400;
+        font-size: 0.85em;
       }
 
       .sidebar-menu-item i {
-        width: 20px;
+        width: 16px;
         text-align: center;
-        color: #9aa6b2;
-        font-size: 0.95em;
+        color: #95a5a6;
+        font-size: 0.9em;
       }
 
       .sidebar-menu-item:hover {
-        background: #f4f6fb;
-        border-left-color: var(--accent);
-        color: var(--accent);
-      }
-
-      .sidebar-menu-item:hover i {
-        color: var(--accent);
+        background: #f5f5f5;
+        border-left-color: #95a5a6;
       }
 
       .sidebar-menu-item.active {
-        background: linear-gradient(
-          90deg,
-          rgba(102, 126, 234, 0.14) 0%,
-          rgba(118, 75, 162, 0.10) 100%
-        );
-        border-left-color: var(--accent);
-        font-weight: 700;
-        color: var(--accent);
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        background: #f0f0f0;
+        border-left-color: #2c3e50;
+        font-weight: 500;
       }
 
       .sidebar-menu-item.active i {
-        color: var(--accent);
+        color: #2c3e50;
       }
 
       /* Sidebar footer */
       .sidebar-footer {
         margin-top: auto;
-        padding: 14px 18px;
-        background: #f8f9fb;
-        border-top: 1px solid var(--border);
-        font-size: 0.85em;
-        color: #6c7a89;
+        padding: 10px 16px;
+        background: #f8f9fa;
+        border-top: 1px solid #e0e0e0;
+        font-size: 0.75em;
+        color: #95a5a6;
       }
 
       /* Main Content Area */
@@ -412,8 +391,8 @@
     <!-- Top Navigation Bar -->
     <div class="top-bar">
       <h1>
-        <i class="fas fa-chart-line"></i> Engelberg Property Investment
-        <small>Dynamic dashboard • Sensitivities aligned</small>
+        Engelberg Property Investment
+        <small>Investment Analysis</small>
       </h1>
       <div class="case-selector">
         <label for="caseSelect">Case:</label>
@@ -434,46 +413,51 @@
           <li class="sidebar-menu-item active" data-analysis="base_case">
             <i class="fas fa-home"></i>
             <div>
-              <div style="font-weight: 700;">Model</div>
-              <div style="font-size: 0.85em; color: #6c7a89;">KPIs & 15-year projection</div>
+              <div style="font-weight: 700">Model</div>
+              <div style="font-size: 0.85em; color: #6c7a89">
+                KPIs & 15-year projection
+              </div>
             </div>
           </li>
           <li class="sidebar-menu-item" data-analysis="sensitivity">
             <i class="fas fa-sliders-h"></i>
             <div>
-              <div style="font-weight: 700;">Sensitivity - Equity IRR</div>
-              <div style="font-size: 0.85em; color: #6c7a89;">15 parameters ranked by impact</div>
+              <div style="font-weight: 700">Sensitivity - Equity IRR</div>
+              <div style="font-size: 0.85em; color: #6c7a89">
+                15 parameters ranked by impact
+              </div>
             </div>
           </li>
           <li class="sidebar-menu-item" data-analysis="sensitivity_coc">
             <i class="fas fa-dollar-sign"></i>
             <div>
-              <div style="font-weight: 700;">Sensitivity - Cash-on-Cash</div>
-              <div style="font-size: 0.85em; color: #6c7a89;">Year 1 cash yield levers</div>
+              <div style="font-weight: 700">Sensitivity - Cash-on-Cash</div>
+              <div style="font-size: 0.85em; color: #6c7a89">
+                Year 1 cash yield levers
+              </div>
             </div>
           </li>
           <li class="sidebar-menu-item" data-analysis="sensitivity_ncf">
             <i class="fas fa-wallet"></i>
             <div>
-              <div style="font-weight: 700;">Sensitivity - Monthly NCF</div>
-              <div style="font-size: 0.85em; color: #6c7a89;">Monthly cash per owner</div>
+              <div style="font-weight: 700">Sensitivity - Monthly NCF</div>
+              <div style="font-size: 0.85em; color: #6c7a89">
+                Monthly cash per owner
+              </div>
             </div>
           </li>
           <li class="sidebar-menu-item" data-analysis="monte_carlo">
             <i class="fas fa-dice"></i>
             <div>
-              <div style="font-weight: 700;">Monte Carlo</div>
-              <div style="font-size: 0.85em; color: #6c7a89;">1,000+ simulation outcomes</div>
+              <div style="font-weight: 700">Monte Carlo</div>
+              <div style="font-size: 0.85em; color: #6c7a89">
+                1,000+ simulation outcomes
+              </div>
             </div>
           </li>
         </ul>
         <div class="sidebar-footer">
-          <div style="font-weight: 600; color: #3c4b5f; margin-bottom: 6px;">Quick Tips</div>
-          <div style="line-height: 1.6;">
-            • Switch cases via dropdown<br>
-            • Hover charts for details<br>
-            • Sensitivities aligned across tabs
-          </div>
+          <div>Switch cases via dropdown</div>
         </div>
       </div>
 
@@ -646,7 +630,7 @@
           const results = data.annual_results || {};
           const kpis = data.kpis || {};
           const irr = data.irr_results || {};
-          const projection = data.projection_15yr || [];
+          const projection = data.projection || data.projection_15yr || []; // Support both new and legacy key names
           const config = data.config || {};
           const financing = config.financing || {};
           const rental = config.rental || {};
@@ -661,10 +645,16 @@
                     <div class="section">
                         <h2 class="section-title">Model</h2>
                         <div style="font-size: 0.85em; color: #6c7a89; margin-bottom: 10px;">
-                          Data generated from: <strong>${data.assumptions_file || 'assumptions.json'}</strong>
-                          @ <strong>${data.assumptions_version || 'n/a'}</strong>
-                          (hash: ${(data.assumptions_hash || '').slice(0,8) || 'n/a'}) 
-                          • Generated: ${data.generated_at || 'n/a'}
+                          Data generated from: <strong>${
+                            data.assumptions_file || "assumptions.json"
+                          }</strong>
+                          @ <strong>${
+                            data.assumptions_version || "n/a"
+                          }</strong>
+                          (hash: ${
+                            (data.assumptions_hash || "").slice(0, 8) || "n/a"
+                          }) 
+                          • Generated: ${data.generated_at || "n/a"}
                         </div>
                         
                         <div class="kpi-grid">
@@ -785,15 +775,84 @@
                                   maximumFractionDigits: 0,
                                 })}</div>
                             </div>
+                            <div class="kpi-card" data-tooltip="Monthly debt service (interest + principal) per owner. This is the minimum monthly payment each owner must contribute to cover the mortgage, even when revenue is low or absent.">
+                                <h3>Debt Service / Owner / Month</h3>
+                                <div class="value">${(
+                                  (results.debt_service || 0) /
+                                  12 /
+                                  (financing.num_owners || 1)
+                                ).toLocaleString("en-US", {
+                                  style: "currency",
+                                  currency: "CHF",
+                                  maximumFractionDigits: 0,
+                                })}</div>
+                            </div>
+                            <div class="kpi-card" data-tooltip="Monthly total operating expenses per owner. This includes all property costs (management, cleaning, insurance, maintenance, etc.) that each owner must cover, regardless of rental income. Combined with debt service, this shows the total monthly cash requirement per owner.">
+                                <h3>Total Expenses / Owner / Month</h3>
+                                <div class="value">${(
+                                  (results.total_operating_expenses || 0) /
+                                  12 /
+                                  (financing.num_owners || 1)
+                                ).toLocaleString("en-US", {
+                                  style: "currency",
+                                  currency: "CHF",
+                                  maximumFractionDigits: 0,
+                                })}</div>
+                            </div>
+                            <div class="kpi-card" data-tooltip="Total mandatory cash requirement per month in worst-case scenario (zero revenue). Includes debt service + all fixed operating expenses (insurance, nabenkosten, electricity/internet, maintenance reserve). This is the minimum cash needed each month regardless of rental income.">
+                                <h3>Total Mandatory Cash / Month</h3>
+                                <div class="value negative">${(
+                                  ((results.debt_service || 0) +
+                                    (results.insurance || 0) +
+                                    (expenses.nubbing_costs_annual || 0) +
+                                    (expenses.electricity_internet_annual ||
+                                      0) +
+                                    (results.maintenance_reserve || 0)) /
+                                  12
+                                ).toLocaleString("en-US", {
+                                  style: "currency",
+                                  currency: "CHF",
+                                  maximumFractionDigits: 0,
+                                })}</div>
+                            </div>
+                            <div class="kpi-card" data-tooltip="Total mandatory cash requirement per owner per month in worst-case scenario (zero revenue). This is the minimum monthly cash each owner must contribute to cover all fixed costs (debt service, insurance, nabenkosten, bills, maintenance) when the property generates no rental income.">
+                                <h3>Total Mandatory Cash / Owner / Month</h3>
+                                <div class="value negative">${(
+                                  ((results.debt_service || 0) +
+                                    (results.insurance || 0) +
+                                    (expenses.nubbing_costs_annual || 0) +
+                                    (expenses.electricity_internet_annual ||
+                                      0) +
+                                    (results.maintenance_reserve || 0)) /
+                                  12 /
+                                  (financing.num_owners || 1)
+                                ).toLocaleString("en-US", {
+                                  style: "currency",
+                                  currency: "CHF",
+                                  maximumFractionDigits: 0,
+                                })}</div>
+                            </div>
                             <div class="kpi-card" data-tooltip="Cap rate = NOI ÷ Purchase Price. A snapshot yield ignoring debt.">
                                 <h3>Cap Rate</h3>
                                 <div class="value">${(
                                   kpis.cap_rate_pct || 0
                                 ).toFixed(2)}%</div>
                             </div>
-                            <div class="kpi-card" data-tooltip="Effective OTA platform fee = OTA Booking % × OTA Fee Rate. Currently ${((expenses.ota_booking_percentage || 0.5) * 100).toFixed(0)}% bookings × ${((expenses.ota_fee_rate || 0.3) * 100).toFixed(0)}% fee = ${(((expenses.ota_booking_percentage || 0.5) * (expenses.ota_fee_rate || 0.3)) * 100).toFixed(1)}% of gross revenue.">
+                            <div class="kpi-card" data-tooltip="Effective OTA platform fee = OTA Booking % × OTA Fee Rate. Currently ${(
+                              (expenses.ota_booking_percentage || 0.5) * 100
+                            ).toFixed(0)}% bookings × ${(
+            (expenses.ota_fee_rate || 0.3) * 100
+          ).toFixed(0)}% fee = ${(
+            (expenses.ota_booking_percentage || 0.5) *
+            (expenses.ota_fee_rate || 0.3) *
+            100
+          ).toFixed(1)}% of gross revenue.">
                                 <h3>Platform Fee</h3>
-                                <div class="value">${(((expenses.ota_booking_percentage || 0.5) * (expenses.ota_fee_rate || 0.3)) * 100).toFixed(1)}%</div>
+                                <div class="value">${(
+                                  (expenses.ota_booking_percentage || 0.5) *
+                                  (expenses.ota_fee_rate || 0.3) *
+                                  100
+                                ).toFixed(1)}%</div>
                             </div>
                         </div>
                         
@@ -819,7 +878,8 @@
                                           (financing.amortization_rate || 0) *
                                           100
                                         ).toFixed(1)}%</strong> per year<br>
-                                        • Owners: <strong>${financing.num_owners || 0
+                                        • Owners: <strong>${
+                                          financing.num_owners || 0
                                         }</strong> (Equity: CHF ${(
             (financing.equity_total || 0) / (financing.num_owners || 1)
           ).toLocaleString()}/owner)
@@ -844,15 +904,25 @@
                                           rental.owner_nights_per_person || 0
                                         } per owner</strong><br>
                                         • Mgmt Fee: <strong>${(
-                                          (expenses.property_management_fee_rate || 0) *
-                                          100
+                                          (expenses.property_management_fee_rate ||
+                                            0) * 100
                                         ).toFixed(0)}%</strong> of gross<br>
                                         • Cleaning per stay: <strong>CHF ${(
                                           expenses.cleaning_cost_per_stay || 0
                                         ).toFixed(0)}</strong><br>
-                                        • OTA booking %: <strong>${((expenses.ota_booking_percentage || 0.5) * 100).toFixed(0)}%</strong><br>
-                                        • OTA fee rate: <strong>${((expenses.ota_fee_rate || 0.3) * 100).toFixed(0)}%</strong><br>
-                                        • Effective platform fee: <strong>${(((expenses.ota_booking_percentage || 0.5) * (expenses.ota_fee_rate || 0.3)) * 100).toFixed(1)}%</strong> of gross revenue
+                                        • OTA booking %: <strong>${(
+                                          (expenses.ota_booking_percentage ||
+                                            0.5) * 100
+                                        ).toFixed(0)}%</strong><br>
+                                        • OTA fee rate: <strong>${(
+                                          (expenses.ota_fee_rate || 0.3) * 100
+                                        ).toFixed(0)}%</strong><br>
+                                        • Effective platform fee: <strong>${(
+                                          (expenses.ota_booking_percentage ||
+                                            0.5) *
+                                          (expenses.ota_fee_rate || 0.3) *
+                                          100
+                                        ).toFixed(1)}%</strong> of gross revenue
                                     </div>
                                 </div>
                                 <div>
@@ -862,15 +932,88 @@
                                           (proj.inflation_rate || 0) * 100
                                         ).toFixed(1)}%</strong> per year<br>
                                         • Property Appreciation: <strong>${(
-                                          (proj.property_appreciation_rate || 0) * 100
+                                          (proj.property_appreciation_rate ||
+                                            0) * 100
                                         ).toFixed(1)}%</strong> per year<br>
                                         • Projection Period: <strong>${projectionYears} years</strong> (${startYear}-${endYear})<br>
                                         • Selling Costs (Year ${projectionYears}): <strong>${(
-                                          (selling.total_rate || 0) * 100
-                                        ).toFixed(1)}%</strong><br>
+            (selling.total_rate || 0) * 100
+          ).toFixed(1)}%</strong><br>
                                         • Discount Rate (NPV): <strong>${(
                                           (proj.discount_rate || 0) * 100
                                         ).toFixed(1)}%</strong>
+                                    </div>
+                                </div>
+                                <div>
+                                    <strong style="color: var(--secondary);">Main Cash Requirements</strong>
+                                    <div style="margin-top: 8px; line-height: 1.8;">
+                                        • Debt Service: <strong>CHF ${(
+                                          (results.debt_service || 0) / 12
+                                        ).toLocaleString("en-US", {
+                                          maximumFractionDigits: 0,
+                                        })}/month</strong> total<br>
+                                        &nbsp;&nbsp;&nbsp;→ <strong>CHF ${(
+                                          (results.debt_service || 0) /
+                                          12 /
+                                          (financing.num_owners || 1)
+                                        ).toLocaleString("en-US", {
+                                          maximumFractionDigits: 0,
+                                        })}/month</strong> per owner<br>
+                                        • Nabenkosten: <strong>CHF ${(
+                                          (expenses.nubbing_costs_annual || 0) /
+                                          12
+                                        ).toLocaleString("en-US", {
+                                          maximumFractionDigits: 0,
+                                        })}/month</strong> total<br>
+                                        &nbsp;&nbsp;&nbsp;→ <strong>CHF ${(
+                                          (expenses.nubbing_costs_annual || 0) /
+                                          12 /
+                                          (financing.num_owners || 1)
+                                        ).toLocaleString("en-US", {
+                                          maximumFractionDigits: 0,
+                                        })}/month</strong> per owner<br>
+                                        • Bills (Electricity/Internet): <strong>CHF ${(
+                                          (expenses.electricity_internet_annual ||
+                                            0) / 12
+                                        ).toLocaleString("en-US", {
+                                          maximumFractionDigits: 0,
+                                        })}/month</strong> total<br>
+                                        &nbsp;&nbsp;&nbsp;→ <strong>CHF ${(
+                                          (expenses.electricity_internet_annual ||
+                                            0) /
+                                          12 /
+                                          (financing.num_owners || 1)
+                                        ).toLocaleString("en-US", {
+                                          maximumFractionDigits: 0,
+                                        })}/month</strong> per owner<br>
+                                        • Insurance: <strong>CHF ${(
+                                          (results.insurance || 0) / 12
+                                        ).toLocaleString("en-US", {
+                                          maximumFractionDigits: 0,
+                                        })}/month</strong> total<br>
+                                        &nbsp;&nbsp;&nbsp;→ <strong>CHF ${(
+                                          (results.insurance || 0) /
+                                          12 /
+                                          (financing.num_owners || 1)
+                                        ).toLocaleString("en-US", {
+                                          maximumFractionDigits: 0,
+                                        })}/month</strong> per owner<br>
+                                        • Maintenance Reserve: <strong>CHF ${(
+                                          (results.maintenance_reserve || 0) /
+                                          12
+                                        ).toLocaleString("en-US", {
+                                          maximumFractionDigits: 0,
+                                        })}/month</strong> total<br>
+                                        &nbsp;&nbsp;&nbsp;→ <strong>CHF ${(
+                                          (results.maintenance_reserve || 0) /
+                                          12 /
+                                          (financing.num_owners || 1)
+                                        ).toLocaleString("en-US", {
+                                          maximumFractionDigits: 0,
+                                        })}/month</strong> per owner<br>
+                                        • Property Taxes: <strong>Not included</strong> in current model<br>
+                                        &nbsp;&nbsp;&nbsp;(Typically low in Switzerland, varies by municipality)<br>
+                                        • Furniture: <strong>One-time cost</strong> (not included in monthly expenses)
                                     </div>
                                 </div>
                             </div>
@@ -1000,8 +1143,13 @@
           const content = document.getElementById("contentArea");
           const sensitivities = data.sensitivities || [];
           const baseIRR = data.base_irr || 0;
-          const sortedByImpact = [...sensitivities].sort((a, b) => b.impact - a.impact);
-          const topImpact = sortedByImpact[0] || { impact: 0, parameter: "N/A" };
+          const sortedByImpact = [...sensitivities].sort(
+            (a, b) => b.impact - a.impact
+          );
+          const topImpact = sortedByImpact[0] || {
+            impact: 0,
+            parameter: "N/A",
+          };
 
           // Parameter explanations and rationales
           const parameterInfo = {
@@ -1101,16 +1249,22 @@
                     <div class="section">
                         <h2 class="section-title">🎯 Sensitivity Analysis</h2>
                         <div style="font-size: 0.85em; color: #6c7a89; margin-bottom: 10px;">
-                          Data generated from: <strong>${data.assumptions_file || 'assumptions.json'}</strong>
-                          @ <strong>${data.assumptions_version || 'n/a'}</strong>
-                          (hash: ${(data.assumptions_hash || '').slice(0,8) || 'n/a'}) 
-                          • Generated: ${data.generated_at || 'n/a'}
+                          Data generated from: <strong>${
+                            data.assumptions_file || "assumptions.json"
+                          }</strong>
+                          @ <strong>${
+                            data.assumptions_version || "n/a"
+                          }</strong>
+                          (hash: ${
+                            (data.assumptions_hash || "").slice(0, 8) || "n/a"
+                          }) 
+                          • Generated: ${data.generated_at || "n/a"}
                         </div>
                         
                         <!-- Info Box -->
                         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px;">
                             <p style="margin: 0; font-size: 0.85em; line-height: 1.5; opacity: 0.95;">
-                                💡 <strong>Equity IRR Sensitivity</strong> — How your 15-year return changes with parameter variations. Ranked by impact. Hover for details.
+                                💡 <strong>Equity IRR Sensitivity</strong> — How your 15-year return changes with parameter variations. Ranked by impact.
                             </p>
                         </div>
                         
@@ -1156,8 +1310,7 @@
                             </h3>
                             <p style="color: #7f8c8d; margin-bottom: 15px; font-size: 0.85em; line-height: 1.5;">
                                 <span style="color: #2ecc71;">■</span> Green = better IRR | 
-                                <span style="color: #e74c3c;">■</span> Red = worse IRR | 
-                                Hover for details
+                                <span style="color: #e74c3c;">■</span> Red = worse IRR
                             </p>
                             <div class="chart-wrapper" id="tornadoChart" style="min-height: 400px; height: auto; overflow: visible;"></div>
                         </div>
@@ -1378,35 +1531,25 @@
             const traceLow = {
               y: parameters,
               x: lowValues,
-              name: "Low Value Scenario",
+              name: "Low Value",
               type: "bar",
               orientation: "h",
               marker: {
                 color: lowColors,
                 line: {
-                  color: lowColors.map((c) =>
-                    c === "#e74c3c"
-                      ? "#c0392b"
-                      : c === "#2ecc71"
-                      ? "#27ae60"
-                      : "#7f8c8d"
-                  ),
-                  width: 1,
+                  width: 0,
                 },
               },
               customdata: customData,
               hovertemplate:
                 "<b>%{customdata.param}</b><br>" +
-                "<br><b>📉 Low Value Scenario:</b><br>" +
-                "Parameter: %{customdata.lowValue}<br>" +
-                "Resulting IRR: %{customdata.lowIRR:.2f}%<br>" +
-                "Change from Base: %{x:.2f}%<br>" +
-                "<br><b>📊 Tested Range:</b> %{customdata.range}<br>" +
-                "<br><b>💡 Why this sensitivity matters:</b><br>%{customdata.rationale}" +
+                "Low Value: %{customdata.lowValue}<br>" +
+                "IRR: %{customdata.lowIRR:.2f}%<br>" +
+                "Change: %{x:+.2f}%<br>" +
                 "<extra></extra>",
               hoverlabel: {
                 bgcolor: "rgba(44, 62, 80, 0.95)",
-                font: { size: 13, color: "white" },
+                font: { size: 12, color: "white" },
                 bordercolor: "#2c3e50",
                 namelength: -1,
               },
@@ -1416,35 +1559,25 @@
             const traceHigh = {
               y: parameters,
               x: highValues,
-              name: "High Value Scenario",
+              name: "High Value",
               type: "bar",
               orientation: "h",
               marker: {
                 color: highColors,
                 line: {
-                  color: highColors.map((c) =>
-                    c === "#e74c3c"
-                      ? "#c0392b"
-                      : c === "#2ecc71"
-                      ? "#27ae60"
-                      : "#7f8c8d"
-                  ),
-                  width: 1,
+                  width: 0,
                 },
               },
               customdata: customData,
               hovertemplate:
                 "<b>%{customdata.param}</b><br>" +
-                "<br><b>📈 High Value Scenario:</b><br>" +
-                "Parameter: %{customdata.highValue}<br>" +
-                "Resulting IRR: %{customdata.highIRR:.2f}%<br>" +
-                "Change from Base: %{x:.2f}%<br>" +
-                "<br><b>📊 Tested Range:</b> %{customdata.range}<br>" +
-                "<br><b>💡 Why this sensitivity matters:</b><br>%{customdata.rationale}" +
+                "High Value: %{customdata.highValue}<br>" +
+                "IRR: %{customdata.highIRR:.2f}%<br>" +
+                "Change: %{x:+.2f}%<br>" +
                 "<extra></extra>",
               hoverlabel: {
                 bgcolor: "rgba(44, 62, 80, 0.95)",
-                font: { size: 13, color: "white" },
+                font: { size: 12, color: "white" },
                 bordercolor: "#2c3e50",
                 namelength: -1,
               },
@@ -1456,53 +1589,31 @@
               xaxis: {
                 title: {
                   text: "Change in Equity IRR (%)",
-                  font: { size: 13, color: "#2c3e50", family: "Segoe UI" },
-                  standoff: 10,
+                  font: { size: 12, color: "#2c3e50" },
                 },
                 zeroline: true,
                 zerolinewidth: 2,
-                zerolinecolor: "#667eea",
-                gridcolor: "#e8ecef",
-                tickfont: { size: 11, color: "#5a6c7d" },
+                zerolinecolor: "#95a5a6",
+                gridcolor: "#ecf0f1",
+                tickfont: { size: 11 },
               },
               yaxis: {
-                title: "",
                 autorange: "reversed",
-                tickfont: { size: 11, color: "#2c3e50", family: "Segoe UI" },
+                tickfont: { size: 11 },
               },
-              margin: { l: 200, r: 30, t: 50, b: 60 },
+              margin: { l: 180, r: 20, t: 40, b: 50 },
               showlegend: true,
               legend: {
                 orientation: "h",
                 x: 0.5,
                 xanchor: "center",
-                y: 1.08,
-                bgcolor: "rgba(255,255,255,0.9)",
-                bordercolor: "#ddd",
-                borderwidth: 1,
-                font: { size: 11, color: "#2c3e50" },
+                y: 1.02,
+                font: { size: 11 },
               },
-              height: Math.max(420, 300 + sensitivities.length * 40),
+              height: Math.max(400, 280 + sensitivities.length * 35),
               paper_bgcolor: "#ffffff",
-              plot_bgcolor: "#fafbfc",
-              font: { family: "Segoe UI, Arial", size: 11, color: "#2c3e50" },
-              annotations: [
-                {
-                  text: `<b>Base IRR:</b> ${baseIRR.toFixed(2)}%`,
-                  xref: "paper",
-                  yref: "paper",
-                  x: 0.01,
-                  y: 0.99,
-                  xanchor: "left",
-                  yanchor: "top",
-                  showarrow: false,
-                  font: { size: 11, color: "#667eea" },
-                  bgcolor: "rgba(255,255,255,0.9)",
-                  bordercolor: "#667eea",
-                  borderwidth: 1,
-                  borderpad: 4,
-                },
-              ],
+              plot_bgcolor: "#ffffff",
+              font: { size: 11 },
             };
 
             Plotly.newPlot("tornadoChart", [traceLow, traceHigh], layout, {
@@ -1554,8 +1665,13 @@
           const content = document.getElementById("contentArea");
           const sensitivities = data.sensitivities || [];
           const baseCoC = data.base_coc || 0;
-          const sortedByImpact = [...sensitivities].sort((a, b) => b.impact - a.impact);
-          const topImpact = sortedByImpact[0] || { impact: 0, parameter: "N/A" };
+          const sortedByImpact = [...sensitivities].sort(
+            (a, b) => b.impact - a.impact
+          );
+          const topImpact = sortedByImpact[0] || {
+            impact: 0,
+            parameter: "N/A",
+          };
 
           // Parameter explanations
           const parameterInfo = {
@@ -1652,16 +1768,18 @@
             <div class="section">
               <h2 class="section-title">💰 Cash-on-Cash Sensitivity Analysis</h2>
               <div style="font-size: 0.85em; color: #6c7a89; margin-bottom: 10px;">
-                Data generated from: <strong>${data.assumptions_file || 'assumptions.json'}</strong>
-                @ <strong>${data.assumptions_version || 'n/a'}</strong>
-                (hash: ${(data.assumptions_hash || '').slice(0,8) || 'n/a'}) 
-                • Generated: ${data.generated_at || 'n/a'}
+                Data generated from: <strong>${
+                  data.assumptions_file || "assumptions.json"
+                }</strong>
+                @ <strong>${data.assumptions_version || "n/a"}</strong>
+                (hash: ${(data.assumptions_hash || "").slice(0, 8) || "n/a"}) 
+                • Generated: ${data.generated_at || "n/a"}
               </div>
               
               <!-- Info Box -->
               <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px;">
                 <p style="margin: 0; font-size: 0.85em; line-height: 1.5; opacity: 0.95;">
-                  💡 <strong>Cash-on-Cash = Year 1 Cash / Equity</strong> — First year cash yield like a bond. Ignores appreciation. Hover for details.
+                  💡 <strong>Cash-on-Cash = Year 1 Cash / Equity</strong> — First year cash yield like a bond. Ignores appreciation.
                 </p>
               </div>
               
@@ -1709,8 +1827,7 @@
                 </h3>
                 <p style="color: #7f8c8d; margin-bottom: 15px; font-size: 0.85em; line-height: 1.5;">
                   <span style="color: #2ecc71;">■</span> Green = better CoC | 
-                  <span style="color: #e74c3c;">■</span> Red = worse CoC | 
-                  Hover for details
+                  <span style="color: #e74c3c;">■</span> Red = worse CoC
                 </p>
                 <div class="chart-wrapper" id="tornadoChartCoC" style="min-height: 400px; height: auto; overflow: visible;"></div>
               </div>
@@ -1912,60 +2029,54 @@
             const traceLow = {
               y: parameters,
               x: lowValues,
-              name: "Pessimistic Scenario",
+              name: "Low Value",
               type: "bar",
               orientation: "h",
               marker: {
                 color: lowColors,
-                line: { color: "#c0392b", width: 1.5 },
+                line: {
+                  width: 0,
+                },
               },
               customdata: customData,
               hovertemplate:
-                "<b style='font-size:14px'>📉 %{customdata.param}</b><br><br>" +
-                "<b>Pessimistic Scenario:</b><br>" +
-                "├─ Parameter Value: <b>%{customdata.lowValue}</b><br>" +
-                "├─ Resulting Cash-on-Cash: <b>%{customdata.lowCoC:.2f}%</b><br>" +
-                "└─ Change from Base: <b>%{x:+.2f}%</b><br>" +
-                "<br><b>📊 Sensitivity Range:</b> %{customdata.range}<br>" +
-                "<br><b>💡 Why This Matters:</b><br>" +
-                "%{customdata.rationale}<br>" +
+                "<b>%{customdata.param}</b><br>" +
+                "Low Value: %{customdata.lowValue}<br>" +
+                "Cash-on-Cash: %{customdata.lowCoC:.2f}%<br>" +
+                "Change: %{x:+.2f}%<br>" +
                 "<extra></extra>",
               hoverlabel: {
-                bgcolor: "rgba(44, 62, 80, 0.97)",
-                font: { size: 12, color: "white", family: "Segoe UI, Arial" },
+                bgcolor: "rgba(44, 62, 80, 0.95)",
+                font: { size: 12, color: "white" },
                 bordercolor: "#2c3e50",
                 namelength: -1,
-                align: "left",
               },
             };
 
             const traceHigh = {
               y: parameters,
               x: highValues,
-              name: "Optimistic Scenario",
+              name: "High Value",
               type: "bar",
               orientation: "h",
               marker: {
                 color: highColors,
-                line: { color: "#27ae60", width: 1.5 },
+                line: {
+                  width: 0,
+                },
               },
               customdata: customData,
               hovertemplate:
-                "<b style='font-size:14px'>📈 %{customdata.param}</b><br><br>" +
-                "<b>Optimistic Scenario:</b><br>" +
-                "├─ Parameter Value: <b>%{customdata.highValue}</b><br>" +
-                "├─ Resulting Cash-on-Cash: <b>%{customdata.highCoC:.2f}%</b><br>" +
-                "└─ Change from Base: <b>%{x:+.2f}%</b><br>" +
-                "<br><b>📊 Sensitivity Range:</b> %{customdata.range}<br>" +
-                "<br><b>💡 Why This Matters:</b><br>" +
-                "%{customdata.rationale}<br>" +
+                "<b>%{customdata.param}</b><br>" +
+                "High Value: %{customdata.highValue}<br>" +
+                "Cash-on-Cash: %{customdata.highCoC:.2f}%<br>" +
+                "Change: %{x:+.2f}%<br>" +
                 "<extra></extra>",
               hoverlabel: {
-                bgcolor: "rgba(44, 62, 80, 0.97)",
-                font: { size: 12, color: "white", family: "Segoe UI, Arial" },
+                bgcolor: "rgba(44, 62, 80, 0.95)",
+                font: { size: 12, color: "white" },
                 bordercolor: "#2c3e50",
                 namelength: -1,
-                align: "left",
               },
             };
 
@@ -1975,53 +2086,31 @@
               xaxis: {
                 title: {
                   text: "Change in Cash-on-Cash (%)",
-                  font: { size: 13, color: "#2c3e50", family: "Segoe UI" },
-                  standoff: 10,
+                  font: { size: 12, color: "#2c3e50" },
                 },
                 zeroline: true,
                 zerolinewidth: 2,
-                zerolinecolor: "#667eea",
-                gridcolor: "#e8ecef",
-                tickfont: { size: 11, color: "#5a6c7d" },
+                zerolinecolor: "#95a5a6",
+                gridcolor: "#ecf0f1",
+                tickfont: { size: 11 },
               },
               yaxis: {
-                title: "",
                 autorange: "reversed",
-                tickfont: { size: 11, color: "#2c3e50", family: "Segoe UI" },
+                tickfont: { size: 11 },
               },
+              margin: { l: 180, r: 20, t: 40, b: 50 },
               showlegend: true,
               legend: {
                 orientation: "h",
                 x: 0.5,
                 xanchor: "center",
-                y: 1.08,
-                bgcolor: "rgba(255,255,255,0.9)",
-                bordercolor: "#ddd",
-                borderwidth: 1,
-                font: { size: 11, color: "#2c3e50" },
+                y: 1.02,
+                font: { size: 11 },
               },
-              annotations: [
-                {
-                  text: `<b>Base CoC:</b> ${baseCoC.toFixed(2)}%`,
-                  xref: "paper",
-                  yref: "paper",
-                  x: 0.01,
-                  y: 0.99,
-                  xanchor: "left",
-                  yanchor: "top",
-                  showarrow: false,
-                font: { size: 11, color: "#667eea" },
-                  bgcolor: "rgba(255,255,255,0.9)",
-                bordercolor: "#667eea",
-                  borderwidth: 1,
-                  borderpad: 4,
-                },
-              ],
-              margin: { l: 200, r: 30, t: 50, b: 60 },
-              height: Math.max(420, 300 + meaningfulSensitivities.length * 40),
+              height: Math.max(400, 280 + meaningfulSensitivities.length * 35),
               paper_bgcolor: "#ffffff",
-              plot_bgcolor: "#fafbfc",
-              font: { family: "Segoe UI, Arial", size: 11, color: "#2c3e50" },
+              plot_bgcolor: "#ffffff",
+              font: { size: 11 },
             };
 
             Plotly.newPlot("tornadoChartCoC", [traceLow, traceHigh], layout, {
@@ -2047,8 +2136,13 @@
           const content = document.getElementById("contentArea");
           const sensitivities = data.sensitivities || [];
           const baseNCF = data.base_ncf || 0;
-          const sortedByImpact = [...sensitivities].sort((a, b) => b.impact - a.impact);
-          const topImpact = sortedByImpact[0] || { impact: 0, parameter: "N/A" };
+          const sortedByImpact = [...sensitivities].sort(
+            (a, b) => b.impact - a.impact
+          );
+          const topImpact = sortedByImpact[0] || {
+            impact: 0,
+            parameter: "N/A",
+          };
 
           // Parameter info for NCF sensitivity
           const parameterInfo = {
@@ -2091,13 +2185,13 @@
             "Loan-to-Value (LTV)": {
               range: "67.5% to 82.5% (±10%)",
               rationale:
-                "Higher LTV = more debt = higher monthly payments but less equity needed upfront. 75% LTV means ~CHF 937k mortgage = ~CHF 1,171/month per owner.",
+                "Higher LTV = more debt = higher monthly payments but less equity needed upfront. 70% LTV means ~CHF 910k mortgage = ~CHF 291/month per owner.",
               icon: "🏦",
             },
             "Amortization Rate": {
               range: "0% to 2% annually",
               rationale:
-                "Amortization is principal paydown, directly reducing cash flow. 1% = CHF 937/month total = CHF 234/month per owner building equity.",
+                "Amortization is principal paydown, directly reducing cash flow. 1% = CHF 758/month total = CHF 126/month per owner building equity.",
               icon: "💳",
             },
             "Cleaning Cost per Stay": {
@@ -2155,10 +2249,12 @@
                 <i class="fas fa-wallet"></i> Sensitivity Analysis - Monthly Net Cash Flow
               </h2>
               <div style="font-size: 0.85em; color: #6c7a89; margin-bottom: 10px;">
-                Data generated from: <strong>${data.assumptions_file || 'assumptions.json'}</strong>
-                @ <strong>${data.assumptions_version || 'n/a'}</strong>
-                (hash: ${(data.assumptions_hash || '').slice(0,8) || 'n/a'}) 
-                • Generated: ${data.generated_at || 'n/a'}
+                Data generated from: <strong>${
+                  data.assumptions_file || "assumptions.json"
+                }</strong>
+                @ <strong>${data.assumptions_version || "n/a"}</strong>
+                (hash: ${(data.assumptions_hash || "").slice(0, 8) || "n/a"}) 
+                • Generated: ${data.generated_at || "n/a"}
               </div>
               
               <!-- Info Box -->
@@ -2208,8 +2304,7 @@
                 </h3>
                 <p style="color: #7f8c8d; margin-bottom: 15px; font-size: 0.85em; line-height: 1.5;">
                   <span style="color: #2ecc71;">■</span> Green = higher cash | 
-                  <span style="color: #e74c3c;">■</span> Red = lower cash | 
-                  Hover for details
+                  <span style="color: #e74c3c;">■</span> Red = lower cash
                 </p>
                 <div class="chart-wrapper" id="tornadoChartNCF" style="min-height: 400px; height: auto; overflow: visible;"></div>
               </div>
@@ -2387,116 +2482,90 @@
             const traceLow = {
               y: parameters,
               x: lowValues,
-              name: "Low Case",
+              name: "Low Value",
               type: "bar",
               orientation: "h",
               marker: {
                 color: lowColors,
-                line: { color: "#0e6655", width: 1.5 },
+                line: {
+                  width: 0,
+                },
               },
               customdata: customData,
               hovertemplate:
-                "<b style='font-size:14px'>%{customdata.param}</b><br>" +
-                "<br><b>📉 Low Value Scenario:</b><br>" +
-                "├─ Parameter Value: %{customdata.lowValue}<br>" +
-                "├─ Resulting NCF: CHF %{customdata.lowNCF:.0f}<br>" +
-                "└─ Change from Base: %{x:+.0f} CHF<br>" +
-                "<br><b>📊 Tested Range:</b> %{customdata.range}<br>" +
-                "<br><b>💡 Why this matters:</b><br>%{customdata.rationale}" +
+                "<b>%{customdata.param}</b><br>" +
+                "Low Value: %{customdata.lowValue}<br>" +
+                "NCF: CHF %{customdata.lowNCF:.0f}/mo<br>" +
+                "Change: %{x:+.0f} CHF<br>" +
                 "<extra></extra>",
               hoverlabel: {
-                bgcolor: "rgba(22, 160, 133, 0.97)",
-                font: { size: 12, color: "white", family: "Segoe UI, Arial" },
-                bordercolor: "#0e6655",
+                bgcolor: "rgba(44, 62, 80, 0.95)",
+                font: { size: 12, color: "white" },
+                bordercolor: "#2c3e50",
                 namelength: -1,
-                align: "left",
               },
             };
 
             const traceHigh = {
               y: parameters,
               x: highValues,
-              name: "High Case",
+              name: "High Value",
               type: "bar",
               orientation: "h",
               marker: {
                 color: highColors,
-                line: { color: "#0e6655", width: 1.5 },
+                line: {
+                  width: 0,
+                },
               },
               customdata: customData,
               hovertemplate:
-                "<b style='font-size:14px'>%{customdata.param}</b><br>" +
-                "<br><b>📈 High Value Scenario:</b><br>" +
-                "├─ Parameter Value: %{customdata.highValue}<br>" +
-                "├─ Resulting NCF: CHF %{customdata.highNCF:.0f}<br>" +
-                "└─ Change from Base: %{x:+.0f} CHF<br>" +
-                "<br><b>📊 Tested Range:</b> %{customdata.range}<br>" +
-                "<br><b>💡 Why this matters:</b><br>%{customdata.rationale}" +
+                "<b>%{customdata.param}</b><br>" +
+                "High Value: %{customdata.highValue}<br>" +
+                "NCF: CHF %{customdata.highNCF:.0f}/mo<br>" +
+                "Change: %{x:+.0f} CHF<br>" +
                 "<extra></extra>",
               hoverlabel: {
-                bgcolor: "rgba(102, 126, 234, 0.97)",
-                font: { size: 12, color: "white", family: "Segoe UI, Arial" },
-                bordercolor: "#4c51bf",
+                bgcolor: "rgba(44, 62, 80, 0.95)",
+                font: { size: 12, color: "white" },
+                bordercolor: "#2c3e50",
                 namelength: -1,
-                align: "left",
               },
             };
 
             const layout = {
-              barmode: "relative",
+              barmode: "overlay",
               hovermode: "closest",
               xaxis: {
                 title: {
                   text: "Change from Base (CHF/month)",
-                  font: { size: 13, color: "#2c3e50", family: "Segoe UI" },
-                  standoff: 10,
+                  font: { size: 12, color: "#2c3e50" },
                 },
                 zeroline: true,
                 zerolinewidth: 2,
-                zerolinecolor: "#667eea",
-                gridcolor: "#e8ecef",
+                zerolinecolor: "#95a5a6",
+                gridcolor: "#ecf0f1",
                 tickformat: "+,.0f",
                 tickprefix: "CHF ",
-                tickfont: { size: 11, color: "#5a6c7d" },
+                tickfont: { size: 11 },
               },
               yaxis: {
-                title: "",
                 autorange: "reversed",
-                tickfont: { size: 11, color: "#2c3e50", family: "Segoe UI" },
+                tickfont: { size: 11 },
               },
+              margin: { l: 180, r: 20, t: 40, b: 50 },
               showlegend: true,
               legend: {
                 orientation: "h",
                 x: 0.5,
                 xanchor: "center",
-                y: 1.08,
-                bgcolor: "rgba(255,255,255,0.9)",
-                bordercolor: "#ddd",
-                borderwidth: 1,
-                font: { size: 11, color: "#2c3e50" },
+                y: 1.02,
+                font: { size: 11 },
               },
-              annotations: [
-                {
-                  text: `<b>Base NCF:</b> CHF ${baseNCF.toFixed(0)}/mo`,
-                  xref: "paper",
-                  yref: "paper",
-                  x: 0.01,
-                  y: 0.99,
-                  xanchor: "left",
-                  yanchor: "top",
-                  showarrow: false,
-                  font: { size: 11, color: "#667eea" },
-                  bgcolor: "rgba(255,255,255,0.9)",
-                  bordercolor: "#667eea",
-                  borderwidth: 1,
-                  borderpad: 4,
-                },
-              ],
-              margin: { l: 200, r: 30, t: 50, b: 60 },
-              height: Math.max(420, 300 + meaningfulSensitivities.length * 40),
+              height: Math.max(400, 280 + meaningfulSensitivities.length * 35),
               paper_bgcolor: "#ffffff",
-              plot_bgcolor: "#fafbfc",
-              font: { family: "Segoe UI, Arial", size: 11, color: "#2c3e50" },
+              plot_bgcolor: "#ffffff",
+              font: { size: 11 },
             };
 
             Plotly.newPlot("tornadoChartNCF", [traceLow, traceHigh], layout, {
@@ -2532,23 +2601,33 @@
                         <div class="kpi-grid">
                             <div class="kpi-card" data-tooltip="Average Net Present Value across all simulations. This represents the expected value of the investment.">
                                 <h3>Mean NPV</h3>
-                                <div class="value ${(npvStats.mean || 0) >= 0 ? 'positive' : 'negative'}">${(
-                                  npvStats.mean || 0
-                                ).toLocaleString("en-US", {
-                                  style: "currency",
-                                  currency: "CHF",
-                                  maximumFractionDigits: 0,
-                                })}</div>
+                                <div class="value ${
+                                  (npvStats.mean || 0) >= 0
+                                    ? "positive"
+                                    : "negative"
+                                }">${(npvStats.mean || 0).toLocaleString(
+            "en-US",
+            {
+              style: "currency",
+              currency: "CHF",
+              maximumFractionDigits: 0,
+            }
+          )}</div>
                             </div>
                             <div class="kpi-card" data-tooltip="Median (50th percentile) NPV. Half of simulations show better results, half show worse.">
                                 <h3>Median NPV</h3>
-                                <div class="value ${(npvStats.median || 0) >= 0 ? 'positive' : 'negative'}">${(
-                                  npvStats.median || 0
-                                ).toLocaleString("en-US", {
-                                  style: "currency",
-                                  currency: "CHF",
-                                  maximumFractionDigits: 0,
-                                })}</div>
+                                <div class="value ${
+                                  (npvStats.median || 0) >= 0
+                                    ? "positive"
+                                    : "negative"
+                                }">${(npvStats.median || 0).toLocaleString(
+            "en-US",
+            {
+              style: "currency",
+              currency: "CHF",
+              maximumFractionDigits: 0,
+            }
+          )}</div>
                             </div>
                             <div class="kpi-card" data-tooltip="Probability that the investment generates positive NPV. Higher is better.">
                                 <h3>Probability NPV > 0</h3>
@@ -2564,13 +2643,18 @@
                             </div>
                             <div class="kpi-card" data-tooltip="10th percentile NPV. 90% of simulations show better results than this (worst case scenario).">
                                 <h3>10th Percentile</h3>
-                                <div class="value ${(npvStats.p10 || 0) >= 0 ? 'positive' : 'negative'}">${(
-                                  npvStats.p10 || 0
-                                ).toLocaleString("en-US", {
-                                  style: "currency",
-                                  currency: "CHF",
-                                  maximumFractionDigits: 0,
-                                })}</div>
+                                <div class="value ${
+                                  (npvStats.p10 || 0) >= 0
+                                    ? "positive"
+                                    : "negative"
+                                }">${(npvStats.p10 || 0).toLocaleString(
+            "en-US",
+            {
+              style: "currency",
+              currency: "CHF",
+              maximumFractionDigits: 0,
+            }
+          )}</div>
                             </div>
                             <div class="kpi-card" data-tooltip="90th percentile NPV. Only 10% of simulations show better results than this (best case scenario).">
                                 <h3>90th Percentile</h3>
@@ -2634,51 +2718,149 @@
                                 <tbody>
                                     <tr style="border-bottom: 1px solid #e8ecef;">
                                         <td style="padding: 10px; font-weight: 600;">Mean</td>
-                                        <td style="padding: 10px; text-align: right;">${(npvStats.mean || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})}</td>
-                                        <td style="padding: 10px; text-align: right;">${(irrStats.mean || 0).toFixed(2)}%</td>
-                                        <td style="padding: 10px; text-align: right;">${(cashFlowStats.mean || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})}</td>
+                                        <td style="padding: 10px; text-align: right;">${(
+                                          npvStats.mean || 0
+                                        ).toLocaleString("en-US", {
+                                          style: "currency",
+                                          currency: "CHF",
+                                          maximumFractionDigits: 0,
+                                        })}</td>
+                                        <td style="padding: 10px; text-align: right;">${(
+                                          irrStats.mean || 0
+                                        ).toFixed(2)}%</td>
+                                        <td style="padding: 10px; text-align: right;">${(
+                                          cashFlowStats.mean || 0
+                                        ).toLocaleString("en-US", {
+                                          style: "currency",
+                                          currency: "CHF",
+                                          maximumFractionDigits: 0,
+                                        })}</td>
                                     </tr>
                                     <tr style="border-bottom: 1px solid #e8ecef;">
                                         <td style="padding: 10px; font-weight: 600;">Median</td>
-                                        <td style="padding: 10px; text-align: right;">${(npvStats.median || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})}</td>
-                                        <td style="padding: 10px; text-align: right;">${(irrStats.median || 0).toFixed(2)}%</td>
-                                        <td style="padding: 10px; text-align: right;">${(cashFlowStats.median || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})}</td>
+                                        <td style="padding: 10px; text-align: right;">${(
+                                          npvStats.median || 0
+                                        ).toLocaleString("en-US", {
+                                          style: "currency",
+                                          currency: "CHF",
+                                          maximumFractionDigits: 0,
+                                        })}</td>
+                                        <td style="padding: 10px; text-align: right;">${(
+                                          irrStats.median || 0
+                                        ).toFixed(2)}%</td>
+                                        <td style="padding: 10px; text-align: right;">${(
+                                          cashFlowStats.median || 0
+                                        ).toLocaleString("en-US", {
+                                          style: "currency",
+                                          currency: "CHF",
+                                          maximumFractionDigits: 0,
+                                        })}</td>
                                     </tr>
                                     <tr style="border-bottom: 1px solid #e8ecef;">
                                         <td style="padding: 10px; font-weight: 600;">Std Deviation</td>
-                                        <td style="padding: 10px; text-align: right;">${(npvStats.std || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})}</td>
-                                        <td style="padding: 10px; text-align: right;">${(irrStats.std || 0).toFixed(2)}%</td>
-                                        <td style="padding: 10px; text-align: right;">${(cashFlowStats.std || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})}</td>
+                                        <td style="padding: 10px; text-align: right;">${(
+                                          npvStats.std || 0
+                                        ).toLocaleString("en-US", {
+                                          style: "currency",
+                                          currency: "CHF",
+                                          maximumFractionDigits: 0,
+                                        })}</td>
+                                        <td style="padding: 10px; text-align: right;">${(
+                                          irrStats.std || 0
+                                        ).toFixed(2)}%</td>
+                                        <td style="padding: 10px; text-align: right;">${(
+                                          cashFlowStats.std || 0
+                                        ).toLocaleString("en-US", {
+                                          style: "currency",
+                                          currency: "CHF",
+                                          maximumFractionDigits: 0,
+                                        })}</td>
                                     </tr>
                                     <tr style="border-bottom: 1px solid #e8ecef;">
                                         <td style="padding: 10px; font-weight: 600;">5th Percentile</td>
-                                        <td style="padding: 10px; text-align: right;">${(npvStats.p5 || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})}</td>
-                                        <td style="padding: 10px; text-align: right;">${(irrStats.p5 || 0).toFixed(2)}%</td>
+                                        <td style="padding: 10px; text-align: right;">${(
+                                          npvStats.p5 || 0
+                                        ).toLocaleString("en-US", {
+                                          style: "currency",
+                                          currency: "CHF",
+                                          maximumFractionDigits: 0,
+                                        })}</td>
+                                        <td style="padding: 10px; text-align: right;">${(
+                                          irrStats.p5 || 0
+                                        ).toFixed(2)}%</td>
                                         <td style="padding: 10px; text-align: right;">-</td>
                                     </tr>
                                     <tr style="border-bottom: 1px solid #e8ecef;">
                                         <td style="padding: 10px; font-weight: 600;">25th Percentile</td>
-                                        <td style="padding: 10px; text-align: right;">${(npvStats.p25 || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})}</td>
+                                        <td style="padding: 10px; text-align: right;">${(
+                                          npvStats.p25 || 0
+                                        ).toLocaleString("en-US", {
+                                          style: "currency",
+                                          currency: "CHF",
+                                          maximumFractionDigits: 0,
+                                        })}</td>
                                         <td style="padding: 10px; text-align: right;">-</td>
                                         <td style="padding: 10px; text-align: right;">-</td>
                                     </tr>
                                     <tr style="border-bottom: 1px solid #e8ecef;">
                                         <td style="padding: 10px; font-weight: 600;">75th Percentile</td>
-                                        <td style="padding: 10px; text-align: right;">${(npvStats.p75 || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})}</td>
+                                        <td style="padding: 10px; text-align: right;">${(
+                                          npvStats.p75 || 0
+                                        ).toLocaleString("en-US", {
+                                          style: "currency",
+                                          currency: "CHF",
+                                          maximumFractionDigits: 0,
+                                        })}</td>
                                         <td style="padding: 10px; text-align: right;">-</td>
                                         <td style="padding: 10px; text-align: right;">-</td>
                                     </tr>
                                     <tr style="border-bottom: 1px solid #e8ecef;">
                                         <td style="padding: 10px; font-weight: 600;">95th Percentile</td>
-                                        <td style="padding: 10px; text-align: right;">${(npvStats.p95 || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})}</td>
-                                        <td style="padding: 10px; text-align: right;">${(irrStats.p95 || 0).toFixed(2)}%</td>
+                                        <td style="padding: 10px; text-align: right;">${(
+                                          npvStats.p95 || 0
+                                        ).toLocaleString("en-US", {
+                                          style: "currency",
+                                          currency: "CHF",
+                                          maximumFractionDigits: 0,
+                                        })}</td>
+                                        <td style="padding: 10px; text-align: right;">${(
+                                          irrStats.p95 || 0
+                                        ).toFixed(2)}%</td>
                                         <td style="padding: 10px; text-align: right;">-</td>
                                     </tr>
                                     <tr>
                                         <td style="padding: 10px; font-weight: 600;">Min / Max</td>
-                                        <td style="padding: 10px; text-align: right;">${(npvStats.min || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})} / ${(npvStats.max || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})}</td>
-                                        <td style="padding: 10px; text-align: right;">${(irrStats.min || 0).toFixed(2)}% / ${(irrStats.max || 0).toFixed(2)}%</td>
-                                        <td style="padding: 10px; text-align: right;">${(cashFlowStats.min || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})} / ${(cashFlowStats.max || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})}</td>
+                                        <td style="padding: 10px; text-align: right;">${(
+                                          npvStats.min || 0
+                                        ).toLocaleString("en-US", {
+                                          style: "currency",
+                                          currency: "CHF",
+                                          maximumFractionDigits: 0,
+                                        })} / ${(
+            npvStats.max || 0
+          ).toLocaleString("en-US", {
+            style: "currency",
+            currency: "CHF",
+            maximumFractionDigits: 0,
+          })}</td>
+                                        <td style="padding: 10px; text-align: right;">${(
+                                          irrStats.min || 0
+                                        ).toFixed(2)}% / ${(
+            irrStats.max || 0
+          ).toFixed(2)}%</td>
+                                        <td style="padding: 10px; text-align: right;">${(
+                                          cashFlowStats.min || 0
+                                        ).toLocaleString("en-US", {
+                                          style: "currency",
+                                          currency: "CHF",
+                                          maximumFractionDigits: 0,
+                                        })} / ${(
+            cashFlowStats.max || 0
+          ).toLocaleString("en-US", {
+            style: "currency",
+            currency: "CHF",
+            maximumFractionDigits: 0,
+          })}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -2691,33 +2873,36 @@
           // Render charts if sample data available
           if (data.sample_data && data.sample_data.length > 0) {
             const sampleData = data.sample_data;
-            
+
             // Chart 1: NPV Distribution Histogram
-            const npvValues = sampleData.map((d) => d.npv || 0).filter((v) => v !== null && !isNaN(v));
+            const npvValues = sampleData
+              .map((d) => d.npv || 0)
+              .filter((v) => v !== null && !isNaN(v));
             if (npvValues.length > 0) {
               const npvTrace = {
                 x: npvValues,
                 type: "histogram",
                 nbinsx: 60,
-                marker: { 
+                marker: {
                   color: "#667eea",
-                  line: { color: "#ffffff", width: 1 }
+                  line: { color: "#ffffff", width: 1 },
                 },
                 name: "NPV Distribution",
-                hovertemplate: "<b>NPV Range</b><br>Value: %{x:,.0f} CHF<br>Frequency: %{y}<extra></extra>"
+                hovertemplate:
+                  "<b>NPV Range</b><br>Value: %{x:,.0f} CHF<br>Frequency: %{y}<extra></extra>",
               };
 
               const npvLayout = {
                 title: "",
-                xaxis: { 
+                xaxis: {
                   title: "NPV (CHF)",
                   showgrid: true,
-                  gridcolor: "#e8ecef"
+                  gridcolor: "#e8ecef",
                 },
-                yaxis: { 
+                yaxis: {
                   title: "Frequency",
                   showgrid: true,
-                  gridcolor: "#e8ecef"
+                  gridcolor: "#e8ecef",
                 },
                 hovermode: "closest",
                 margin: { l: 60, r: 30, t: 20, b: 60 },
@@ -2732,7 +2917,17 @@
                     y1: 1,
                     yref: "paper",
                     line: { color: "red", width: 2, dash: "dash" },
-                    annotation: { text: `Mean: ${(npvStats.mean || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})}`, xanchor: "right" }
+                    annotation: {
+                      text: `Mean: ${(npvStats.mean || 0).toLocaleString(
+                        "en-US",
+                        {
+                          style: "currency",
+                          currency: "CHF",
+                          maximumFractionDigits: 0,
+                        }
+                      )}`,
+                      xanchor: "right",
+                    },
                   },
                   {
                     type: "line",
@@ -2742,40 +2937,45 @@
                     y1: 1,
                     yref: "paper",
                     line: { color: "black", width: 2 },
-                    annotation: { text: "Break-even" }
-                  }
-                ]
+                    annotation: { text: "Break-even" },
+                  },
+                ],
               };
 
-              Plotly.newPlot("npvChart", [npvTrace], npvLayout, { responsive: true });
+              Plotly.newPlot("npvChart", [npvTrace], npvLayout, {
+                responsive: true,
+              });
             }
 
             // Chart 2: IRR Distribution Histogram
-            const irrValues = sampleData.map((d) => d.irr_with_sale || 0).filter((v) => v !== null && !isNaN(v));
+            const irrValues = sampleData
+              .map((d) => d.irr_with_sale || 0)
+              .filter((v) => v !== null && !isNaN(v));
             if (irrValues.length > 0) {
               const irrTrace = {
                 x: irrValues,
                 type: "histogram",
                 nbinsx: 60,
-                marker: { 
+                marker: {
                   color: "#28a745",
-                  line: { color: "#ffffff", width: 1 }
+                  line: { color: "#ffffff", width: 1 },
                 },
                 name: "IRR Distribution",
-                hovertemplate: "<b>IRR Range</b><br>Value: %{x:.2f}%<br>Frequency: %{y}<extra></extra>"
+                hovertemplate:
+                  "<b>IRR Range</b><br>Value: %{x:.2f}%<br>Frequency: %{y}<extra></extra>",
               };
 
               const irrLayout = {
                 title: "",
-                xaxis: { 
+                xaxis: {
                   title: "IRR (%)",
                   showgrid: true,
-                  gridcolor: "#e8ecef"
+                  gridcolor: "#e8ecef",
                 },
-                yaxis: { 
+                yaxis: {
                   title: "Frequency",
                   showgrid: true,
-                  gridcolor: "#e8ecef"
+                  gridcolor: "#e8ecef",
                 },
                 hovermode: "closest",
                 margin: { l: 60, r: 30, t: 20, b: 60 },
@@ -2790,18 +2990,24 @@
                     y1: 1,
                     yref: "paper",
                     line: { color: "red", width: 2, dash: "dash" },
-                    annotation: { text: `Mean: ${(irrStats.mean || 0).toFixed(2)}%` }
-                  }
-                ]
+                    annotation: {
+                      text: `Mean: ${(irrStats.mean || 0).toFixed(2)}%`,
+                    },
+                  },
+                ],
               };
 
-              Plotly.newPlot("irrChart", [irrTrace], irrLayout, { responsive: true });
+              Plotly.newPlot("irrChart", [irrTrace], irrLayout, {
+                responsive: true,
+              });
             }
 
             // Chart 3: Cumulative Probability Distribution
             if (npvValues.length > 0) {
               const sortedNPV = [...npvValues].sort((a, b) => a - b);
-              const cumulativeProb = sortedNPV.map((_, i) => ((i + 1) / sortedNPV.length) * 100);
+              const cumulativeProb = sortedNPV.map(
+                (_, i) => ((i + 1) / sortedNPV.length) * 100
+              );
 
               const cumTrace = {
                 x: sortedNPV,
@@ -2810,20 +3016,21 @@
                 mode: "lines",
                 line: { color: "#667eea", width: 3 },
                 name: "Cumulative Probability",
-                hovertemplate: "<b>Cumulative Probability</b><br>NPV: %{x:,.0f} CHF<br>Probability: %{y:.1f}%<extra></extra>"
+                hovertemplate:
+                  "<b>Cumulative Probability</b><br>NPV: %{x:,.0f} CHF<br>Probability: %{y:.1f}%<extra></extra>",
               };
 
               const cumLayout = {
                 title: "",
-                xaxis: { 
+                xaxis: {
                   title: "NPV (CHF)",
                   showgrid: true,
-                  gridcolor: "#e8ecef"
+                  gridcolor: "#e8ecef",
                 },
-                yaxis: { 
+                yaxis: {
                   title: "Cumulative Probability (%)",
                   showgrid: true,
-                  gridcolor: "#e8ecef"
+                  gridcolor: "#e8ecef",
                 },
                 hovermode: "closest",
                 margin: { l: 70, r: 30, t: 20, b: 60 },
@@ -2838,18 +3045,31 @@
                     x1: sortedNPV[sortedNPV.length - 1],
                     xref: "x",
                     line: { color: "gray", width: 1, dash: "dash" },
-                    annotation: { text: "50th Percentile (Median)", yanchor: "bottom" }
-                  }
-                ]
+                    annotation: {
+                      text: "50th Percentile (Median)",
+                      yanchor: "bottom",
+                    },
+                  },
+                ],
               };
 
-              Plotly.newPlot("cumulativeChart", [cumTrace], cumLayout, { responsive: true });
+              Plotly.newPlot("cumulativeChart", [cumTrace], cumLayout, {
+                responsive: true,
+              });
             }
 
             // Chart 4: Scatter Plot - Occupancy vs Daily Rate (colored by NPV)
-            const occupancyValues = sampleData.map((d) => (d.occupancy_rate || 0) * 100).filter((v) => v !== null && !isNaN(v));
-            const dailyRateValues = sampleData.map((d) => d.daily_rate || 0).filter((v) => v !== null && !isNaN(v));
-            if (occupancyValues.length > 0 && dailyRateValues.length > 0 && npvValues.length > 0) {
+            const occupancyValues = sampleData
+              .map((d) => (d.occupancy_rate || 0) * 100)
+              .filter((v) => v !== null && !isNaN(v));
+            const dailyRateValues = sampleData
+              .map((d) => d.daily_rate || 0)
+              .filter((v) => v !== null && !isNaN(v));
+            if (
+              occupancyValues.length > 0 &&
+              dailyRateValues.length > 0 &&
+              npvValues.length > 0
+            ) {
               const scatterTrace = {
                 x: occupancyValues,
                 y: dailyRateValues,
@@ -2862,35 +3082,43 @@
                   showscale: true,
                   colorbar: { title: "NPV (CHF)" },
                   opacity: 0.6,
-                  line: { width: 0.5, color: "rgba(255, 255, 255, 0.3)" }
+                  line: { width: 0.5, color: "rgba(255, 255, 255, 0.3)" },
                 },
-                text: sampleData.map((d, i) => 
-                  `NPV: ${(npvValues[i] || 0).toLocaleString("en-US", {style: "currency", currency: "CHF", maximumFractionDigits: 0})}<br>IRR: ${(irrValues[i] || 0).toFixed(2)}%`
+                text: sampleData.map(
+                  (d, i) =>
+                    `NPV: ${(npvValues[i] || 0).toLocaleString("en-US", {
+                      style: "currency",
+                      currency: "CHF",
+                      maximumFractionDigits: 0,
+                    })}<br>IRR: ${(irrValues[i] || 0).toFixed(2)}%`
                 ),
-                hovertemplate: "<b>Simulation</b><br>Occupancy: %{x:.1f}%<br>Daily Rate: %{y:.0f} CHF<br>%{text}<extra></extra>",
-                name: "Simulations"
+                hovertemplate:
+                  "<b>Simulation</b><br>Occupancy: %{x:.1f}%<br>Daily Rate: %{y:.0f} CHF<br>%{text}<extra></extra>",
+                name: "Simulations",
               };
 
               const scatterLayout = {
                 title: "",
-                xaxis: { 
+                xaxis: {
                   title: "Occupancy Rate (%)",
                   showgrid: true,
-                  gridcolor: "#e8ecef"
+                  gridcolor: "#e8ecef",
                 },
-                yaxis: { 
+                yaxis: {
                   title: "Daily Rate (CHF)",
                   showgrid: true,
-                  gridcolor: "#e8ecef"
+                  gridcolor: "#e8ecef",
                 },
                 hovermode: "closest",
                 margin: { l: 70, r: 30, t: 20, b: 60 },
                 plot_bgcolor: "white",
                 paper_bgcolor: "white",
-                showlegend: false
+                showlegend: false,
               };
 
-              Plotly.newPlot("scatterChart", [scatterTrace], scatterLayout, { responsive: true });
+              Plotly.newPlot("scatterChart", [scatterTrace], scatterLayout, {
+                responsive: true,
+              });
             }
           }
         },

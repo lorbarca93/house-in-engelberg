@@ -127,9 +127,9 @@
       "errors": []
     }
   ],
-  "generated_at": "2025-12-08T15:29:06.444544",
+  "generated_at": "2025-12-12T08:32:07.343908",
   "total_cases": 9,
   "assumptions_version": "2025-12-10",
-  "assumptions_hash": "21bea0be89beac6de43f14784559deff9d17827e09bc8b67eefa1e14c401289f",
+  "assumptions_hash": "2da065799d214f5b7dd735ca2e132f2849e36f95f594591523f5a157cc0fbc43",
   "assumptions_last_updated": "2025-12-10T00:00:00Z"
 }
