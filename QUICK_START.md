@@ -42,12 +42,10 @@ python -m http.server 8080
 **Dashboard Features:**
 
 - 🔄 Switch between 11 cases (Base, 900K House, SARON Mortgage, Migros, 3/4/5 Owners, 90-Day Restriction, Climate Risk, Early Exit, Interest Rate Spike)
-- 📈 View 5 analysis types:
+- 📈 View 3 analysis types:
   - **Model** - Base case KPIs and 15-year projection
-  - **Sensitivity - Equity IRR** - Parameter impact on IRR
-  - **Sensitivity - Cash-on-Cash** - Parameter impact on Year 1 yield
-  - **Sensitivity - Monthly NCF** - Parameter impact on monthly cash
-  - **Monte Carlo** - 1,000 probabilistic simulations
+  - **Sensitivity - Monthly NCF** - Parameter impact on monthly cash flow per owner
+  - **Monte Carlo** - 10,000 probabilistic simulations
 - 🎨 Interactive Plotly tornado charts with hover explanations
 - 📋 Detailed data tables
 
@@ -192,7 +190,9 @@ python generate_all_data.py
 
 ## 📈 Sensitivity Analysis Overview
 
-### Top 5 Most Impactful Parameters (Equity IRR)
+### Monthly Net Cash Flow per Owner Sensitivity
+
+This analysis shows how different parameters affect your **monthly cash flow per owner**. This is the most relevant metric for ongoing investment viability, as it represents the actual money you need to contribute each month to keep the investment running.
 
 1. **Property Appreciation** (±4.09% IRR impact)
 2. **Interest Rate** (±3.52% IRR impact)

@@ -71,11 +71,9 @@ python validate_system.py    # 198 comprehensive checks
 The dashboard (`website/index.html`) provides:
 
 - **Top Navigation Bar**: Case selector dropdown (Base Case, Migros, 3 Owners, 4 Owners, 5 Owners)
-- **Left Sidebar**: Analysis type selector with 5 options:
+- **Left Sidebar**: Analysis type selector with 3 options:
   - **Model** (Simulation KPIs): Base case metrics and 15-year projection
-  - **Sensitivity - Equity IRR**: How parameters affect your equity return
-  - **Sensitivity - Cash-on-Cash**: How parameters affect Year 1 cash yield
-  - **Sensitivity - Monthly NCF**: How parameters affect monthly cash flow
+  - **Sensitivity - Monthly NCF**: How parameters affect monthly cash flow per owner
   - **Monte Carlo**: Probabilistic simulation with 10,000 scenarios (integrated)
 - **Dynamic Content Area**:
   - KPI cards with key metrics (12+ per page)

@@ -519,41 +519,8 @@ def test_parameter_sensitivity(base_config: BaseCaseConfig, json_path: str,
     )
 
 
-def run_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = True) -> Dict:
-    """
-    Run sensitivity analysis on Equity IRR for 15 key parameters.
-    
-    PARAMETERS TESTED:
-        1. Property Appreciation Rate (±1%) - Usually most impactful
-        2. Maintenance Reserve Rate (±0.5%)
-        3. Property Management Fee (±5%)
-        4. Purchase Price (±10%)
-        5. Occupancy Rate (±10%)
-        6. Average Daily Rate (±20%)
-        7. Interest Rate (±1%)
-        8. LTV - Loan to Value (±10%)
-        9. Inflation Rate (±0.5%) - NEW!
-        10. Amortization Rate (0% to 2%) - NEW!
-        11. Cleaning Cost per Stay (±30%) - NEW!
-        12. Average Length of Stay (±30%) - NEW!
-        13. Insurance Rate (0.3% to 0.5%) - NEW!
-        14. Winter Season Occupancy (±15%) - NEW!
-        15. Selling Costs Rate (±2%) - NEW!
-    
-    METHODOLOGY:
-        - Vary each parameter while holding others constant
-        - Calculate resulting Equity IRR
-        - Rank by impact (for tornado chart)
-        - Export ranked results
-    
-    Args:
-        json_path: Path to assumptions JSON file
-        case_name: Name of the case
-        verbose: Whether to print detailed output
-    
-    Returns:
-        Dictionary with all sensitivity results
-    """
+# Removed: run_sensitivity_analysis function
+# This function has been removed - Equity IRR sensitivity analysis is no longer available
     if verbose:
         print("\n" + "=" * 70)
         print("SENSITIVITY ANALYSIS")
@@ -956,7 +923,7 @@ def run_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = Tru
     return output_data
 
 
-def run_cash_on_cash_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = True) -> Dict:
+# Removed: run_cash_on_cash_sensitivity_analysis function
     """
     Run sensitivity analysis on Cash-on-Cash return for all 15 parameters.
     

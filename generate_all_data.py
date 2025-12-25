@@ -121,8 +121,6 @@ def generate_case_data(case_name: str, assumptions_path: str, case_metadata: Dic
         'display_name': case_metadata['display_name'],
         'assumptions_file': case_metadata['assumptions_file'],
         'base_case_analysis': None,
-        'sensitivity': None,
-        'sensitivity_coc': None,
         'sensitivity_ncf': None,
         'monte_carlo': None,
         'status': 'success',
@@ -142,20 +140,6 @@ def generate_case_data(case_name: str, assumptions_path: str, case_metadata: Dic
             if os.path.exists(json_path):
                 result['base_case_analysis'] = os.path.basename(json_path)
                 print(f"  [+] Base case JSON: {json_path}")
-            
-            # Run sensitivity (Equity IRR)
-            analyze.run_sensitivity_analysis(assumptions_path, case_name, verbose=False)
-            json_path = f"website/data/{case_name}_sensitivity.json"
-            if os.path.exists(json_path):
-                result['sensitivity'] = os.path.basename(json_path)
-                print(f"  [+] Sensitivity JSON: {json_path}")
-            
-            # Run Cash-on-Cash sensitivity
-            analyze.run_cash_on_cash_sensitivity_analysis(assumptions_path, case_name, verbose=False)
-            json_path_coc = f"website/data/{case_name}_sensitivity_coc.json"
-            if os.path.exists(json_path_coc):
-                result['sensitivity_coc'] = os.path.basename(json_path_coc)
-                print(f"  [+] CoC Sensitivity JSON: {json_path_coc}")
             
             # Run Monthly NCF sensitivity
             analyze.run_monthly_ncf_sensitivity_analysis(assumptions_path, case_name, verbose=False)
@@ -270,13 +254,11 @@ def main():
             'case_name': result['case_name'],
             'display_name': result['display_name'],
             'assumptions_file': result['assumptions_file'],
-            'data_files': {
-                'base_case_analysis': result.get('base_case_analysis'),
-                'sensitivity': result.get('sensitivity'),
-                'sensitivity_coc': result.get('sensitivity_coc'),
-                'sensitivity_ncf': result.get('sensitivity_ncf'),
-                'monte_carlo': result.get('monte_carlo')
-            },
+                'data_files': {
+                    'base_case_analysis': result.get('base_case_analysis'),
+                    'sensitivity_ncf': result.get('sensitivity_ncf'),
+                    'monte_carlo': result.get('monte_carlo')
+                },
             'status': result['status'],
             'errors': result.get('errors', [])
         }

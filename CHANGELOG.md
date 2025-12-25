@@ -2,6 +2,90 @@
 
 All notable changes to the Engelberg Property Investment Simulation will be documented in this file.
 
+## [2025-12-25] - Streamlined Sensitivity Analysis
+
+### Dashboard Simplification: Removed IRR and Cash-on-Cash Sensitivities
+
+#### 1. Removed Analysis Types
+- **Removed**: "Sensitivity - Equity IRR" analysis and menu item
+- **Removed**: "Sensitivity - Cash-on-Cash" analysis and menu item
+- **Kept**: "Sensitivity - Monthly NCF" analysis (renamed and enhanced)
+
+#### 2. Updated Dashboard Navigation
+- **Before**: 5 analysis options in left sidebar
+- **After**: 3 analysis options in left sidebar
+  - Model (Simulation KPIs)
+  - Sensitivity - Monthly NCF
+  - Monte Carlo
+
+#### 3. Enhanced Monthly NCF Focus
+- **Renamed**: "Sensitivity - Monthly NCF" (was "Sensitivity - Monthly NCF")
+- **Enhanced**: Now the primary sensitivity analysis showing parameter impact on monthly cash flow per owner
+- **Rationale**: Monthly cash flow is the most relevant metric for investment viability
+
+#### 4. Code Cleanup
+- **Removed**: `renderSensitivity()` and `renderSensitivityCoC()` functions from `index.html`
+- **Removed**: `run_sensitivity_analysis()` and `run_cash_on_cash_sensitivity_analysis()` functions from `analyze.py`
+- **Updated**: `generate_all_data.py` to only generate Monthly NCF sensitivity
+- **Removed**: IRR and CoC sensitivity data generation
+
+#### 5. Data Impact
+- **Reduced**: JSON data files from 56 to ~45 (removed IRR and CoC sensitivity files)
+- **Focused**: Analysis now centers on the most practical metric (monthly cash flow)
+- **Streamlined**: Faster data generation and smaller repository size
+
+### Why This Change?
+
+#### Problems with Previous Setup
+1. **IRR Sensitivity**: Long-term metric (15 years) less relevant for short-term investment decisions
+2. **Cash-on-Cash**: Year 1 only metric, too narrow timeframe
+3. **Complexity**: Too many similar analyses confusing users
+4. **Maintenance**: More code to maintain and debug
+
+#### Benefits of Monthly NCF Focus
+1. **Practical**: Shows actual monthly cash requirements per owner
+2. **Decision-Relevant**: Critical for assessing if you can afford the investment
+3. **Comprehensive**: Captures both operating costs and financing impacts
+4. **Actionable**: Clear what parameters to negotiate (e.g., maintenance rates, management fees)
+
+### Updated User Experience
+
+#### Dashboard Navigation
+```
+Before: 5 options
+├── Model
+├── Sensitivity - Equity IRR     ← Removed
+├── Sensitivity - Cash-on-Cash   ← Removed
+├── Sensitivity - Monthly NCF     ← Kept & Enhanced
+└── Monte Carlo
+
+After: 3 options
+├── Model
+├── Sensitivity - Monthly NCF     ← Primary focus
+└── Monte Carlo
+```
+
+#### Key Insights from Monthly NCF Analysis
+- **Top Impact**: Maintenance Reserve Rate (±216% impact)
+- **Management Fees**: ±101% impact on monthly cash flow
+- **Interest Rates**: Significant impact on financing costs
+- **Practical Focus**: Shows real monthly affordability
+
+### Files Modified
+- `website/index.html` - Removed menu items and rendering functions
+- `analyze.py` - Removed sensitivity analysis functions
+- `generate_all_data.py` - Removed IRR/CoC data generation
+- `README.md` - Updated feature descriptions
+- `QUICK_START.md` - Updated analysis overview
+- `CHANGELOG.md` - This entry
+
+### Validation Results
+✅ **Monthly NCF Calculation Verified**:
+- Base case: CHF -251 per owner per month
+- Top parameter: Maintenance Reserve (±216% impact)
+- Calculation logic: `(Annual Cash Flow per Owner) / 12`
+- Data integrity: All scenarios updated correctly
+
 ## [2025-12-25] - Monte Carlo Integration into Main Dashboard
 
 ### Major UI/UX Improvement: Unified Monte Carlo Analysis

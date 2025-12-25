@@ -3,7 +3,7 @@
   "assumptions_version": "2025-12-10",
   "assumptions_last_updated": "2025-12-10T00:00:00Z",
   "assumptions_hash": "b161e71d360ca2bb5925b38ab8367e687e5e65119f307a1e48830c8232ab937c",
-  "generated_at": "2025-12-25T18:14:48.506165Z",
+  "generated_at": "2025-12-25T20:02:33.030117Z",
   "case_name": "base_case",
   "base_ncf": -251.08976715686262,
   "sensitivities": [
