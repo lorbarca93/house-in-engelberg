@@ -3,7 +3,7 @@
   "assumptions_version": null,
   "assumptions_last_updated": null,
   "assumptions_hash": "0447b2093fbd21e6e82aa2798b905330fea6912b985d37d9ee052405ad90e6d6",
-  "generated_at": "2025-12-25T20:03:01.279967Z",
+  "generated_at": "2025-12-25T20:12:58.462626Z",
   "case_name": "900k_house",
   "base_ncf": -139.13584558823527,
   "sensitivities": [

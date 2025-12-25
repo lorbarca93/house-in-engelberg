@@ -915,10 +915,10 @@
     "debt_coverage_ratio": 0.1350066387834305,
     "operating_expense_ratio_pct": 95.29307461253981
   },
-  "timestamp": "2025-12-25T21:02:54.538865",
+  "timestamp": "2025-12-25T21:12:50.417707",
   "assumptions_file": "assumptions_5_owners.json",
   "assumptions_version": null,
   "assumptions_last_updated": null,
   "assumptions_hash": "79ce75d64bef920d0a02351c6855bae913ee103ae983391b4ee684dbfb7cc5bc",
-  "generated_at": "2025-12-25T20:02:54.538891Z"
+  "generated_at": "2025-12-25T20:12:50.417731Z"
 }
