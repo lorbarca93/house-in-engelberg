@@ -29,6 +29,20 @@
       "errors": []
     },
     {
+      "case_name": "4_owners",
+      "display_name": "4 Owners",
+      "assumptions_file": "assumptions_4_owners.json",
+      "data_files": {
+        "base_case_analysis": "4_owners_base_case_analysis.json",
+        "sensitivity": "4_owners_sensitivity.json",
+        "sensitivity_coc": "4_owners_sensitivity_coc.json",
+        "sensitivity_ncf": "4_owners_sensitivity_ncf.json",
+        "monte_carlo": "4_owners_monte_carlo.json"
+      },
+      "status": "success",
+      "errors": []
+    },
+    {
       "case_name": "5_owners",
       "display_name": "5 Owners",
       "assumptions_file": "assumptions_5_owners.json",
@@ -43,15 +57,15 @@
       "errors": []
     },
     {
-      "case_name": "6_owners",
-      "display_name": "6 Owners",
-      "assumptions_file": "assumptions_6_owners.json",
+      "case_name": "900k_house",
+      "display_name": "900K House Price",
+      "assumptions_file": "assumptions_900k_house.json",
       "data_files": {
-        "base_case_analysis": "6_owners_base_case_analysis.json",
-        "sensitivity": "6_owners_sensitivity.json",
-        "sensitivity_coc": "6_owners_sensitivity_coc.json",
-        "sensitivity_ncf": "6_owners_sensitivity_ncf.json",
-        "monte_carlo": "6_owners_monte_carlo.json"
+        "base_case_analysis": "900k_house_base_case_analysis.json",
+        "sensitivity": "900k_house_sensitivity.json",
+        "sensitivity_coc": "900k_house_sensitivity_coc.json",
+        "sensitivity_ncf": "900k_house_sensitivity_ncf.json",
+        "monte_carlo": "900k_house_monte_carlo.json"
       },
       "status": "success",
       "errors": []
@@ -125,11 +139,25 @@
       },
       "status": "success",
       "errors": []
+    },
+    {
+      "case_name": "saron_mortgage",
+      "display_name": "SARON Mortgage",
+      "assumptions_file": "assumptions_saron_mortgage.json",
+      "data_files": {
+        "base_case_analysis": "saron_mortgage_base_case_analysis.json",
+        "sensitivity": "saron_mortgage_sensitivity.json",
+        "sensitivity_coc": "saron_mortgage_sensitivity_coc.json",
+        "sensitivity_ncf": "saron_mortgage_sensitivity_ncf.json",
+        "monte_carlo": "saron_mortgage_monte_carlo.json"
+      },
+      "status": "success",
+      "errors": []
     }
   ],
-  "generated_at": "2025-12-12T08:32:07.343908",
-  "total_cases": 9,
+  "generated_at": "2025-12-25T19:15:39.111349",
+  "total_cases": 11,
   "assumptions_version": "2025-12-10",
-  "assumptions_hash": "2da065799d214f5b7dd735ca2e132f2849e36f95f594591523f5a157cc0fbc43",
+  "assumptions_hash": "b161e71d360ca2bb5925b38ab8367e687e5e65119f307a1e48830c8232ab937c",
   "assumptions_last_updated": "2025-12-10T00:00:00Z"
 }

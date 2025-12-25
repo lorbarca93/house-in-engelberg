@@ -22,6 +22,12 @@ class FinancingParams:
     interest_rate: float   # annual interest rate, for example 0.019
     amortization_rate: float  # annual amortization rate as percent of initial loan
     num_owners: int
+    # SARON variable rate mortgage parameters
+    mortgage_type: str = "fixed"  # "fixed" or "saron_variable"
+    saron_spread: float = 0.0     # spread added to SARON rate
+    saron_min_rate: float = 0.0   # minimum SARON rate
+    saron_max_rate: float = 0.0   # maximum SARON rate
+    saron_fluctuation_years: int = 15  # years over which SARON fluctuates
 
     @property
     def loan_amount(self) -> float:
@@ -153,10 +159,20 @@ class ExpenseParams:
 
 
 @dataclass
+class TaxParams:
+    marginal_tax_rate: float  # e.g., 0.21 for 21%
+    depreciation_rate: float  # e.g., 0.02 for 2% annually
+    
+    def depreciation(self, property_value: float) -> float:
+        return property_value * self.depreciation_rate
+
+
+@dataclass
 class BaseCaseConfig:
     financing: FinancingParams
     rental: RentalParams
     expenses: ExpenseParams
+    tax: TaxParams
 
 
 # -----------------------------
@@ -200,7 +216,7 @@ def load_assumptions_from_json(json_path: str = "assumptions/assumptions.json") 
         )
     
     # Validate required sections exist
-    required_sections = ['financing', 'rental', 'expenses', 'seasonal', 'projection']
+    required_sections = ['financing', 'rental', 'expenses', 'seasonal', 'projection', 'tax']
     missing_sections = [section for section in required_sections if section not in assumptions]
     
     # If missing sections and this isn't the base assumptions.json, merge with base
@@ -487,7 +503,12 @@ def create_base_case_config(json_path: str = "assumptions/assumptions.json") -> 
         ltv=float(financing_data.get('ltv', 0.75)),
         interest_rate=float(financing_data.get('interest_rate', 0.013)),
         amortization_rate=float(financing_data.get('amortization_rate', 0.01)),
-        num_owners=num_owners
+        num_owners=num_owners,
+        mortgage_type=financing_data.get('mortgage_type', 'fixed'),
+        saron_spread=float(financing_data.get('saron_spread', 0.0)),
+        saron_min_rate=float(financing_data.get('saron_min_rate', 0.0)),
+        saron_max_rate=float(financing_data.get('saron_max_rate', 0.0)),
+        saron_fluctuation_years=int(financing_data.get('saron_fluctuation_years', 15))
     )
 
     # Create rental parameters
@@ -517,10 +538,18 @@ def create_base_case_config(json_path: str = "assumptions/assumptions.json") -> 
         ota_fee_rate=float(expenses_data.get('ota_fee_rate', 0.30))
     )
 
+    # Create tax parameters
+    tax_data = assumptions.get('tax', {})
+    tax = TaxParams(
+        marginal_tax_rate=float(tax_data.get('marginal_tax_rate', 0.21)),
+        depreciation_rate=float(tax_data.get('depreciation_rate', 0.02))
+    )
+
     return BaseCaseConfig(
         financing=financing,
         rental=rental,
-        expenses=expenses
+        expenses=expenses,
+        tax=tax
     )
 
 
@@ -537,6 +566,7 @@ def compute_annual_cash_flows(config: BaseCaseConfig) -> Dict[str, float]:
     f = config.financing
     r = config.rental
     e = config.expenses
+    t = config.tax
 
     # Revenue
     gross_rental_income = r.gross_rental_income
@@ -587,6 +617,27 @@ def compute_annual_cash_flows(config: BaseCaseConfig) -> Dict[str, float]:
     cash_flow_after_debt_service = net_operating_income - debt_service
     cash_flow_per_owner = cash_flow_after_debt_service / f.num_owners
 
+    # Tax Calculations - Owner Level Tax Benefits
+    # Interest and amortization are deductible from owners' personal taxable income
+    # This creates tax savings that represent positive cash flow to owners
+    owner_tax_deductions = interest_payment + amortization_payment
+    owner_tax_benefit = owner_tax_deductions * t.marginal_tax_rate
+    owner_tax_benefit_per_owner = owner_tax_benefit / f.num_owners
+
+    # Property-level tax calculation (may have different rules, but simplified here)
+    depreciation = t.depreciation(f.purchase_price)
+    property_taxable_income = gross_rental_income - total_operating_expenses - depreciation  # Interest may flow through to owners
+    property_tax_liability = max(0, property_taxable_income) * t.marginal_tax_rate
+
+    # Overall after-tax cash flow = Pre-tax cash flow + Owner tax benefits - Property tax liability
+    after_tax_cash_flow = cash_flow_after_debt_service + owner_tax_benefit - property_tax_liability
+    after_tax_cash_flow_per_owner = after_tax_cash_flow / f.num_owners
+
+    # For backward compatibility and clarity
+    taxable_income = property_taxable_income
+    tax_liability = property_tax_liability
+    tax_benefit = owner_tax_benefit_per_owner * f.num_owners  # Total owner tax benefit
+
     # Additional Metrics
     cap_rate = (net_operating_income / f.purchase_price) * 100
     cash_on_cash_return = (cash_flow_after_debt_service / f.equity_total) * 100
@@ -622,6 +673,14 @@ def compute_annual_cash_flows(config: BaseCaseConfig) -> Dict[str, float]:
         # Cash Flow
         "cash_flow_after_debt_service": cash_flow_after_debt_service,
         "cash_flow_per_owner": cash_flow_per_owner,
+        
+        # Tax Calculations
+        "depreciation": depreciation,
+        "taxable_income": taxable_income,
+        "tax_liability": tax_liability,
+        "tax_benefit": tax_benefit,
+        "after_tax_cash_flow": after_tax_cash_flow,
+        "after_tax_cash_flow_per_owner": after_tax_cash_flow_per_owner,
         
         # Financing
         "equity_total": f.equity_total,
@@ -680,10 +739,34 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
     initial_loan_amount = config.financing.loan_amount  # Store for amortization calculation
     year = start_year
     
-    # Determine interest rate for each year (support refinancing)
+    # Determine interest rate for each year (support refinancing and SARON)
     def get_interest_rate_for_year(year_num: int) -> float:
         if refinancing_config and year_num >= refinancing_config.get('refinance_year', 999):
             return refinancing_config.get('new_interest_rate', config.financing.interest_rate)
+
+        # Handle SARON variable rate mortgage
+        if getattr(config.financing, 'mortgage_type', 'fixed') == 'saron_variable':
+            import math
+            saron_min = getattr(config.financing, 'saron_min_rate', 0.006)
+            saron_max = getattr(config.financing, 'saron_max_rate', 0.013)
+            saron_spread = getattr(config.financing, 'saron_spread', 0.009)
+            fluctuation_years = getattr(config.financing, 'saron_fluctuation_years', 15)
+
+            # Create a sinusoidal fluctuation pattern over the specified period
+            # This gives a smooth oscillation between min and max rates
+            cycle_progress = (year_num - 1) / fluctuation_years  # 0 to 1 over the period
+            # Use sine wave to oscillate: sin goes from -1 to 1, we want 0 to 1
+            oscillation = (math.sin(2 * math.pi * cycle_progress) + 1) / 2  # 0 to 1
+
+            # Calculate SARON rate for this year
+            saron_rate = saron_min + (saron_max - saron_min) * oscillation
+
+            # Add spread to get final mortgage rate
+            final_rate = saron_rate + saron_spread
+
+            return final_rate
+
+        # Default to fixed rate
         return config.financing.interest_rate
     
     # Base year results (no inflation)
@@ -742,6 +825,25 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
         cash_flow_after_debt_service = net_operating_income - debt_service
         cash_flow_per_owner = cash_flow_after_debt_service / config.financing.num_owners
         
+        # Tax Calculations - Owner Level Tax Benefits
+        owner_tax_deductions = interest_payment + amortization_payment
+        owner_tax_benefit = owner_tax_deductions * config.tax.marginal_tax_rate
+        owner_tax_benefit_per_owner = owner_tax_benefit / config.financing.num_owners
+
+        # Property-level tax calculation
+        depreciation = config.tax.depreciation(current_property_value)
+        property_taxable_income = gross_rental_income - total_operating_expenses - depreciation
+        property_tax_liability = max(0, property_taxable_income) * config.tax.marginal_tax_rate
+
+        # Overall after-tax cash flow = Pre-tax cash flow + Owner tax benefits - Property tax liability
+        after_tax_cash_flow = cash_flow_after_debt_service + owner_tax_benefit - property_tax_liability
+        after_tax_cash_flow_per_owner = after_tax_cash_flow / config.financing.num_owners
+
+        # For backward compatibility
+        taxable_income = property_taxable_income
+        tax_liability = property_tax_liability
+        tax_benefit = owner_tax_benefit_per_owner * config.financing.num_owners
+        
         # Calculate metrics
         debt_coverage_ratio = net_operating_income / debt_service if debt_service > 0 else 0
         cap_rate = (net_operating_income / current_property_value) * 100
@@ -768,6 +870,13 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
             'remaining_loan_balance': current_loan,  # Balance at end of year (after amortization)
             'debt_coverage_ratio': debt_coverage_ratio,
             'cap_rate_pct': cap_rate,
+            # Tax Calculations
+            'depreciation': depreciation,
+            'taxable_income': taxable_income,
+            'tax_liability': tax_liability,
+            'tax_benefit': tax_benefit,
+            'after_tax_cash_flow': after_tax_cash_flow,
+            'after_tax_cash_flow_per_owner': after_tax_cash_flow_per_owner,
         }
         
         projection.append(annual_results)
@@ -871,6 +980,9 @@ def calculate_irrs_from_projection(projection: List[Dict], initial_equity: float
     # Extract cash flows per owner (levered - after debt service)
     equity_cash_flows = [year['cash_flow_per_owner'] for year in projection]
     
+    # Extract after-tax cash flows per owner (levered - after debt service and tax)
+    after_tax_equity_cash_flows = [year.get('after_tax_cash_flow_per_owner', year['cash_flow_per_owner']) for year in projection]
+    
     # Extract NOI (unlevered - before debt service) per owner
     unlevered_cash_flows = [year['net_operating_income'] / num_owners for year in projection]
     
@@ -889,6 +1001,12 @@ def calculate_irrs_from_projection(projection: List[Dict], initial_equity: float
     
     # Equity IRR (levered) without sale
     equity_irr_without_sale = calculate_irr(equity_cash_flows, initial_equity, 0)
+    
+    # After-Tax Equity IRR (levered) with sale
+    after_tax_equity_irr_with_sale = calculate_irr(after_tax_equity_cash_flows, initial_equity, sale_proceeds_per_owner)
+    
+    # After-Tax Equity IRR (levered) without sale
+    after_tax_equity_irr_without_sale = calculate_irr(after_tax_equity_cash_flows, initial_equity, 0)
     
     # Project IRR (unlevered) with sale
     if purchase_price:
@@ -927,6 +1045,9 @@ def calculate_irrs_from_projection(projection: List[Dict], initial_equity: float
         'equity_irr_without_sale_pct': equity_irr_without_sale * 100,
         'project_irr_with_sale_pct': project_irr_with_sale * 100,
         'project_irr_without_sale_pct': project_irr_without_sale * 100,
+        # After-tax IRRs
+        'after_tax_equity_irr_with_sale_pct': after_tax_equity_irr_with_sale * 100,
+        'after_tax_equity_irr_without_sale_pct': after_tax_equity_irr_without_sale * 100,
         # New metrics
         'npv_at_5pct': npv,
         'moic': moic,
@@ -1010,7 +1131,12 @@ def apply_sensitivity(
         ltv=base_config.financing.ltv,
         interest_rate=interest_rate if interest_rate is not None else base_config.financing.interest_rate,
         amortization_rate=base_config.financing.amortization_rate,
-        num_owners=base_config.financing.num_owners
+        num_owners=base_config.financing.num_owners,
+        mortgage_type=base_config.financing.mortgage_type,
+        saron_spread=base_config.financing.saron_spread,
+        saron_min_rate=base_config.financing.saron_min_rate,
+        saron_max_rate=base_config.financing.saron_max_rate,
+        saron_fluctuation_years=base_config.financing.saron_fluctuation_years
     )
 
     # Handle seasonal model - preserve seasons if they exist
@@ -1075,7 +1201,8 @@ def apply_sensitivity(
     return BaseCaseConfig(
         financing=new_financing,
         rental=new_rental,
-        expenses=new_expenses
+        expenses=new_expenses,
+        tax=base_config.tax  # Preserve tax parameters
     )
 
 
@@ -1141,6 +1268,10 @@ def export_base_case_to_json(config: BaseCaseConfig, results: Dict[str, float],
             'electricity_internet_annual': config.expenses.electricity_internet_annual,
             'maintenance_rate': config.expenses.maintenance_rate,
             'property_value': config.expenses.property_value
+        },
+        'tax': {
+            'marginal_tax_rate': config.tax.marginal_tax_rate,
+            'depreciation_rate': config.tax.depreciation_rate
         }
     }
     
@@ -1171,7 +1302,14 @@ def export_base_case_to_json(config: BaseCaseConfig, results: Dict[str, float],
         'cap_rate_pct': results.get('cap_rate_pct', 0),
         'cash_on_cash_return_pct': results.get('cash_on_cash_return_pct', 0),
         'debt_coverage_ratio': results.get('debt_coverage_ratio', 0),
-        'operating_expense_ratio_pct': results.get('operating_expense_ratio_pct', 0)
+        'operating_expense_ratio_pct': results.get('operating_expense_ratio_pct', 0),
+        # Tax Calculations
+        'depreciation': results.get('depreciation', 0),
+        'taxable_income': results.get('taxable_income', 0),
+        'tax_liability': results.get('tax_liability', 0),
+        'tax_benefit': results.get('tax_benefit', 0),
+        'after_tax_cash_flow': results.get('after_tax_cash_flow', 0),
+        'after_tax_cash_flow_per_owner': results.get('after_tax_cash_flow_per_owner', 0)
     }
     
     # Add seasonal breakdown if available
@@ -1192,6 +1330,9 @@ def export_base_case_to_json(config: BaseCaseConfig, results: Dict[str, float],
         'equity_irr_without_sale_pct': irr_results.get('equity_irr_without_sale_pct', irr_results.get('irr_without_sale_pct', 0)),
         'project_irr_with_sale_pct': irr_results.get('project_irr_with_sale_pct', 0),
         'project_irr_without_sale_pct': irr_results.get('project_irr_without_sale_pct', 0),
+        # After-tax IRRs
+        'after_tax_equity_irr_with_sale_pct': irr_results.get('after_tax_equity_irr_with_sale_pct', 0),
+        'after_tax_equity_irr_without_sale_pct': irr_results.get('after_tax_equity_irr_without_sale_pct', 0),
         'sale_proceeds_per_owner': irr_results.get('sale_proceeds_per_owner', 0),
         'final_property_value': irr_results.get('final_property_value', 0),
         'final_loan_balance': irr_results.get('final_loan_balance', 0),

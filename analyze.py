@@ -1778,7 +1778,7 @@ Examples:
 if __name__ == "__main__":
     """
     Entry point when script is run directly.
-    
+
     This allows the script to be:
     1. Run directly: python run_analysis.py
     2. Imported as module: from run_analysis import run_base_case_analysis

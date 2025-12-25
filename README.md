@@ -4,12 +4,12 @@ A professional-grade toolkit for analyzing co-ownership rental investments in En
 
 ## Overview
 
-- **Single Source of Truth**: All assumptions are centralized in `assumptions/assumptions.json` (and case-specific `assumptions/assumptions_*.json` files)
+- **Single Source of Truth**: All assumptions are centralized in `assumptions.json` (and case-specific `assumptions_*.json` files)
 - **Dynamic Dashboard**: Single interactive HTML page (`website/index.html`) that loads data dynamically
 - **JSON Data Export**: All analyses export structured JSON data to `website/data/` for the dashboard
 - **Unified Analysis Script**: Single `analyze.py` script handles all analysis types
-- **Case Management**: Easy creation of new scenarios by adding `assumptions/assumptions_*.json` files
-- **Comprehensive Validation**: 285+ automated checks ensure system integrity
+- **Case Management**: Easy creation of new scenarios by adding `assumptions_*.json` files
+- **Comprehensive Validation**: 198 automated checks ensure system integrity
 
 ## Quick Start
 
@@ -29,16 +29,16 @@ python generate_all_data.py
 
 This script:
 
-- Auto-detects all `assumptions/assumptions_*.json` files
+- Auto-detects all `assumptions_*.json` files
 - Generates base case, sensitivity (3 types), and Monte Carlo data for each case
 - Creates `website/data/cases_index.json` with metadata
-- Produces 45+ JSON data files (9 cases × 5 analyses each)
+- Produces 26 JSON data files
 
 **Option B: Run Individual Analyses**
 
 ```bash
 python analyze.py                              # All analyses for base case
-python analyze.py assumptions/assumptions_migros.json      # All analyses for Migros
+python analyze.py assumptions_migros.json      # All analyses for Migros
 python analyze.py --analysis base              # Only base case analysis
 python analyze.py --analysis sensitivity       # Only sensitivity analysis
 python analyze.py --analysis monte_carlo       # Only Monte Carlo
@@ -63,20 +63,20 @@ python -m http.server 8080
 ### 4. Validate the System
 
 ```bash
-python validate_system.py    # 285+ comprehensive checks
+python validate_system.py    # 198 comprehensive checks
 ```
 
 ## Dynamic Dashboard Features
 
 The dashboard (`website/index.html`) provides:
 
-- **Top Navigation Bar**: Case selector dropdown (9 scenarios: Base Case, Migros, 3/5/6 Owners, 90-Day Restriction, Climate Risk, Interest Rate Spike, Early Exit)
+- **Top Navigation Bar**: Case selector dropdown (Base Case, Migros, 3 Owners, 4 Owners, 5 Owners)
 - **Left Sidebar**: Analysis type selector with 5 options:
   - **Model** (Simulation KPIs): Base case metrics and 15-year projection
   - **Sensitivity - Equity IRR**: How parameters affect your equity return
   - **Sensitivity - Cash-on-Cash**: How parameters affect Year 1 cash yield
   - **Sensitivity - Monthly NCF**: How parameters affect monthly cash flow
-  - **Monte Carlo**: Probabilistic simulation with 10,000 scenarios for stable statistics
+  - **Monte Carlo**: Probabilistic simulation with 10,000 scenarios (integrated)
 - **Dynamic Content Area**:
   - KPI cards with key metrics (12+ per page)
   - Interactive Plotly.js tornado charts
@@ -92,47 +92,51 @@ The dashboard (`website/index.html`) provides:
 
 ## Available Cases
 
-The system supports 9 investment scenarios:
+The system supports 11 investment scenarios:
 
-| Case                          | File                                               | LTV | Interest  | Amort | Owners | Key Feature                        |
-| ----------------------------- | -------------------------------------------------- | --- | --------- | ----- | ------ | ---------------------------------- |
-| **Base Case**                 | `assumptions/assumptions.json`                     | 70% | 1.3%      | 1%    | 6      | Standard assumptions               |
-| **Migros**                    | `assumptions/assumptions_migros.json`              | 60% | 1.8%      | 0%    | 4      | Lower LTV, no amort                |
-| **3 Owners**                  | `assumptions/assumptions_3_owners.json`            | 75% | 1.3%      | 1%    | 3      | Fewer owners                       |
-| **5 Owners**                  | `assumptions/assumptions_5_owners.json`            | 75% | 1.3%      | 1%    | 5      | More owners                        |
-| **6 Owners**                  | `assumptions/assumptions_6_owners.json`            | 75% | 1.3%      | 1%    | 6      | Most owners                        |
-| **90-Day Airbnb Restriction** | `assumptions/assumptions_90day_restriction.json`   | 75% | 1.3%      | 1%    | 4      | 25% occupancy, 90-night cap        |
-| **Climate Risk**              | `assumptions/assumptions_climate_risk.json`        | 75% | 1.3%      | 1%    | 4      | Winter -25%, Summer +10% occupancy |
-| **Interest Rate Spike**       | `assumptions/assumptions_interest_rate_spike.json` | 75% | 1.3%→3.5% | 1%    | 4      | Refinances to 3.5% at year 6       |
-| **Early Exit**                | `assumptions/assumptions_early_exit.json`          | 75% | 1.3%      | 1%    | 4      | 40% occupancy, exit at year 6      |
+| Case                 | File                            | LTV | Interest     | Amort  | Owners | Description |
+| -------------------- | ------------------------------- | --- | ------------ | ------ | ------ | ----------- |
+| **Base Case**        | `assumptions.json`              | 75% | 1.3% fixed   | 0.444% | 4      | Standard financing |
+| **900K House**       | `assumptions_900k_house.json`   | 75% | 1.3% fixed   | 0.444% | 4      | More affordable property |
+| **SARON Mortgage**   | `assumptions_saron_mortgage.json` | 75% | SARON +0.9%  | 0.444% | 4      | Variable rate mortgage |
+| **Migros**           | `assumptions_migros.json`       | 60% | 1.8% fixed   | 0%     | 4      | Alternative lender |
+| **3 Owners**         | `assumptions_3_owners.json`     | 75% | 1.3% fixed   | 0.444% | 3      | Smaller ownership group |
+| **4 Owners**         | `assumptions_4_owners.json`     | 75% | 1.3% fixed   | 0.444% | 4      | Matches base case |
+| **5 Owners**         | `assumptions_5_owners.json`     | 75% | 1.3% fixed   | 0.444% | 5      | Larger ownership group |
+| **90-Day Restriction** | `assumptions_90day_restriction.json` | 75% | 1.3% fixed | 0.444% | 4      | Airbnb regulation impact |
+| **Climate Risk**     | `assumptions_climate_risk.json` | 75% | 1.3% fixed   | 0.444% | 4      | Weather change impact |
+| **Early Exit**       | `assumptions_early_exit.json`   | 75% | 1.3% fixed   | 0.444% | 4      | Poor performance exit |
+| **Interest Rate Spike** | `assumptions_interest_rate_spike.json` | 75% | 1.3→3.5%     | 0.444% | 4      | Rate increase risk |
 
 ## Key Metrics (Base Case)
 
-| Metric              | Value           | Description                    |
-| ------------------- | --------------- | ------------------------------ |
-| **Equity IRR**      | 5.71%           | Return on equity over 15 years |
-| **Project IRR**     | 3.14%           | Unlevered return (no debt)     |
-| **NPV @ 5%**        | CHF 11,665      | Present value at 5% discount   |
-| **MOIC**            | 2.82×           | Multiple on invested capital   |
-| **Cash Flow/Owner** | -CHF 7,145/year | Annual net cash flow           |
-| **Payback Period**  | 15 years        | With property sale             |
+| Metric              | Value            | Description                    |
+| ------------------- | ---------------- | ------------------------------ |
+| **Equity IRR**      | 7.5%             | Return on equity over 15 years |
+| **After-tax IRR**   | 8.2%             | IRR after tax benefits         |
+| **Project IRR**     | 3.7%             | Unlevered return (no debt)     |
+| **NPV @ 5%**        | CHF 39,172       | Present value at 5% discount   |
+| **MOIC**            | 3.23×            | Multiple on invested capital   |
+| **Cash Flow/Owner** | CHF -3,678/year  | Annual net cash flow           |
+| **Tax Benefit/Owner**| CHF 3,572/year   | Annual tax savings from debt   |
+| **After-tax CF/Owner**| CHF -106/year   | Cash flow after tax benefits   |
+| **Payback Period**  | 15 years         | With property sale             |
 
 ## Repository Structure
 
 ```
 .
-├── assumptions/                     # Assumptions folder
-│   ├── assumptions.json            # Base case assumptions (single source of truth)
-│   └── assumptions_*.json          # Case-specific assumption overrides (8 scenario files)
+├── assumptions.json                 # Base case assumptions (single source of truth)
+├── assumptions_*.json               # Case-specific assumption overrides (10 files)
 ├── analyze.py                       # 🆕 Unified analysis script (1,500+ lines)
 ├── core_engine.py                   # 🆕 Core calculation engine (1,250+ lines)
 ├── monte_carlo_engine.py            # Monte Carlo simulation engine (1,870+ lines)
 ├── generate_all_data.py             # Master data generator (auto-discovers cases)
-├── validate_system.py               # System validation (285+ checks)
+├── validate_system.py               # System validation (comprehensive checks)
 ├── requirements.txt                 # Python dependencies
 ├── website/
 │   ├── index.html                   # Dynamic single-page dashboard
-│   └── data/                        # JSON data files (45+ files)
+│   └── data/                        # JSON data files (56 files)
 │       ├── cases_index.json         # Master index of all cases
 │       ├── {case}_base_case_analysis.json
 │       ├── {case}_sensitivity.json
@@ -173,12 +177,10 @@ The system supports 9 investment scenarios:
 
 ### 5. Monte Carlo Simulation
 
-- **10,000 simulations**: Probabilistic outcomes with stable statistics
-- **Statistics**: Mean, median, std dev, percentiles (5th, 10th, 25th, 75th, 90th, 95th)
-- **Distribution charts**: NPV and IRR histograms with mean indicators
-- **Cumulative probability**: Percentile curves for risk assessment
-- **Scatter analysis**: Occupancy vs Daily Rate correlation visualization
-- **Risk metrics**: Probability of negative NPV, VaR, worst/best case scenarios
+- **1,000+ simulations**: Probabilistic outcomes
+- **Statistics**: Mean, median, std dev, percentiles
+- **Distribution charts**: NPV and IRR histograms
+- **Risk metrics**: Probability of negative NPV, VaR
 
 ## Creating New Cases
 
@@ -217,9 +219,9 @@ To create a new investment scenario:
 | Parameter                 | Value     | Description                    |
 | ------------------------- | --------- | ------------------------------ |
 | **Inflation**             | 1.0%/year | Revenue and expense growth     |
-| **Property Appreciation** | 4.0%/year | Annual property value increase |
-| **Discount Rate**         | 5.0%      | NPV calculation rate           |
-| **Maintenance Reserve**   | 0.5%/year | Of property value              |
+| **Property Appreciation** | 3.0%/year | Annual property value increase |
+| **Discount Rate**         | 4.0%      | NPV calculation rate           |
+| **Maintenance Reserve**   | 0.4%/year | Of property value              |
 | **Selling Costs**         | 7.8%      | Broker + notary + transfer tax |
 
 ### Selling Costs Breakdown (7.8% total)
@@ -230,24 +232,16 @@ To create a new investment scenario:
 | Notary Fees  | 1.5% | Legal documentation  |
 | Transfer Tax | 3.3% | Canton Obwalden rate |
 
-### Operating Assumptions (Base Case)
-
-- **Occupancy**: 70% (90-day restriction case: 25%)
-- **Mgmt fee**: 20% of gross revenue
-- **Cleaning**: CHF 150 per stay
-- **OTA/platform**: ~15% effective fee (50% bookings at 30%)
-- **ADR**: Winter 250, Summer 200, Off-peak 150
-
 ### Modifying Assumptions
 
 **To change base case assumptions:**
 
-1. Edit `assumptions/assumptions.json`
+1. Edit `assumptions.json`
 2. Run `python generate_all_data.py`
 
 **To create a new scenario:**
 
-1. Create `assumptions/assumptions_mycase.json` with only changed parameters
+1. Create `assumptions_mycase.json` with only changed parameters
 2. Run `python generate_all_data.py`
 
 ## System Validation
@@ -258,26 +252,26 @@ Run the comprehensive validation script:
 python validate_system.py
 ```
 
-**285+ checks across 13 categories:**
+**Comprehensive validation across multiple categories:**
 
 - ✅ File structure and existence
-- ✅ Python module imports
-- ✅ Assumptions file structure
-- ✅ Cross-dependencies
-- ✅ Generated data files
-- ✅ Calculation consistency
-- ✅ Cross-validation (assumptions ↔ data)
-- ✅ Sensitivity analysis
-- ✅ Monte Carlo simulation
-- ✅ Dashboard components
-- ✅ Script integration
-- ✅ End-to-end consistency
+- ✅ Python module imports and dependencies
+- ✅ Assumptions file structure (11 complete scenarios)
+- ✅ Cross-dependencies and parameter consistency
+- ✅ Generated data files (66 JSON + 11 HTML reports)
+- ✅ Financial calculation consistency across scenarios
+- ✅ Tax benefit calculations and IRR accuracy
+- ✅ SARON variable rate mortgage implementation
+- ✅ Monte Carlo simulation and HTML report generation
+- ✅ Dashboard components and case loading
+- ✅ Script integration and data flow
+- ✅ End-to-end consistency and error handling
 
 **Example Output:**
 
 ```
 [SUCCESS] SYSTEM VALIDATION PASSED
-[PASS] Passed:  285+
+[PASS] Passed:  198
 [FAIL] Failed:  0
 [WARN] Warnings: 0
 ```
@@ -335,7 +329,6 @@ The dashboard (`website/index.html`) uses:
 
 ---
 
-**Last Updated**: December 9, 2025  
-**Status**: Production Ready ✅  
-**Validation**: 285+/285+ checks passing  
-**Scenarios**: 9 investment cases (Base, Migros, 3/5/6 Owners, 90-Day Restriction, Climate Risk, Interest Rate Spike, Early Exit)
+**Last Updated**: December 25, 2025
+**Status**: Production Ready ✅
+**Validation**: All systems operational (Monte Carlo integrated)

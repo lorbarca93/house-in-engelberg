@@ -74,6 +74,10 @@
       "electricity_internet_annual": 1000.0,
       "maintenance_rate": 0.005,
       "property_value": 1300000.0
+    },
+    "tax": {
+      "marginal_tax_rate": 0.21,
+      "depreciation_rate": 0.02
     }
   },
   "annual_results": {
@@ -103,6 +107,12 @@
     "cash_on_cash_return_pct": -9.120262217194568,
     "debt_coverage_ratio": -0.3217771329267492,
     "operating_expense_ratio_pct": 116.09738090043746,
+    "depreciation": 26000.0,
+    "taxable_income": -33215.85220588235,
+    "tax_liability": 0.0,
+    "tax_benefit": 4709.25,
+    "after_tax_cash_flow": -24931.60220588235,
+    "after_tax_cash_flow_per_owner": -6232.900551470588,
     "seasonal_breakdown": {
       "Winter Peak (Ski Season)": {
         "nights": 59.325,
@@ -145,7 +155,13 @@
       "cash_flow_per_owner": -5729.22867647059,
       "remaining_loan_balance": 965250.0,
       "debt_coverage_ratio": -0.021935995803003712,
-      "cap_rate_pct": -0.03783959276018141
+      "cap_rate_pct": -0.03783959276018141,
+      "depreciation": 26000.0,
+      "taxable_income": -26491.91470588236,
+      "tax_liability": 0.0,
+      "tax_benefit": 4709.25,
+      "after_tax_cash_flow": -18207.66470588236,
+      "after_tax_cash_flow_per_owner": -4551.91617647059
     },
     {
       "year": 2027,
@@ -164,7 +180,13 @@
       "cash_flow_per_owner": -5747.520963235296,
       "remaining_loan_balance": 955500.0,
       "debt_coverage_ratio": -0.03102637439894094,
-      "cap_rate_pct": -0.05117114296902255
+      "cap_rate_pct": -0.05117114296902255,
+      "depreciation": 27040.0,
+      "taxable_income": -27731.833852941185,
+      "tax_liability": 0.0,
+      "tax_benefit": 4682.6325,
+      "after_tax_cash_flow": -18307.451352941185,
+      "after_tax_cash_flow_per_owner": -4576.862838235296
     },
     {
       "year": 2028,
@@ -183,7 +205,13 @@
       "cash_flow_per_owner": -5768.263047867647,
       "remaining_loan_balance": 945750.0,
       "debt_coverage_ratio": -0.0406626611402291,
-      "cap_rate_pct": -0.064118129229531
+      "cap_rate_pct": -0.064118129229531,
+      "depreciation": 28121.600000000006,
+      "taxable_income": -29023.152191470595,
+      "tax_liability": 0.0,
+      "tax_benefit": 4656.014999999999,
+      "after_tax_cash_flow": -18417.03719147059,
+      "after_tax_cash_flow_per_owner": -4604.259297867648
     },
     {
       "year": 2029,
@@ -202,7 +230,13 @@
       "cash_flow_per_owner": -5791.557428346325,
       "remaining_loan_balance": 936000.0,
       "debt_coverage_ratio": -0.05087287056488728,
-      "cap_rate_pct": -0.07669164473252554
+      "cap_rate_pct": -0.07669164473252554,
+      "depreciation": 29246.464000000004,
+      "taxable_income": -30367.943713385303,
+      "tax_liability": 0.0,
+      "tax_benefit": 4629.3975,
+      "after_tax_cash_flow": -18536.8322133853,
+      "after_tax_cash_flow_per_owner": -4634.208053346325
     },
     {
       "year": 2030,
@@ -221,7 +255,13 @@
       "cash_flow_per_owner": -5817.510747629787,
       "remaining_loan_balance": 926250.0,
       "debt_coverage_ratio": -0.0616864216862464,
-      "cap_rate_pct": -0.08890246267293322
+      "cap_rate_pct": -0.08890246267293322,
+      "depreciation": 30416.322560000004,
+      "taxable_income": -31768.365550519153,
+      "tax_liability": 0.0,
+      "tax_benefit": 4602.78,
+      "after_tax_cash_flow": -18667.26299051915,
+      "after_tax_cash_flow_per_owner": -4666.815747629787
     },
     {
       "year": 2031,
@@ -240,7 +280,13 @@
       "cash_flow_per_owner": -5846.233959906085,
       "remaining_loan_balance": 916500.0,
       "debt_coverage_ratio": -0.07313420935578917,
-      "cap_rate_pct": -0.10076104548044479
+      "cap_rate_pct": -0.10076104548044479,
+      "depreciation": 31632.975462400005,
+      "taxable_income": -33226.661302024346,
+      "tax_liability": 0.0,
+      "tax_benefit": 4576.162499999999,
+      "after_tax_cash_flow": -18808.773339624342,
+      "after_tax_cash_flow_per_owner": -4702.1933349060855
     },
     {
       "year": 2032,
@@ -259,7 +305,13 @@
       "cash_flow_per_owner": -5877.842503497146,
       "remaining_loan_balance": 906750.0,
       "debt_coverage_ratio": -0.08524867935971678,
-      "cap_rate_pct": -0.1122775537838935
+      "cap_rate_pct": -0.1122775537838935,
+      "depreciation": 32898.29448089601,
+      "taxable_income": -34745.16449488459,
+      "tax_liability": 0.0,
+      "tax_benefit": 4549.545,
+      "after_tax_cash_flow": -18961.825013988586,
+      "after_tax_cash_flow_per_owner": -4740.4562534971465
     },
     {
       "year": 2033,
@@ -278,7 +330,13 @@
       "cash_flow_per_owner": -5912.456480683797,
       "remaining_loan_balance": 897000.0,
       "debt_coverage_ratio": -0.09806390745250494,
-      "cap_rate_pct": -0.12346185511705032
+      "cap_rate_pct": -0.12346185511705032,
+      "depreciation": 34214.22626013185,
+      "taxable_income": -36326.30218286704,
+      "tax_liability": 0.0,
+      "tax_benefit": 4522.9275,
+      "after_tax_cash_flow": -19126.89842273519,
+      "after_tax_cash_flow_per_owner": -4781.724605683798
     },
     {
       "year": 2034,
@@ -297,7 +355,13 @@
       "cash_flow_per_owner": -5950.200844728382,
       "remaining_loan_balance": 887250.0,
       "debt_coverage_ratio": -0.11161568254231609,
-      "cap_rate_pct": -0.13432353237328928
+      "cap_rate_pct": -0.13432353237328928,
+      "depreciation": 35582.79531053712,
+      "taxable_income": -37972.59868945065,
+      "tax_liability": 0.0,
+      "tax_benefit": 4496.3099999999995,
+      "after_tax_cash_flow": -19304.493378913532,
+      "after_tax_cash_flow_per_owner": -4826.123344728383
     },
     {
       "year": 2035,
@@ -316,7 +380,13 @@
       "cash_flow_per_owner": -5991.2055943829255,
       "remaining_loan_balance": 877500.0,
       "debt_coverage_ratio": -0.1259415942554566,
-      "cap_rate_pct": -0.14487189201636794
+      "cap_rate_pct": -0.14487189201636794,
+      "depreciation": 37006.10712295861,
+      "taxable_income": -39686.67950049031,
+      "tax_liability": 0.0,
+      "tax_benefit": 4469.6925,
+      "after_tax_cash_flow": -19495.1298775317,
+      "after_tax_cash_flow_per_owner": -4873.782469382925
     },
     {
       "year": 2036,
@@ -335,7 +405,13 @@
       "cash_flow_per_owner": -6035.605976182302,
       "remaining_loan_balance": 867750.0,
       "debt_coverage_ratio": -0.14108112512013266,
-      "cap_rate_pct": -0.1551159720543572
+      "cap_rate_pct": -0.1551159720543572,
+      "depreciation": 38486.35140787696,
+      "taxable_income": -41471.275312606165,
+      "tax_liability": 0.0,
+      "tax_benefit": 4443.075,
+      "after_tax_cash_flow": -19699.348904729206,
+      "after_tax_cash_flow_per_owner": -4924.8372261823015
     },
     {
       "year": 2037,
@@ -354,7 +430,13 @@
       "cash_flow_per_owner": -6083.542694833894,
       "remaining_loan_balance": 858000.0,
       "debt_coverage_ratio": -0.15707574762362608,
-      "cap_rate_pct": -0.1650645497835584
+      "cap_rate_pct": -0.1650645497835584,
+      "depreciation": 40025.80546419203,
+      "taxable_income": -43329.226243527606,
+      "tax_liability": 0.0,
+      "tax_benefit": 4416.4574999999995,
+      "after_tax_cash_flow": -19917.713279335574,
+      "after_tax_cash_flow_per_owner": -4979.4283198338935
     },
     {
       "year": 2038,
@@ -373,7 +455,13 @@
       "cash_flow_per_owner": -6135.1621320275935,
       "remaining_loan_balance": 848250.0,
       "debt_coverage_ratio": -0.17396902641170944,
-      "cap_rate_pct": -0.1747261493090328
+      "cap_rate_pct": -0.1747261493090328,
+      "depreciation": 41626.837682759724,
+      "taxable_income": -45263.4862108701,
+      "tax_liability": 0.0,
+      "tax_benefit": 4389.84,
+      "after_tax_cash_flow": -20150.808528110374,
+      "after_tax_cash_flow_per_owner": -5037.7021320275935
     },
     {
       "year": 2039,
@@ -392,7 +480,13 @@
       "cash_flow_per_owner": -6190.616574003041,
       "remaining_loan_balance": 838500.0,
       "debt_coverage_ratio": -0.19180672591474637,
-      "cap_rate_pct": -0.1841090488481948
+      "cap_rate_pct": -0.1841090488481948,
+      "depreciation": 43291.91119007011,
+      "taxable_income": -47277.127486082274,
+      "tax_liability": 0.0,
+      "tax_benefit": 4363.2225,
+      "after_tax_cash_flow": -20399.243796012164,
+      "after_tax_cash_flow_per_owner": -5099.810949003041
     },
     {
       "year": 2040,
@@ -411,7 +505,13 @@
       "cash_flow_per_owner": -6250.064448224457,
       "remaining_loan_balance": 828750.0,
       "debt_coverage_ratio": -0.2106369237015001,
-      "cap_rate_pct": -0.19322128782372835
+      "cap_rate_pct": -0.19322128782372835,
+      "depreciation": 45023.58763767292,
+      "taxable_income": -49373.34543057075,
+      "tax_liability": 0.0,
+      "tax_benefit": 4336.605,
+      "after_tax_cash_flow": -20663.65279289783,
+      "after_tax_cash_flow_per_owner": -5165.913198224457
     }
   ],
   "projection_15yr": [
@@ -432,7 +532,13 @@
       "cash_flow_per_owner": -5729.22867647059,
       "remaining_loan_balance": 965250.0,
       "debt_coverage_ratio": -0.021935995803003712,
-      "cap_rate_pct": -0.03783959276018141
+      "cap_rate_pct": -0.03783959276018141,
+      "depreciation": 26000.0,
+      "taxable_income": -26491.91470588236,
+      "tax_liability": 0.0,
+      "tax_benefit": 4709.25,
+      "after_tax_cash_flow": -18207.66470588236,
+      "after_tax_cash_flow_per_owner": -4551.91617647059
     },
     {
       "year": 2027,
@@ -451,7 +557,13 @@
       "cash_flow_per_owner": -5747.520963235296,
       "remaining_loan_balance": 955500.0,
       "debt_coverage_ratio": -0.03102637439894094,
-      "cap_rate_pct": -0.05117114296902255
+      "cap_rate_pct": -0.05117114296902255,
+      "depreciation": 27040.0,
+      "taxable_income": -27731.833852941185,
+      "tax_liability": 0.0,
+      "tax_benefit": 4682.6325,
+      "after_tax_cash_flow": -18307.451352941185,
+      "after_tax_cash_flow_per_owner": -4576.862838235296
     },
     {
       "year": 2028,
@@ -470,7 +582,13 @@
       "cash_flow_per_owner": -5768.263047867647,
       "remaining_loan_balance": 945750.0,
       "debt_coverage_ratio": -0.0406626611402291,
-      "cap_rate_pct": -0.064118129229531
+      "cap_rate_pct": -0.064118129229531,
+      "depreciation": 28121.600000000006,
+      "taxable_income": -29023.152191470595,
+      "tax_liability": 0.0,
+      "tax_benefit": 4656.014999999999,
+      "after_tax_cash_flow": -18417.03719147059,
+      "after_tax_cash_flow_per_owner": -4604.259297867648
     },
     {
       "year": 2029,
@@ -489,7 +607,13 @@
       "cash_flow_per_owner": -5791.557428346325,
       "remaining_loan_balance": 936000.0,
       "debt_coverage_ratio": -0.05087287056488728,
-      "cap_rate_pct": -0.07669164473252554
+      "cap_rate_pct": -0.07669164473252554,
+      "depreciation": 29246.464000000004,
+      "taxable_income": -30367.943713385303,
+      "tax_liability": 0.0,
+      "tax_benefit": 4629.3975,
+      "after_tax_cash_flow": -18536.8322133853,
+      "after_tax_cash_flow_per_owner": -4634.208053346325
     },
     {
       "year": 2030,
@@ -508,7 +632,13 @@
       "cash_flow_per_owner": -5817.510747629787,
       "remaining_loan_balance": 926250.0,
       "debt_coverage_ratio": -0.0616864216862464,
-      "cap_rate_pct": -0.08890246267293322
+      "cap_rate_pct": -0.08890246267293322,
+      "depreciation": 30416.322560000004,
+      "taxable_income": -31768.365550519153,
+      "tax_liability": 0.0,
+      "tax_benefit": 4602.78,
+      "after_tax_cash_flow": -18667.26299051915,
+      "after_tax_cash_flow_per_owner": -4666.815747629787
     },
     {
       "year": 2031,
@@ -527,7 +657,13 @@
       "cash_flow_per_owner": -5846.233959906085,
       "remaining_loan_balance": 916500.0,
       "debt_coverage_ratio": -0.07313420935578917,
-      "cap_rate_pct": -0.10076104548044479
+      "cap_rate_pct": -0.10076104548044479,
+      "depreciation": 31632.975462400005,
+      "taxable_income": -33226.661302024346,
+      "tax_liability": 0.0,
+      "tax_benefit": 4576.162499999999,
+      "after_tax_cash_flow": -18808.773339624342,
+      "after_tax_cash_flow_per_owner": -4702.1933349060855
     },
     {
       "year": 2032,
@@ -546,7 +682,13 @@
       "cash_flow_per_owner": -5877.842503497146,
       "remaining_loan_balance": 906750.0,
       "debt_coverage_ratio": -0.08524867935971678,
-      "cap_rate_pct": -0.1122775537838935
+      "cap_rate_pct": -0.1122775537838935,
+      "depreciation": 32898.29448089601,
+      "taxable_income": -34745.16449488459,
+      "tax_liability": 0.0,
+      "tax_benefit": 4549.545,
+      "after_tax_cash_flow": -18961.825013988586,
+      "after_tax_cash_flow_per_owner": -4740.4562534971465
     },
     {
       "year": 2033,
@@ -565,7 +707,13 @@
       "cash_flow_per_owner": -5912.456480683797,
       "remaining_loan_balance": 897000.0,
       "debt_coverage_ratio": -0.09806390745250494,
-      "cap_rate_pct": -0.12346185511705032
+      "cap_rate_pct": -0.12346185511705032,
+      "depreciation": 34214.22626013185,
+      "taxable_income": -36326.30218286704,
+      "tax_liability": 0.0,
+      "tax_benefit": 4522.9275,
+      "after_tax_cash_flow": -19126.89842273519,
+      "after_tax_cash_flow_per_owner": -4781.724605683798
     },
     {
       "year": 2034,
@@ -584,7 +732,13 @@
       "cash_flow_per_owner": -5950.200844728382,
       "remaining_loan_balance": 887250.0,
       "debt_coverage_ratio": -0.11161568254231609,
-      "cap_rate_pct": -0.13432353237328928
+      "cap_rate_pct": -0.13432353237328928,
+      "depreciation": 35582.79531053712,
+      "taxable_income": -37972.59868945065,
+      "tax_liability": 0.0,
+      "tax_benefit": 4496.3099999999995,
+      "after_tax_cash_flow": -19304.493378913532,
+      "after_tax_cash_flow_per_owner": -4826.123344728383
     },
     {
       "year": 2035,
@@ -603,7 +757,13 @@
       "cash_flow_per_owner": -5991.2055943829255,
       "remaining_loan_balance": 877500.0,
       "debt_coverage_ratio": -0.1259415942554566,
-      "cap_rate_pct": -0.14487189201636794
+      "cap_rate_pct": -0.14487189201636794,
+      "depreciation": 37006.10712295861,
+      "taxable_income": -39686.67950049031,
+      "tax_liability": 0.0,
+      "tax_benefit": 4469.6925,
+      "after_tax_cash_flow": -19495.1298775317,
+      "after_tax_cash_flow_per_owner": -4873.782469382925
     },
     {
       "year": 2036,
@@ -622,7 +782,13 @@
       "cash_flow_per_owner": -6035.605976182302,
       "remaining_loan_balance": 867750.0,
       "debt_coverage_ratio": -0.14108112512013266,
-      "cap_rate_pct": -0.1551159720543572
+      "cap_rate_pct": -0.1551159720543572,
+      "depreciation": 38486.35140787696,
+      "taxable_income": -41471.275312606165,
+      "tax_liability": 0.0,
+      "tax_benefit": 4443.075,
+      "after_tax_cash_flow": -19699.348904729206,
+      "after_tax_cash_flow_per_owner": -4924.8372261823015
     },
     {
       "year": 2037,
@@ -641,7 +807,13 @@
       "cash_flow_per_owner": -6083.542694833894,
       "remaining_loan_balance": 858000.0,
       "debt_coverage_ratio": -0.15707574762362608,
-      "cap_rate_pct": -0.1650645497835584
+      "cap_rate_pct": -0.1650645497835584,
+      "depreciation": 40025.80546419203,
+      "taxable_income": -43329.226243527606,
+      "tax_liability": 0.0,
+      "tax_benefit": 4416.4574999999995,
+      "after_tax_cash_flow": -19917.713279335574,
+      "after_tax_cash_flow_per_owner": -4979.4283198338935
     },
     {
       "year": 2038,
@@ -660,7 +832,13 @@
       "cash_flow_per_owner": -6135.1621320275935,
       "remaining_loan_balance": 848250.0,
       "debt_coverage_ratio": -0.17396902641170944,
-      "cap_rate_pct": -0.1747261493090328
+      "cap_rate_pct": -0.1747261493090328,
+      "depreciation": 41626.837682759724,
+      "taxable_income": -45263.4862108701,
+      "tax_liability": 0.0,
+      "tax_benefit": 4389.84,
+      "after_tax_cash_flow": -20150.808528110374,
+      "after_tax_cash_flow_per_owner": -5037.7021320275935
     },
     {
       "year": 2039,
@@ -679,7 +857,13 @@
       "cash_flow_per_owner": -6190.616574003041,
       "remaining_loan_balance": 838500.0,
       "debt_coverage_ratio": -0.19180672591474637,
-      "cap_rate_pct": -0.1841090488481948
+      "cap_rate_pct": -0.1841090488481948,
+      "depreciation": 43291.91119007011,
+      "taxable_income": -47277.127486082274,
+      "tax_liability": 0.0,
+      "tax_benefit": 4363.2225,
+      "after_tax_cash_flow": -20399.243796012164,
+      "after_tax_cash_flow_per_owner": -5099.810949003041
     },
     {
       "year": 2040,
@@ -698,7 +882,13 @@
       "cash_flow_per_owner": -6250.064448224457,
       "remaining_loan_balance": 828750.0,
       "debt_coverage_ratio": -0.2106369237015001,
-      "cap_rate_pct": -0.19322128782372835
+      "cap_rate_pct": -0.19322128782372835,
+      "depreciation": 45023.58763767292,
+      "taxable_income": -49373.34543057075,
+      "tax_liability": 0.0,
+      "tax_benefit": 4336.605,
+      "after_tax_cash_flow": -20663.65279289783,
+      "after_tax_cash_flow_per_owner": -5165.913198224457
     }
   ],
   "irr_results": {
@@ -706,6 +896,8 @@
     "equity_irr_without_sale_pct": 0.0,
     "project_irr_with_sale_pct": 3.0388196543790365,
     "project_irr_without_sale_pct": 0.0,
+    "after_tax_equity_irr_with_sale_pct": 6.167878631036724,
+    "after_tax_equity_irr_without_sale_pct": 0.0,
     "sale_proceeds_per_owner": 311709.34752418037,
     "final_property_value": 2251179.381883646,
     "final_loan_balance": 828750.0,
@@ -723,10 +915,10 @@
     "debt_coverage_ratio": -0.3217771329267492,
     "operating_expense_ratio_pct": 116.09738090043746
   },
-  "timestamp": "2025-12-12T08:31:48.214741",
+  "timestamp": "2025-12-25T19:15:15.808588",
   "assumptions_file": "assumptions_climate_risk.json",
   "assumptions_version": null,
   "assumptions_last_updated": null,
-  "assumptions_hash": "db78c5ffbbc149f3cad7fb06682b482ca4dfe56dd8147ea12daa3d6a87677edc",
-  "generated_at": "2025-12-12T07:31:48.214776Z"
+  "assumptions_hash": "009ae0e00f2684e17199be4b11e28377adc3873cc987f4ba54e5293da0edf948",
+  "generated_at": "2025-12-25T18:15:15.808614Z"
 }

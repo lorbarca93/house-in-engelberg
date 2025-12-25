@@ -2,8 +2,8 @@
   "assumptions_file": "assumptions_climate_risk.json",
   "assumptions_version": null,
   "assumptions_last_updated": null,
-  "assumptions_hash": "db78c5ffbbc149f3cad7fb06682b482ca4dfe56dd8147ea12daa3d6a87677edc",
-  "generated_at": "2025-12-12T07:31:48.250400Z",
+  "assumptions_hash": "009ae0e00f2684e17199be4b11e28377adc3873cc987f4ba54e5293da0edf948",
+  "generated_at": "2025-12-25T18:15:15.840598Z",
   "case_name": "climate_risk",
   "base_ncf": -617.5177542892156,
   "sensitivities": [

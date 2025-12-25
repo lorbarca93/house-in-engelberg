@@ -1107,8 +1107,7 @@ def generate_monte_carlo_html(df: pd.DataFrame, stats: dict, charts: list,
     # Calculate base case for comparison
     from core_engine import compute_annual_cash_flows, compute_15_year_projection, calculate_irrs_from_projection
     base_result = compute_annual_cash_flows(base_config)
-    # Use defaults from assumptions, fallback to 2% inflation and 2.5% appreciation for testing
-    base_projection = compute_15_year_projection(base_config, start_year=2026, inflation_rate=0.02, property_appreciation_rate=0.025, num_years=15)
+    base_projection = compute_15_year_projection(base_config, start_year=2026, inflation_rate=0.02, property_appreciation_rate=0.025)  # 2.5% property appreciation per year
     base_final_value = base_projection[-1]['property_value']
     base_final_loan = base_projection[-1]['remaining_loan_balance']
     base_irr = calculate_irrs_from_projection(

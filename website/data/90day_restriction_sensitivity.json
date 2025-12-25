@@ -2,8 +2,8 @@
   "assumptions_file": "assumptions_90day_restriction.json",
   "assumptions_version": null,
   "assumptions_last_updated": null,
-  "assumptions_hash": "4c27d8437aebb8600623906dd3c1469ccb377d9abded59496801164889f15eb0",
-  "generated_at": "2025-12-12T07:31:43.930581Z",
+  "assumptions_hash": "850abc8c8a9c400e65e05d9bcee51cf202b6f98069504308b366f6bea590ddad",
+  "generated_at": "2025-12-25T18:15:11.457246Z",
   "base_irr": 4.152965031098571,
   "sensitivities": [
     {
