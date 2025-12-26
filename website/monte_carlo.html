@@ -519,19 +519,19 @@
               <!-- Info Box -->
               <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px;">
                 <p style="margin: 0; font-size: 0.85em; line-height: 1.5; opacity: 0.95;">
-                  💡 <strong>Monte Carlo Analysis</strong> — 10,000 probabilistic simulations showing NPV distribution and risk metrics. Accounts for parameter uncertainty and correlations.
+                  💡 <strong>Monte Carlo Analysis</strong> — ${data.total_simulations || 2000} probabilistic simulations showing NPV distribution and risk metrics. Accounts for parameter uncertainty and correlations.
                 </p>
               </div>
 
               <!-- Key Risk Metrics -->
               <div class="kpi-grid">
-                <div class="kpi-card" data-tooltip="Average Net Present Value across all 10,000 simulations. This is the expected NPV considering all parameter uncertainties.">
+                <div class="kpi-card" data-tooltip="Average Net Present Value across all ${data.total_simulations || 2000} simulations. This is the expected NPV considering all parameter uncertainties.">
                   <h3>Mean NPV</h3>
                   <div class="value ${stats.npv?.mean >= 0 ? 'positive' : 'negative'}">$${Math.round(stats.npv?.mean || 0).toLocaleString()}</div>
                 </div>
                 <div class="kpi-card" data-tooltip="Median (50th percentile) Net Present Value. Half of simulations are above this value, half are below. More robust than mean as it's less affected by extreme outliers.">
                   <h3>Median NPV</h3>
-                  <div class="value ${stats.npv?.p50 >= 0 ? 'positive' : 'negative'}">$${Math.round(stats.npv?.p50 || 0).toLocaleString()}</div>
+                  <div class="value ${stats.npv?.median >= 0 ? 'positive' : 'negative'}">$${Math.round(stats.npv?.median || 0).toLocaleString()}</div>
                 </div>
                 <div class="kpi-card" data-tooltip="Percentage of Monte Carlo simulations where NPV is positive. Shows the probability that the investment will exceed the required return. Higher percentage = lower risk of underperformance.">
                   <h3>Probability NPV > 0</h3>
@@ -548,7 +548,7 @@
               <div class="chart-container">
                 <h3><i class="fas fa-chart-area"></i> NPV Distribution</h3>
                 <p style="color: #7f8c8d; margin-bottom: 15px; font-size: 0.85em; line-height: 1.5;">
-                  Distribution of Net Present Value across 10,000 Monte Carlo simulations.
+                  Distribution of Net Present Value across ${data.total_simulations || 2000} Monte Carlo simulations.
                   <span style="color: #2ecc71;">■</span> Green lines show key percentiles.
                 </p>
                 <div class="chart-wrapper" id="npvChart"></div>
@@ -573,7 +573,7 @@
                     </tr>
                     <tr>
                       <td><strong>Median NPV</strong></td>
-                      <td>$${Math.round(stats.npv?.p50 || 0).toLocaleString()}</td>
+                      <td>$${Math.round(stats.npv?.median || 0).toLocaleString()}</td>
                       <td>50th percentile - half simulations above, half below</td>
                     </tr>
                     <tr>
@@ -686,7 +686,7 @@
 
         renderNPVDistribution(sampleData, stats) {
           // Prepare data for histogram
-          const npvValues = sampleData.map(d => d.npv || 0).filter(v => !isNaN(v));
+          const npvValues = sampleData.map((d) => d.npv || 0).filter((v) => !isNaN(v));
 
           // Create histogram with density
           const traceHist = {
@@ -726,12 +726,12 @@
             },
             {
               type: 'line',
-              x0: stats.npv?.p50 || 0,
+              x0: stats.npv?.median || 0,
               y0: 0,
-              x1: stats.npv?.p50 || 0,
+              x1: stats.npv?.median || 0,
               y1: Math.max(...density.y) * 1.1,
               line: { color: 'green', width: 2, dash: 'dash' },
-              name: `Median: $${Math.round(stats.npv?.p50 || 0).toLocaleString()}`
+              name: `Median: $${Math.round(stats.npv?.median || 0).toLocaleString()}`
             },
             {
               type: 'line',
@@ -780,7 +780,7 @@
 
         renderCDF(sampleData, stats) {
           // Prepare data for CDF
-          const npvValues = sampleData.map(d => d.npv || 0).filter(v => !isNaN(v));
+          const npvValues = sampleData.map((d) => d.npv || 0).filter((v) => !isNaN(v));
           const sortedValues = npvValues.sort((a, b) => a - b);
           const yVals = Array.from({length: sortedValues.length}, (_, i) =>
             (i + 1) / sortedValues.length
