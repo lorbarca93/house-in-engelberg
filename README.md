@@ -66,15 +66,31 @@ python -m http.server 8080
 python validate_system.py    # 198 comprehensive checks
 ```
 
-## Dynamic Dashboard Features
+## Multi-Page Dashboard Structure
 
-The dashboard (`website/index.html`) provides:
+The analysis is organized into three dedicated HTML pages:
 
-- **Top Navigation Bar**: Case selector dropdown (Base Case, Migros, 3 Owners, 4 Owners, 5 Owners)
-- **Left Sidebar**: Analysis type selector with 3 options:
-  - **Model** (Simulation KPIs): Base case metrics and 15-year projection
-  - **Sensitivity - Monthly NCF**: How parameters affect monthly cash flow per owner
-  - **Monte Carlo**: Probabilistic simulation with 10,000 scenarios (integrated)
+### 1. Main Dashboard (`website/index.html`)
+- **Overview**: Key financial metrics and main simulation KPIs
+- **Features**: Purchase price, revenue, expenses, cash flow analysis, return metrics
+- **Purpose**: High-level summary of investment performance
+
+### 2. Sensitivity Analysis (`website/sensitivity.html`)
+- **Analysis**: Monthly Net Cash Flow per owner sensitivity
+- **Features**: Tornado chart, parameter impact analysis, detailed tables
+- **Purpose**: Understand how individual parameters affect monthly cash requirements
+
+### 3. Monte Carlo Analysis (`website/monte_carlo.html`)
+- **Analysis**: Probabilistic risk assessment with 10,000 scenarios
+- **Features**: NPV distribution, risk metrics, cumulative distribution function
+- **Purpose**: Quantify investment risk and probability of success
+
+### Navigation Features
+
+All pages share consistent navigation:
+- **Top Navigation Bar**: Case selector dropdown (11 scenarios available)
+- **Left Sidebar**: Cross-page navigation between analysis types
+- **URL Parameters**: Direct linking to specific cases (?case=base_case)
 - **Dynamic Content Area**:
   - KPI cards with key metrics (12+ per page)
   - Interactive Plotly.js tornado charts

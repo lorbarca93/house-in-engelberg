@@ -44,8 +44,8 @@ python -m http.server 8080
 - 🔄 Switch between 11 cases (Base, 900K House, SARON Mortgage, Migros, 3/4/5 Owners, 90-Day Restriction, Climate Risk, Early Exit, Interest Rate Spike)
 - 📈 View 3 analysis types:
   - **Model** - Base case KPIs and 15-year projection
-  - **Sensitivity - Monthly NCF** - Parameter impact on monthly cash flow per owner
-  - **Monte Carlo** - 10,000 probabilistic simulations
+  - **sensitivity.html** - Monthly NCF sensitivity analysis with tornado charts
+  - **monte_carlo.html** - Monte Carlo risk analysis with distribution charts
 - 🎨 Interactive Plotly tornado charts with hover explanations
 - 📋 Detailed data tables
 
