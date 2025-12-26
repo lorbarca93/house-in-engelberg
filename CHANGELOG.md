@@ -4,6 +4,27 @@ All notable changes to the Engelberg Property Investment Simulation will be docu
 
 ## [2025-12-25] - Add Yearly Cash Flow Chart & Dashboard Restructure
 
+### Monte Carlo Analysis Bug Fixes
+
+#### Data Access Corrections
+**Issue**: Monte Carlo page failing to display median NPV values
+**Root Cause**: JavaScript accessing `stats.npv.p50` but data structure uses `median` key
+**Fix**: Updated all references from `p50` to `median` in KPI cards, tables, and charts
+
+#### Dynamic Simulation Count Display
+**Issue**: Hardcoded "10,000 simulations" text regardless of actual data
+**Fix**: Dynamic display using `data.total_simulations` from Monte Carlo JSON
+**Result**: Accurate representation of actual simulation counts (10,000 total, 2,000 samples)
+
+#### JavaScript Syntax Compatibility
+**Issue**: Arrow function syntax causing potential browser compatibility issues
+**Fix**: Standardized arrow function syntax with proper parentheses
+**Impact**: Improved cross-browser compatibility and error prevention
+
+#### Case Selector Synchronization
+**Verification**: Ensured all three pages (index.html, sensitivity.html, monte_carlo.html) have identical case selector options
+**Result**: Consistent navigation experience across all analysis pages
+
 ### New Feature: Yearly After-Tax Cash Flow Chart
 
 #### Chart Implementation
