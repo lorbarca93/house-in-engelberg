@@ -915,10 +915,10 @@
     "debt_coverage_ratio": 0.17517523110221378,
     "operating_expense_ratio_pct": 95.29307461253981
   },
-  "timestamp": "2025-12-25T21:13:42.369631",
+  "timestamp": "2025-12-26T09:34:07.905470",
   "assumptions_file": "assumptions_saron_mortgage.json",
   "assumptions_version": null,
   "assumptions_last_updated": null,
   "assumptions_hash": "7ffb46cabc4ff947e626f2cd95e08c4b840b2f78e77d1799a2a40608b2346a09",
-  "generated_at": "2025-12-25T20:13:42.369666Z"
+  "generated_at": "2025-12-26T08:34:07.905507Z"
 }

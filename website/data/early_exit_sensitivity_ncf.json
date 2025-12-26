@@ -3,7 +3,7 @@
   "assumptions_version": null,
   "assumptions_last_updated": null,
   "assumptions_hash": "370df29566a8051a9dec27e0d6cd033b967f0aaeed550ca313cd39e175a01099",
-  "generated_at": "2025-12-25T20:13:21.143404Z",
+  "generated_at": "2025-12-26T08:33:51.302231Z",
   "case_name": "early_exit",
   "base_ncf": -671.6973039215686,
   "sensitivities": [

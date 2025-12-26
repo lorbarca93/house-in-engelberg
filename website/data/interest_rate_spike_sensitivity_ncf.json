@@ -3,7 +3,7 @@
   "assumptions_version": null,
   "assumptions_last_updated": null,
   "assumptions_hash": "fdc1c37668e21d86605756e72284a9004d519675ce83982a3f4e7763a7205f07",
-  "generated_at": "2025-12-25T20:13:28.158574Z",
+  "generated_at": "2025-12-26T08:33:57.195460Z",
   "case_name": "interest_rate_spike",
   "base_ncf": -593.2326899509804,
   "sensitivities": [

@@ -275,7 +275,7 @@
       }
 
       .kpi-card[data-tooltip]:hover::before {
-        content: '';
+        content: "";
         position: absolute;
         bottom: 100%;
         left: 50%;
@@ -601,13 +601,16 @@
                             <div class="kpi-card" data-tooltip="After-tax Equity IRR including tax benefits from deductible expenses (interest, depreciation, operating costs). This is the true return after accounting for tax savings. Typically higher than pre-tax IRR due to tax deductions. Includes property sale proceeds.">
                                 <h3>After-Tax Equity IRR (15Y)</h3>
                                 <div class="value positive">${(
-                                  irr.after_tax_equity_irr_with_sale_pct || irr.equity_irr_with_sale_pct || 0
+                                  irr.after_tax_equity_irr_with_sale_pct ||
+                                  irr.equity_irr_with_sale_pct ||
+                                  0
                                 ).toFixed(2)}%</div>
                             </div>
                             <div class="kpi-card" data-tooltip="Annual tax benefit per owner from deductible expenses. This is the tax savings from deducting interest payments, depreciation, and operating expenses. Negative taxable income results in no tax liability (but loss may carry forward).">
                                 <h3>Tax Benefit / Owner / Year</h3>
                                 <div class="value positive">${(
-                                  (results.tax_benefit || 0) / (data.config?.financing?.num_owners || 1)
+                                  (results.tax_benefit || 0) /
+                                  (data.config?.financing?.num_owners || 1)
                                 ).toLocaleString("en-US", {
                                   style: "currency",
                                   currency: "CHF",
@@ -617,12 +620,16 @@
                             <div class="kpi-card" data-tooltip="Annual after-tax cash flow per owner. This is the cash flow after all expenses, debt service, and taxes. Includes tax benefits from deductible expenses, making it higher than pre-tax cash flow. This is the actual cash you receive after all obligations and tax payments.">
                                 <h3>After-Tax Cash Flow / Owner</h3>
                                 <div class="value ${
-                                  (results.after_tax_cash_flow_per_owner || results.cash_flow_per_owner || 0) >= 0
+                                  (results.after_tax_cash_flow_per_owner ||
+                                    results.cash_flow_per_owner ||
+                                    0) >= 0
                                     ? "positive"
                                     : "negative"
                                 }">
                                     ${(
-                                      results.after_tax_cash_flow_per_owner || results.cash_flow_per_owner || 0
+                                      results.after_tax_cash_flow_per_owner ||
+                                      results.cash_flow_per_owner ||
+                                      0
                                     ).toLocaleString("en-US", {
                                       style: "currency",
                                       currency: "CHF",
@@ -736,19 +743,39 @@
                             <div class="kpi-card" data-tooltip="Total monthly fixed costs per owner, including: Interest (mortgage interest), Amortization (principal payment), Insurance, Nabenkosten (shared building costs), and Maintenance Reserve. This is the minimum monthly cash requirement per owner, regardless of rental income. These are mandatory expenses that must be paid even during low-revenue periods.">
                                 <h3>Fixed Costs / Owner / Month</h3>
                                 <div class="value">${(() => {
-                                  const numOwners = data.config?.financing?.num_owners || 1;
-                                  const interestMonthly = (results.interest_payment || 0) / 12;
-                                  const amortizationMonthly = (results.amortization_payment || 0) / 12;
-                                  const insuranceAnnual = data.config?.expenses?.insurance_annual || 0;
+                                  const numOwners =
+                                    data.config?.financing?.num_owners || 1;
+                                  const interestMonthly =
+                                    (results.interest_payment || 0) / 12;
+                                  const amortizationMonthly =
+                                    (results.amortization_payment || 0) / 12;
+                                  const insuranceAnnual =
+                                    data.config?.expenses?.insurance_annual ||
+                                    0;
                                   const insuranceMonthly = insuranceAnnual / 12;
-                                  const nabenkostenAnnual = data.config?.expenses?.nubbing_costs_annual || 0;
-                                  const nabenkostenMonthly = nabenkostenAnnual / 12;
-                                  const maintenanceRate = data.config?.expenses?.maintenance_rate || 0;
-                                  const propertyValue = data.config?.expenses?.property_value || 0;
-                                  const maintenanceAnnual = maintenanceRate * propertyValue;
-                                  const maintenanceMonthly = maintenanceAnnual / 12;
-                                  const totalMonthly = interestMonthly + amortizationMonthly + insuranceMonthly + nabenkostenMonthly + maintenanceMonthly;
-                                  return (totalMonthly / numOwners).toLocaleString("en-US", {
+                                  const nabenkostenAnnual =
+                                    data.config?.expenses
+                                      ?.nubbing_costs_annual || 0;
+                                  const nabenkostenMonthly =
+                                    nabenkostenAnnual / 12;
+                                  const maintenanceRate =
+                                    data.config?.expenses?.maintenance_rate ||
+                                    0;
+                                  const propertyValue =
+                                    data.config?.expenses?.property_value || 0;
+                                  const maintenanceAnnual =
+                                    maintenanceRate * propertyValue;
+                                  const maintenanceMonthly =
+                                    maintenanceAnnual / 12;
+                                  const totalMonthly =
+                                    interestMonthly +
+                                    amortizationMonthly +
+                                    insuranceMonthly +
+                                    nabenkostenMonthly +
+                                    maintenanceMonthly;
+                                  return (
+                                    totalMonthly / numOwners
+                                  ).toLocaleString("en-US", {
                                     style: "currency",
                                     currency: "CHF",
                                     maximumFractionDigits: 0,
@@ -822,45 +849,66 @@
                                     <div style="margin-top: 8px; line-height: 1.8;">
                                         <div style="background: #fff3cd; padding: 6px; border-radius: 4px; margin-bottom: 8px; border-left: 3px solid #ffc107;">
                                             <strong>Total Annual Operating Expenses:</strong> <span style="color: var(--primary); font-size: 1.05em;">CHF ${(
-                                              results.total_operating_expenses || 0
+                                              results.total_operating_expenses ||
+                                              0
                                             ).toLocaleString("en-US", {
                                               maximumFractionDigits: 0,
                                             })}</span>
                                         </div>
                                         • Property Management: <strong>${(
-                                          (data.config?.expenses?.property_management_fee_rate || 0) * 100
+                                          (data.config?.expenses
+                                            ?.property_management_fee_rate ||
+                                            0) * 100
                                         ).toFixed(0)}%</strong> of revenue<br>
                                         • Cleaning per Stay: <strong>CHF ${(
-                                          data.config?.expenses?.cleaning_cost_per_stay || 0
+                                          data.config?.expenses
+                                            ?.cleaning_cost_per_stay || 0
                                         ).toFixed(0)}</strong><br>
                                         • Insurance: <strong>CHF ${(
-                                          (data.config?.expenses?.insurance_annual || 0)
-                                        ).toLocaleString()}</strong>/year (${(
-                                          data.config?.expenses?.insurance_annual && data.config?.expenses?.property_value
-                                            ? ((data.config.expenses.insurance_annual / data.config.expenses.property_value) * 100).toFixed(2)
-                                            : 0
-                                        )}% of value)<br>
+                                          data.config?.expenses
+                                            ?.insurance_annual || 0
+                                        ).toLocaleString()}</strong>/year (${
+            data.config?.expenses?.insurance_annual &&
+            data.config?.expenses?.property_value
+              ? (
+                  (data.config.expenses.insurance_annual /
+                    data.config.expenses.property_value) *
+                  100
+                ).toFixed(2)
+              : 0
+          }% of value)<br>
                                         • Maintenance Reserve: <strong>${(
-                                          (data.config?.expenses?.maintenance_rate || 0) * 100
-                                        ).toFixed(1)}%</strong> of value (CHF ${(
-                                          data.config?.expenses?.maintenance_rate && data.config?.expenses?.property_value
-                                            ? (data.config.expenses.maintenance_rate * data.config.expenses.property_value).toLocaleString()
-                                            : 0
-                                        )}/year)<br>
+                                          (data.config?.expenses
+                                            ?.maintenance_rate || 0) * 100
+                                        ).toFixed(1)}%</strong> of value (CHF ${
+            data.config?.expenses?.maintenance_rate &&
+            data.config?.expenses?.property_value
+              ? (
+                  data.config.expenses.maintenance_rate *
+                  data.config.expenses.property_value
+                ).toLocaleString()
+              : 0
+          }/year)<br>
                                         • Nabenkosten: <strong>CHF ${(
-                                          (data.config?.expenses?.nubbing_costs_annual || 0)
+                                          data.config?.expenses
+                                            ?.nubbing_costs_annual || 0
                                         ).toLocaleString()}</strong>/year<br>
                                         • Electricity & Internet: <strong>CHF ${(
-                                          (data.config?.expenses?.electricity_internet_annual || 0)
+                                          data.config?.expenses
+                                            ?.electricity_internet_annual || 0
                                         ).toLocaleString()}</strong>/year<br>
                                         • Tourist Tax: <strong>CHF ${(
-                                          data.config?.expenses?.tourist_tax_per_person_per_night || 0
+                                          data.config?.expenses
+                                            ?.tourist_tax_per_person_per_night ||
+                                          0
                                         ).toFixed(0)}</strong>/person/night<br>
                                         • Avg Length of Stay: <strong>${(
-                                          data.config?.expenses?.average_length_of_stay || 0
+                                          data.config?.expenses
+                                            ?.average_length_of_stay || 0
                                         ).toFixed(1)}</strong> nights<br>
                                         • Avg Guests per Night: <strong>${(
-                                          data.config?.expenses?.avg_guests_per_night || 0
+                                          data.config?.expenses
+                                            ?.avg_guests_per_night || 0
                                         ).toFixed(1)}</strong>
                                     </div>
                                 </div>
@@ -978,22 +1026,30 @@
                                               maximumFractionDigits: 0,
                                             })}</td>
                                             <td style="color: ${
-                                              (year.after_tax_cash_flow || year.cash_flow_after_debt_service || 0) >= 0
+                                              (year.after_tax_cash_flow ||
+                                                year.cash_flow_after_debt_service ||
+                                                0) >= 0
                                                 ? "var(--success)"
                                                 : "var(--danger)"
                                             }">${(
-                                          year.after_tax_cash_flow || year.cash_flow_after_debt_service || 0
+                                          year.after_tax_cash_flow ||
+                                          year.cash_flow_after_debt_service ||
+                                          0
                                         ).toLocaleString("en-US", {
                                           style: "currency",
                                           currency: "CHF",
                                           maximumFractionDigits: 0,
                                         })}</td>
                                             <td style="color: ${
-                                              (year.after_tax_cash_flow_per_owner || year.cash_flow_per_owner || 0) >= 0
+                                              (year.after_tax_cash_flow_per_owner ||
+                                                year.cash_flow_per_owner ||
+                                                0) >= 0
                                                 ? "var(--success)"
                                                 : "var(--danger)"
                                             }">${(
-                                          year.after_tax_cash_flow_per_owner || year.cash_flow_per_owner || 0
+                                          year.after_tax_cash_flow_per_owner ||
+                                          year.cash_flow_per_owner ||
+                                          0
                                         ).toLocaleString("en-US", {
                                           style: "currency",
                                           currency: "CHF",
@@ -1036,8 +1092,6 @@
 
           content.innerHTML = html;
         },
-
-
 
         // =============================================================
         // SENSITIVITY ANALYSIS - MONTHLY NET CASH FLOW PER OWNER
@@ -1502,6 +1556,34 @@
                 chartDiv.style.overflow = "visible";
               }
             });
+          }
+        },
+
+        // Helper function to format values based on parameter type
+        formatValue(value, parameter) {
+          // Handle percentage-based parameters
+          if (
+            parameter.includes("Rate") ||
+            parameter.includes("LTV") ||
+            parameter.includes("Fee") ||
+            parameter.includes("Occupancy")
+          ) {
+            return (value * 100).toFixed(2) + "%";
+          }
+          // Handle currency values
+          else if (parameter.includes("Price") || parameter.includes("Cost")) {
+            return (
+              "CHF " +
+              value.toLocaleString("en-US", { maximumFractionDigits: 0 })
+            );
+          }
+          // Handle nights/days
+          else if (parameter.includes("Stay")) {
+            return value.toFixed(1) + " nights";
+          }
+          // Default: 2 decimal places
+          else {
+            return value.toFixed(2);
           }
         },
 

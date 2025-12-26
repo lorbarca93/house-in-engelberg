@@ -3,7 +3,7 @@
   "assumptions_version": null,
   "assumptions_last_updated": null,
   "assumptions_hash": "20dfce5762c08e092e4ed701c95cb2858ebaca0e7839c63af87236d181724d70",
-  "generated_at": "2025-12-25T20:12:34.521452Z",
+  "generated_at": "2025-12-26T08:33:18.105314Z",
   "case_name": "3_owners",
   "base_ncf": -408.65890522875816,
   "sensitivities": [
