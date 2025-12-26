@@ -4,6 +4,39 @@ All notable changes to the Engelberg Property Investment Simulation will be docu
 
 ## [2025-12-25] - Add Yearly Cash Flow Chart & Dashboard Restructure
 
+### Navigation & UX Improvements
+
+#### Enhanced Sidebar Menu System
+**Previous State**: Technical menu names ("Simulation KPIs", "Sensitivity - Monthly NCF")
+**New State**: User-friendly names ("Homepage", "Sensitivity", "Monte Carlo")
+
+#### Comprehensive Hover Tooltips
+**Implementation**: Custom CSS tooltip system for sidebar navigation
+**Features**:
+- **Right-positioned tooltips**: Appear to the right of menu items
+- **Detailed explanations**: Each menu item explains its purpose extensively
+- **Word-wrapped text**: Long descriptions wrap properly within tooltip bounds
+- **Consistent styling**: Matches existing dashboard tooltip design
+
+**Menu Item Explanations**:
+1. **Homepage**: "Overview of key financial metrics, purchase price, revenue, expenses, cash flow analysis, return metrics, and main cash requirements per owner. Start here to understand the basic investment performance."
+
+2. **Sensitivity**: "Analyze how changes in key parameters (like occupancy rate, pricing, costs, etc.) impact monthly cash flow per owner. Use tornado charts to identify which variables have the biggest effect on your investment returns."
+
+3. **Monte Carlo**: "Probabilistic risk analysis showing NPV distribution and probability of success across 10,000 simulations. Understand the range of possible outcomes and quantify investment uncertainty."
+
+#### Technical Implementation
+- **CSS Positioning**: Custom tooltip positioning for sidebar items
+- **Responsive Design**: Tooltips adapt to sidebar width constraints
+- **Cross-page Consistency**: Same menu names and tooltips across all three HTML pages
+- **Accessibility**: Proper z-index layering and hover states
+
+#### User Experience Impact
+- **Clearer Navigation**: Menu names immediately suggest functionality
+- **Guided Discovery**: Tooltips explain what each section does
+- **Reduced Cognitive Load**: Users understand navigation options before clicking
+- **Professional Feel**: Consistent with modern web application standards
+
 ### Monte Carlo Analysis Bug Fixes
 
 #### Data Access Corrections
