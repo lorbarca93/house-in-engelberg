@@ -321,7 +321,8 @@
       }
 
       /* Tooltip Styling */
-      .kpi-card[data-tooltip]:hover::before {
+      .kpi-card[data-tooltip]:hover::before,
+      .sidebar-menu-item[data-tooltip]:hover::before {
         content: attr(data-tooltip);
         position: absolute;
         bottom: 100%;
@@ -336,9 +337,13 @@
         z-index: 1000;
         opacity: 0.95;
         box-shadow: var(--shadow);
+        max-width: 300px;
+        white-space: normal;
+        word-wrap: break-word;
       }
 
-      .kpi-card[data-tooltip]:hover::after {
+      .kpi-card[data-tooltip]:hover::after,
+      .sidebar-menu-item[data-tooltip]:hover::after {
         content: "";
         position: absolute;
         bottom: 100%;
@@ -348,6 +353,29 @@
         border-top-color: var(--dark);
         margin-bottom: -5px;
         z-index: 1000;
+      }
+
+      /* Sidebar specific tooltip positioning */
+      .sidebar-menu-item[data-tooltip]:hover::before {
+        left: 100%;
+        top: 50%;
+        bottom: auto;
+        transform: translateY(-50%);
+        margin-left: 10px;
+        max-width: 250px;
+      }
+
+      .sidebar-menu-item[data-tooltip]:hover::after {
+        left: 100%;
+        top: 50%;
+        bottom: auto;
+        transform: translateY(-50%);
+        border: 5px solid transparent;
+        border-left-color: var(--dark);
+        margin-left: 5px;
+        border-top: none;
+        border-bottom: none;
+        margin-bottom: 0;
       }
 
       /* Responsive Design */
@@ -400,17 +428,17 @@
           <i class="fas fa-list"></i> Analysis Types
         </div>
         <ul class="sidebar-menu" id="analysisMenu">
-          <li class="sidebar-menu-item">
+          <li class="sidebar-menu-item" data-tooltip="Homepage - Overview of key financial metrics, purchase price, revenue, expenses, cash flow analysis, return metrics, and main cash requirements per owner. Start here to understand the basic investment performance.">
             <a href="index.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; width: 100%;">
-              <i class="fas fa-home"></i> Simulation KPIs
+              <i class="fas fa-home"></i> Homepage
             </a>
           </li>
-          <li class="sidebar-menu-item">
+          <li class="sidebar-menu-item" data-tooltip="Sensitivity - Analyze how changes in key parameters (like occupancy rate, pricing, costs, etc.) impact monthly cash flow per owner. Use tornado charts to identify which variables have the biggest effect on your investment returns.">
             <a href="sensitivity.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; width: 100%;">
-              <i class="fas fa-sliders-h"></i> Sensitivity - Monthly NCF
+              <i class="fas fa-sliders-h"></i> Sensitivity
             </a>
           </li>
-          <li class="sidebar-menu-item active">
+          <li class="sidebar-menu-item active" data-tooltip="Monte Carlo - Probabilistic risk analysis showing NPV distribution and probability of success across 10,000 simulations. Understand the range of possible outcomes and quantify investment uncertainty.">
             <a href="monte_carlo.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; width: 100%;">
               <i class="fas fa-dice"></i> Monte Carlo
             </a>

@@ -178,12 +178,8 @@
       }
 
       @keyframes spin {
-        0% {
-          transform: rotate(0deg);
-        }
-        100% {
-          transform: rotate(360deg);
-        }
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
       }
 
       /* KPI Cards */
@@ -254,8 +250,7 @@
       }
 
       /* Tooltip Styling */
-      .kpi-card[data-tooltip]:hover::before,
-      .sidebar-menu-item[data-tooltip]:hover::before {
+      .kpi-card[data-tooltip]:hover::before {
         content: attr(data-tooltip);
         position: absolute;
         bottom: 100%;
@@ -270,13 +265,9 @@
         z-index: 1000;
         opacity: 0.95;
         box-shadow: var(--shadow);
-        max-width: 300px;
-        white-space: normal;
-        word-wrap: break-word;
       }
 
-      .kpi-card[data-tooltip]:hover::after,
-      .sidebar-menu-item[data-tooltip]:hover::after {
+      .kpi-card[data-tooltip]:hover::after {
         content: "";
         position: absolute;
         bottom: 100%;
@@ -286,29 +277,6 @@
         border-top-color: var(--dark);
         margin-bottom: -5px;
         z-index: 1000;
-      }
-
-      /* Sidebar specific tooltip positioning */
-      .sidebar-menu-item[data-tooltip]:hover::before {
-        left: 100%;
-        top: 50%;
-        bottom: auto;
-        transform: translateY(-50%);
-        margin-left: 10px;
-        max-width: 250px;
-      }
-
-      .sidebar-menu-item[data-tooltip]:hover::after {
-        left: 100%;
-        top: 50%;
-        bottom: auto;
-        transform: translateY(-50%);
-        border: 5px solid transparent;
-        border-left-color: var(--dark);
-        margin-left: 5px;
-        border-top: none;
-        border-bottom: none;
-        margin-bottom: 0;
       }
 
       /* Responsive Design */
@@ -361,38 +329,16 @@
           <i class="fas fa-list"></i> Analysis Types
         </div>
         <ul class="sidebar-menu" id="analysisMenu">
-          <li class="sidebar-menu-item active" data-tooltip="Homepage - Overview of key financial metrics, purchase price, revenue, expenses, cash flow analysis, return metrics, and main cash requirements per owner. Start here to understand the basic investment performance.">
-            <i class="fas fa-home"></i> Homepage
+          <li class="sidebar-menu-item active">
+            <i class="fas fa-home"></i> Simulation KPIs
           </li>
           <li class="sidebar-menu-item">
-            <a
-              href="sensitivity.html"
-              style="
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                text-decoration: none;
-                color: inherit;
-                width: 100%;
-              "
-              data-tooltip="Sensitivity - Analyze how changes in key parameters (like occupancy rate, pricing, costs, etc.) impact monthly cash flow per owner. Use tornado charts to identify which variables have the biggest effect on your investment returns."
-            >
-              <i class="fas fa-sliders-h"></i> Sensitivity
+            <a href="sensitivity.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; width: 100%;">
+              <i class="fas fa-sliders-h"></i> Sensitivity - Monthly NCF
             </a>
           </li>
           <li class="sidebar-menu-item">
-            <a
-              href="monte_carlo.html"
-              style="
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                text-decoration: none;
-                color: inherit;
-                width: 100%;
-              "
-              data-tooltip="Monte Carlo - Probabilistic risk analysis showing NPV distribution and probability of success across 10,000 simulations. Understand the range of possible outcomes and quantify investment uncertainty."
-            >
+            <a href="monte_carlo.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; width: 100%;">
               <i class="fas fa-dice"></i> Monte Carlo
             </a>
           </li>
@@ -411,9 +357,9 @@
     <script>
       // State management for the main dashboard
       const State = {
-        currentCase: "base_case",
+        currentCase: 'base_case',
         data: {},
-        initialized: false,
+        initialized: false
       };
 
       // Initialize the application
@@ -421,18 +367,18 @@
         try {
           // Set initial case from URL or default
           const urlParams = new URLSearchParams(window.location.search);
-          State.currentCase = urlParams.get("case") || "base_case";
+          State.currentCase = urlParams.get('case') || 'base_case';
 
           // Update UI
-          document.getElementById("caseSelect").value = State.currentCase;
+          document.getElementById('caseSelect').value = State.currentCase;
 
           // Load initial data
           await loadDataForCase(State.currentCase);
 
           State.initialized = true;
         } catch (error) {
-          console.error("Failed to initialize app:", error);
-          document.getElementById("contentArea").innerHTML = `
+          console.error('Failed to initialize app:', error);
+          document.getElementById('contentArea').innerHTML = `
             <div style="text-align: center; padding: 50px; color: var(--danger);">
               <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 20px;"></i>
               <h2>Failed to Load Data</h2>
@@ -449,7 +395,7 @@
       async function loadDataForCase(caseName) {
         try {
           // Show loading
-          document.getElementById("contentArea").innerHTML = `
+          document.getElementById('contentArea').innerHTML = `
             <div class="loading">
               <div class="loading-spinner"></div>
               <p>Loading dashboard for ${caseName}...</p>
@@ -457,9 +403,7 @@
           `;
 
           // Load base case analysis data
-          const baseCaseResponse = await fetch(
-            `data/${caseName}_base_case_analysis.json`
-          );
+          const baseCaseResponse = await fetch(`data/${caseName}_base_case_analysis.json`);
           if (!baseCaseResponse.ok) {
             throw new Error(`Failed to load base case data for ${caseName}`);
           }
@@ -468,9 +412,10 @@
 
           // Render the dashboard
           renderDashboard(baseCaseData);
+
         } catch (error) {
-          console.error("Failed to load data:", error);
-          document.getElementById("contentArea").innerHTML = `
+          console.error('Failed to load data:', error);
+          document.getElementById('contentArea').innerHTML = `
             <div style="text-align: center; padding: 50px; color: var(--danger);">
               <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 20px;"></i>
               <h2>Failed to Load Data</h2>
@@ -488,9 +433,7 @@
 
         let html = `
           <div class="section">
-            <h2 class="section-title">🏠 Main Dashboard - ${State.currentCase
-              .replace("_", " ")
-              .toUpperCase()}</h2>
+            <h2 class="section-title">🏠 Main Dashboard - ${State.currentCase.replace('_', ' ').toUpperCase()}</h2>
 
             <!-- Info Box -->
             <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px;">
@@ -535,14 +478,16 @@
               </div>
               <div class="kpi-card" data-tooltip="Annual net operating income (revenue minus operating expenses).">
                 <h3>Net Operating Income</h3>
-                <div class="value">${(
-                  (results.gross_rental_income || 0) -
-                  (results.total_operating_expenses || 0)
-                ).toLocaleString("en-US", {
-                  style: "currency",
-                  currency: "CHF",
-                  maximumFractionDigits: 0,
-                })}</div>
+                <div class="value">${
+                  (
+                    (results.gross_rental_income || 0) -
+                    (results.total_operating_expenses || 0)
+                  ).toLocaleString("en-US", {
+                    style: "currency",
+                    currency: "CHF",
+                    maximumFractionDigits: 0,
+                  })
+                }</div>
                 <div class="unit">per year</div>
               </div>
             </div>
@@ -551,7 +496,22 @@
             <div class="kpi-grid">
               <div class="kpi-card" data-tooltip="Annual debt service (interest + principal payments).">
                 <h3>Debt Service</h3>
-                <div class="value">${(results.debt_service || 0).toLocaleString(
+                <div class="value">${(
+                  results.debt_service || 0
+                ).toLocaleString("en-US", {
+                  style: "currency",
+                  currency: "CHF",
+                  maximumFractionDigits: 0,
+                })}</div>
+                <div class="unit">per year</div>
+              </div>
+              <div class="kpi-card" data-tooltip="Annual cash flow before tax (NOI minus debt service).">
+                <h3>Cash Flow (BTCF)</h3>
+                <div class="value ${
+                  results.cash_flow_before_tax >= 0
+                    ? "positive"
+                    : "negative"
+                }">${results.cash_flow_before_tax.toLocaleString(
                   "en-US",
                   {
                     style: "currency",
@@ -561,53 +521,40 @@
                 )}</div>
                 <div class="unit">per year</div>
               </div>
-              <div class="kpi-card" data-tooltip="Annual cash flow before tax (NOI minus debt service).">
-                <h3>Cash Flow (BTCF)</h3>
-                <div class="value ${
-                  results.cash_flow_before_tax >= 0 ? "positive" : "negative"
-                }">${results.cash_flow_before_tax.toLocaleString("en-US", {
-          style: "currency",
-          currency: "CHF",
-          maximumFractionDigits: 0,
-        })}</div>
-                <div class="unit">per year</div>
-              </div>
               <div class="kpi-card" data-tooltip="Annual cash flow per owner before tax.">
                 <h3>Cash Flow / Owner</h3>
                 <div class="value ${
-                  results.cash_flow_before_tax /
-                    (data.config?.financing?.num_owners || 1) >=
-                  0
+                  (results.cash_flow_before_tax /
+                    (data.config?.financing?.num_owners || 1)) >= 0
                     ? "positive"
                     : "negative"
                 }">${(
-          results.cash_flow_before_tax /
-          (data.config?.financing?.num_owners || 1)
-        ).toLocaleString("en-US", {
-          style: "currency",
-          currency: "CHF",
-          maximumFractionDigits: 0,
-        })}</div>
+                  results.cash_flow_before_tax /
+                  (data.config?.financing?.num_owners || 1)
+                ).toLocaleString("en-US", {
+                  style: "currency",
+                  currency: "CHF",
+                  maximumFractionDigits: 0,
+                })}</div>
                 <div class="unit">per year</div>
               </div>
               <div class="kpi-card" data-tooltip="Monthly cash flow contribution required per owner.">
                 <h3>Monthly NCF / Owner</h3>
                 <div class="value ${
-                  results.cash_flow_before_tax /
+                  (results.cash_flow_before_tax /
                     (data.config?.financing?.num_owners || 1) /
-                    12 >=
-                  0
+                    12) >= 0
                     ? "positive"
                     : "negative"
                 }">${(
-          results.cash_flow_before_tax /
-          (data.config?.financing?.num_owners || 1) /
-          12
-        ).toLocaleString("en-US", {
-          style: "currency",
-          currency: "CHF",
-          maximumFractionDigits: 0,
-        })}</div>
+                  results.cash_flow_before_tax /
+                  (data.config?.financing?.num_owners || 1) /
+                  12
+                ).toLocaleString("en-US", {
+                  style: "currency",
+                  currency: "CHF",
+                  maximumFractionDigits: 0,
+                })}</div>
                 <div class="unit">per month</div>
               </div>
             </div>
@@ -625,10 +572,10 @@
                 <div class="value ${
                   irr.npv_at_4pct >= 0 ? "positive" : "negative"
                 }">${irr.npv_at_4pct.toLocaleString("en-US", {
-          style: "currency",
-          currency: "CHF",
-          maximumFractionDigits: 0,
-        })}</div>
+                  style: "currency",
+                  currency: "CHF",
+                  maximumFractionDigits: 0,
+                })}</div>
               </div>
               <div class="kpi-card" data-tooltip="Multiple on invested capital over 15 years.">
                 <h3>MOIC</h3>
@@ -636,7 +583,9 @@
               </div>
               <div class="kpi-card" data-tooltip="Payback period in years.">
                 <h3>Payback Period</h3>
-                <div class="value">${irr.payback_years.toFixed(1)} years</div>
+                <div class="value">${irr.payback_years.toFixed(
+                  1
+                )} years</div>
               </div>
             </div>
 
@@ -661,17 +610,16 @@
                   </div>
                   <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6; text-align: center;">
                     <div style="font-size: 1.2em; font-weight: bold; color: var(--primary); margin-bottom: 5px;">CHF ${(
-                      ((data.config?.expenses?.electricity_internet_annual ||
-                        0) +
-                        (data.config?.expenses?.insurance_annual || 0)) /
+                      ((data.config?.expenses?.electricity_internet_annual || 0) +
+                       (data.config?.expenses?.insurance_annual || 0)) /
                       (data.config?.financing?.num_owners || 1)
                     ).toLocaleString()}</div>
                     <div style="font-size: 0.9em; color: #666;">Utilities & Insurance / Year</div>
                   </div>
                   <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6; text-align: center;">
                     <div style="font-size: 1.2em; font-weight: bold; color: var(--primary); margin-bottom: 5px;">CHF ${(
-                      ((data.config?.expenses?.maintenance_rate || 0) *
-                        (data.config?.expenses?.property_value || 0)) /
+                      (data.config?.expenses?.maintenance_rate || 0) *
+                      (data.config?.expenses?.property_value || 0) /
                       (data.config?.financing?.num_owners || 1)
                     ).toLocaleString()}</div>
                     <div style="font-size: 0.9em; color: #666;">Maintenance Reserve / Year</div>
@@ -685,202 +633,67 @@
 
             <!-- Key Assumptions Summary -->
             <div style="background: #f8f9fa; border-left: 5px solid #28a745; padding: 25px; border-radius: 8px; margin-bottom: 25px;">
-              <h3 style="margin-top: 0; color: #28a745; font-size: 1.2em;">📋 Key Assumptions - ${State.currentCase
-                .replace("_", " ")
-                .toUpperCase()}</h3>
+              <h3 style="margin-top: 0; color: #28a745; font-size: 1.2em;">📋 Key Assumptions - ${State.currentCase.replace('_', ' ').toUpperCase()}</h3>
               <div style="margin-top: 15px;">
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
                   <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6;">
                     <div style="font-weight: 600; color: var(--primary); margin-bottom: 8px;">🏠 Property</div>
                     <div style="font-size: 0.9em; line-height: 1.5;">
-                      • Purchase Price: CHF ${(
-                        data.config?.financing?.purchase_price || 0
-                      ).toLocaleString()}<br>
-                      • Financing: ${
-                        (data.config?.financing?.ltv || 0) * 100
-                      }% LTV<br>
+                      • Purchase Price: CHF ${(data.config?.financing?.purchase_price || 0).toLocaleString()}<br>
+                      • Financing: ${(data.config?.financing?.ltv || 0) * 100}% LTV<br>
                       • Owners: ${data.config?.financing?.num_owners || 1}<br>
-                      • Interest Rate: ${
-                        (data.config?.financing?.interest_rate || 0) * 100
-                      }%
+                      • Interest Rate: ${(data.config?.financing?.interest_rate || 0) * 100}%
                     </div>
                   </div>
                   <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6;">
                     <div style="font-weight: 600; color: var(--primary); margin-bottom: 8px;">💰 Revenue</div>
                     <div style="font-size: 0.9em; line-height: 1.5;">
-                      • Occupancy: ${
-                        (data.config?.rental?.legacy_occupancy_rate || 0) * 100
-                      }%<br>
-                      • Daily Rate: CHF ${
-                        data.config?.rental?.legacy_average_daily_rate || 0
-                      }<br>
-                      • Length of Stay: ${
-                        data.config?.expenses?.average_length_of_stay || 0
-                      } nights<br>
-                      • Annual Revenue: CHF ${(
-                        results.gross_rental_income || 0
-                      ).toLocaleString()}
+                      • Occupancy: ${(data.config?.rental?.legacy_occupancy_rate || 0) * 100}%<br>
+                      • Daily Rate: CHF ${data.config?.rental?.legacy_average_daily_rate || 0}<br>
+                      • Length of Stay: ${data.config?.expenses?.average_length_of_stay || 0} nights<br>
+                      • Annual Revenue: CHF ${(results.gross_rental_income || 0).toLocaleString()}
                     </div>
                   </div>
                   <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6;">
                     <div style="font-weight: 600; color: var(--primary); margin-bottom: 8px;">💸 Costs</div>
                     <div style="font-size: 0.9em; line-height: 1.5;">
-                      • Property Management: ${
-                        (data.config?.expenses?.property_management_fee_rate ||
-                          0) * 100
-                      }%<br>
-                      • Cleaning: CHF ${
-                        data.config?.expenses?.cleaning_cost_per_stay || 0
-                      }/stay<br>
-                      • Maintenance: ${
-                        (data.config?.expenses?.maintenance_rate || 0) * 100
-                      }% of value<br>
-                      • Insurance: CHF ${(
-                        data.config?.expenses?.insurance_annual || 0
-                      ).toLocaleString()}/year
+                      • Property Management: ${(data.config?.expenses?.property_management_fee_rate || 0) * 100}%<br>
+                      • Cleaning: CHF ${data.config?.expenses?.cleaning_cost_per_stay || 0}/stay<br>
+                      • Maintenance: ${(data.config?.expenses?.maintenance_rate || 0) * 100}% of value<br>
+                      • Insurance: CHF ${(data.config?.expenses?.insurance_annual || 0).toLocaleString()}/year
                     </div>
                   </div>
                   <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6;">
                     <div style="font-weight: 600; color: var(--primary); margin-bottom: 8px;">📊 Analysis</div>
                     <div style="font-size: 0.9em; line-height: 1.5;">
                       • Time Horizon: 15 years<br>
-                      • Property Appreciation: ${
-                        (data.config?.projection?.property_appreciation_rate ||
-                          0) * 100
-                      }%<br>
-                      • Inflation: ${
-                        (data.config?.projection?.inflation_rate || 0) * 100
-                      }%<br>
-                      • Discount Rate: ${
-                        (data.config?.projection?.discount_rate || 0) * 100
-                      }%
+                      • Property Appreciation: ${(data.config?.projection?.property_appreciation_rate || 0) * 100}%<br>
+                      • Inflation: ${(data.config?.projection?.inflation_rate || 0) * 100}%<br>
+                      • Discount Rate: ${(data.config?.projection?.discount_rate || 0) * 100}%
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-
-            <!-- Yearly After-Tax Cash Flow Chart -->
-            <div style="background: #f8f9fa; border-left: 5px solid #17a2b8; padding: 25px; border-radius: 8px; margin-bottom: 25px;">
-              <h3 style="margin-top: 0; color: #17a2b8; font-size: 1.2em;">📈 Yearly After-Tax Cash Flow Projection</h3>
-              <p style="color: #666; margin-bottom: 15px; font-size: 0.9em;">15-year projection of after-tax cash flow per owner, including tax benefits from interest and amortization deductions.</p>
-              <div class="chart-wrapper" id="cashFlowChart" style="height: 350px;"></div>
-            </div>
           </div>
         `;
 
         content.innerHTML = html;
-
-        // Create the cash flow chart
-        if (data.projection && data.projection.length > 0) {
-          const years = data.projection.map((p) => `Year ${p.year_number}`);
-          const afterTaxCashFlow = data.projection.map(
-            (p) => p.after_tax_cash_flow_per_owner || 0
-          );
-
-          const trace = {
-            x: years,
-            y: afterTaxCashFlow,
-            type: "scatter",
-            mode: "lines+markers",
-            name: "After-Tax Cash Flow per Owner",
-            line: { color: "#17a2b8", width: 3 },
-            marker: {
-              color: afterTaxCashFlow.map((value) =>
-                value >= 0 ? "#28a745" : "#dc3545"
-              ),
-              size: 8,
-              symbol: "circle",
-            },
-            hovertemplate:
-              "<b>%{x}</b><br>" +
-              "After-Tax Cash Flow: CHF %{y:,.0f}<br>" +
-              "<extra></extra>",
-          };
-
-          const layout = {
-            title: "",
-            xaxis: {
-              title: "Year",
-              tickangle: -45,
-              gridcolor: "#e8ecef",
-            },
-            yaxis: {
-              title: "After-Tax Cash Flow per Owner (CHF)",
-              gridcolor: "#e8ecef",
-              tickformat: ",.0f",
-            },
-            showlegend: false,
-            paper_bgcolor: "#ffffff",
-            plot_bgcolor: "#fafbfc",
-            font: { family: "Segoe UI, Arial", size: 11, color: "#2c3e50" },
-            margin: { l: 60, r: 30, t: 20, b: 80 },
-            shapes: [
-              {
-                type: "line",
-                x0: -0.5,
-                y0: 0,
-                x1: years.length - 0.5,
-                y1: 0,
-                line: {
-                  color: "#6c757d",
-                  width: 2,
-                  dash: "dash",
-                },
-              },
-            ],
-            annotations: [
-              {
-                x: years.length - 1,
-                y: afterTaxCashFlow[afterTaxCashFlow.length - 1],
-                xref: "x",
-                yref: "y",
-                text: `CHF ${afterTaxCashFlow[
-                  afterTaxCashFlow.length - 1
-                ].toLocaleString()}`,
-                showarrow: true,
-                arrowhead: 2,
-                arrowsize: 1,
-                arrowwidth: 2,
-                arrowcolor:
-                  afterTaxCashFlow[afterTaxCashFlow.length - 1] >= 0
-                    ? "#28a745"
-                    : "#dc3545",
-                ax: 40,
-                ay: 0,
-                bgcolor: "rgba(255,255,255,0.9)",
-                bordercolor:
-                  afterTaxCashFlow[afterTaxCashFlow.length - 1] >= 0
-                    ? "#28a745"
-                    : "#dc3545",
-                borderwidth: 1,
-                borderpad: 4,
-              },
-            ],
-          };
-
-          Plotly.newPlot("cashFlowChart", [trace], layout, {
-            responsive: true,
-            displayModeBar: false,
-          });
-        }
       }
 
       // Event listeners
-      document
-        .getElementById("caseSelect")
-        .addEventListener("change", async (e) => {
-          const newCase = e.target.value;
-          State.currentCase = newCase;
+      document.getElementById('caseSelect').addEventListener('change', async (e) => {
+        const newCase = e.target.value;
+        State.currentCase = newCase;
 
-          // Update URL without page reload
-          const url = new URL(window.location);
-          url.searchParams.set("case", newCase);
-          window.history.pushState({}, "", url);
+        // Update URL without page reload
+        const url = new URL(window.location);
+        url.searchParams.set('case', newCase);
+        window.history.pushState({}, '', url);
 
-          // Load data for new case
-          await loadDataForCase(newCase);
-        });
+        // Load data for new case
+        await loadDataForCase(newCase);
+      });
 
       // Initialize the application
       initializeApp();
