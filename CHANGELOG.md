@@ -2,6 +2,61 @@
 
 All notable changes to the Engelberg Property Investment Simulation will be documented in this file.
 
+## [2025-12-25] - Hotfix: Monthly NCF Sensitivity formatValue Function
+
+### Critical Bug Fix: Dashboard Loading Error
+
+#### Issue
+- **Error**: "Failed to load sensitivity_ncf data" and "this.formatValue is not a function"
+- **Root Cause**: `formatValue` helper function was accidentally removed when IRR/CoC sensitivity functions were deleted
+- **Impact**: Monthly NCF sensitivity analysis could not display properly
+
+#### Fix Applied
+- **Added**: `formatValue(value, parameter)` helper function to ChartRenderer object
+- **Function**: Formats parameter values based on type (percentages, currency, nights, etc.)
+- **Location**: Added after `renderSensitivityNCF` function in `website/index.html`
+- **Scope**: Used by Monthly NCF sensitivity tornado chart and data tables
+
+#### Code Changes
+```javascript
+// Added formatValue helper function
+formatValue(value, parameter) {
+  // Handle percentage-based parameters
+  if (parameter.includes("Rate") || parameter.includes("LTV") ||
+      parameter.includes("Fee") || parameter.includes("Occupancy")) {
+    return (value * 100).toFixed(2) + "%";
+  }
+  // Handle currency values
+  else if (parameter.includes("Price") || parameter.includes("Cost")) {
+    return "CHF " + value.toLocaleString("en-US", { maximumFractionDigits: 0 });
+  }
+  // Handle nights/days
+  else if (parameter.includes("Stay")) {
+    return value.toFixed(1) + " nights";
+  }
+  // Default: 2 decimal places
+  else {
+    return value.toFixed(2);
+  }
+}
+```
+
+#### Validation
+- ✅ Monthly NCF sensitivity data loads correctly
+- ✅ Parameter values format properly (CHF 1.3M, 20.0%, 1.7 nights, etc.)
+- ✅ Tornado chart displays with correct formatting
+- ✅ Data tables show properly formatted values
+- ✅ All 11 scenarios work correctly
+
+#### Files Modified
+- `website/index.html` - Added `formatValue` helper function
+- Data files regenerated to ensure consistency
+
+### Lessons Learned
+- Helper functions shared between multiple rendering functions must be preserved when refactoring
+- Test all analysis types after major code changes
+- Consider modularizing shared utility functions
+
 ## [2025-12-25] - Streamlined Sensitivity Analysis
 
 ### Dashboard Simplification: Removed IRR and Cash-on-Cash Sensitivities
