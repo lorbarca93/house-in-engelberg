@@ -66,6 +66,38 @@ All notable changes to the Engelberg Property Investment Simulation will be docu
 
 **Resolution**: Consolidated all template string expressions to single lines, ensuring proper JavaScript syntax and allowing the homepage to load and function correctly.
 
+### Homepage JavaScript Runtime Errors - Critical Fix
+
+#### JavaScript Undefined Property Errors
+**Issue**: Homepage failing to load with "Cannot read properties of undefined (reading 'toLocaleString')" errors
+**Root Cause**: Template literals accessing undefined/null data properties
+**Impact**: Complete failure to display any dashboard content
+
+**Specific Errors Fixed**:
+1. **Incorrect Field Name**: 
+   ```javascript
+   // BROKEN: Field doesn't exist in data
+   irr.npv_at_4pct.toLocaleString()
+   
+   // FIXED: Correct field name
+   (irr.npv_at_5pct || 0).toLocaleString()
+   ```
+
+2. **Undefined cash_flow_before_tax**: 
+   ```javascript
+   // BROKEN: results.cash_flow_before_tax could be undefined
+   results.cash_flow_before_tax.toLocaleString()
+   
+   // FIXED: Null-safe with fallback
+   (results.cash_flow_before_tax || 0).toLocaleString()
+   ```
+
+3. **Missing Null Checks**: Applied `|| 0` fallbacks to all potentially undefined numeric values in template literals
+
+**Template Literal Safety**: Updated all JavaScript template expressions to handle undefined values gracefully, preventing runtime errors that halt page rendering.
+
+**Resolution**: Homepage now loads successfully with all KPI cards, charts, and data properly displayed.
+
 ### Monte Carlo Analysis Bug Fixes
 
 #### Data Access Corrections
