@@ -2,7 +2,37 @@
 
 All notable changes to the Engelberg Property Investment Simulation will be documented in this file.
 
-## [2025-12-25] - Major Dashboard Restructure: Three Dedicated Analysis Pages
+## [2025-12-25] - Add Yearly Cash Flow Chart & Dashboard Restructure
+
+### New Feature: Yearly After-Tax Cash Flow Chart
+
+#### Chart Implementation
+**Location**: Main Dashboard (`website/index.html`)
+**Data Source**: 15-year projection data with tax calculations
+**Visualization**: Interactive line chart with markers
+
+#### Chart Features
+- **Time Series**: Year-over-year cash flow progression per owner
+- **Tax Integration**: Includes tax benefits from interest/amortization deductions
+- **Color Coding**: Green markers for positive cash flow, red for negative
+- **Reference Line**: Dashed zero line to highlight breakeven point
+- **Annotations**: Final year value with directional arrow
+- **Interactive**: Hover tooltips with detailed information
+- **Responsive**: Adapts to different screen sizes
+
+#### Data Insights
+- **Trend Analysis**: Shows improving cash flow over time (debt reduction)
+- **Tax Impact**: Demonstrates value of tax deductions on mortgage payments
+- **Break-even Timing**: Clear visualization of when/if profitability achieved
+- **Owner Perspective**: Per-owner cash flow requirements over investment horizon
+
+#### Technical Details
+- **Framework**: Plotly.js for interactive visualization
+- **Data Binding**: Direct integration with projection JSON data
+- **Performance**: Lightweight chart with optimized rendering
+- **Accessibility**: Proper labels, colors, and hover information
+
+### Dashboard Restructure: Three Dedicated Analysis Pages
 
 ### Dashboard Architecture Overhaul
 
