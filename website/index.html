@@ -570,18 +570,17 @@
                 <div class="value ${
                   (results.cash_flow_before_tax || 0) >= 0 ? "positive" : "negative"
                 }">${(results.cash_flow_before_tax || 0).toLocaleString("en-US", {
-          style: "currency",
-          currency: "CHF",
-          maximumFractionDigits: 0,
-        })}</div>
+                  style: "currency",
+                  currency: "CHF",
+                  maximumFractionDigits: 0,
+                })}</div>
                 <div class="unit">per year</div>
               </div>
               <div class="kpi-card" data-tooltip="Annual cash flow per owner before tax.">
                 <h3>Cash Flow / Owner</h3>
                 <div class="value ${
                   ((results.cash_flow_before_tax || 0) /
-                    (data.config?.financing?.num_owners || 1)) >=
-                  0
+                    (data.config?.financing?.num_owners || 1)) >= 0
                     ? "positive"
                     : "negative"
                 }">${(
@@ -599,8 +598,7 @@
                 <div class="value ${
                   ((results.cash_flow_before_tax || 0) /
                     (data.config?.financing?.num_owners || 1) /
-                    12) >=
-                  0
+                    12) >= 0
                     ? "positive"
                     : "negative"
                 }">${(
