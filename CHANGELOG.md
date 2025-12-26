@@ -37,6 +37,35 @@ All notable changes to the Engelberg Property Investment Simulation will be docu
 - **Reduced Cognitive Load**: Users understand navigation options before clicking
 - **Professional Feel**: Consistent with modern web application standards
 
+### Homepage Loading Issues - Critical Fix
+
+#### JavaScript Template String Syntax Errors
+**Issue**: Homepage completely failing to load with JavaScript syntax errors
+**Root Cause**: Template string expressions split across multiple lines incorrectly
+**Impact**: Complete failure to display any dashboard content
+
+**Specific Problems Fixed**:
+1. **Broken State.currentCase Reference**: 
+   ```javascript
+   // BROKEN (causing syntax error):
+   ${State.currentCase
+     .replace("_", " ")
+     .toUpperCase()}
+   
+   // FIXED:
+   ${State.currentCase.replace("_", " ").toUpperCase()}
+   ```
+
+2. **Multiple Instances**: Same issue occurred in both main dashboard title and assumptions section title
+3. **JavaScript Execution Halt**: Browser stopped executing JavaScript due to syntax errors, preventing data loading and rendering
+
+**Technical Details**:
+- **Template Literal Syntax**: JavaScript template strings cannot have expressions split across lines like this
+- **Method Chaining**: `.replace()` and `.toUpperCase()` calls must be on the same line within template expressions
+- **Browser Impact**: Syntax errors prevented the entire `renderDashboard` function from executing
+
+**Resolution**: Consolidated all template string expressions to single lines, ensuring proper JavaScript syntax and allowing the homepage to load and function correctly.
+
 ### Monte Carlo Analysis Bug Fixes
 
 #### Data Access Corrections
