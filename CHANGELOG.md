@@ -2,791 +2,525 @@
 
 All notable changes to the Engelberg Property Investment Simulation will be documented in this file.
 
-## [2025-12-25] - Add Yearly Cash Flow Chart & Dashboard Restructure
+## [2026-01-26] - Module Separation: Model Sensitivity and MC Sensitivity
 
-### Navigation & UX Improvements
+### Module Structure Refactoring
 
-#### Enhanced Sidebar Menu System
-**Previous State**: Technical menu names ("Simulation KPIs", "Sensitivity - Monthly NCF")
-**New State**: User-friendly names ("Homepage", "Sensitivity", "Monte Carlo")
+Separated Model Sensitivity and MC Sensitivity analyses into dedicated modules for better maintainability and clarity.
 
-#### Comprehensive Hover Tooltips
-**Implementation**: Custom CSS tooltip system for sidebar navigation
-**Features**:
-- **Right-positioned tooltips**: Appear to the right of menu items
-- **Detailed explanations**: Each menu item explains its purpose extensively
-- **Word-wrapped text**: Long descriptions wrap properly within tooltip bounds
-- **Consistent styling**: Matches existing dashboard tooltip design
+#### New Module Structure
 
-**Menu Item Explanations**:
-1. **Homepage**: "Overview of key financial metrics, purchase price, revenue, expenses, cash flow analysis, return metrics, and main cash requirements per owner. Start here to understand the basic investment performance."
+- **`engelberg/model_sensitivity.py`**: Contains all Model Sensitivity analysis functions
+  - `run_sensitivity_analysis()` - Equity IRR + After-Tax Cash Flow sensitivity
+  - `run_cash_on_cash_sensitivity_analysis()` - Cash-on-Cash sensitivity
+  - `run_monthly_ncf_sensitivity_analysis()` - Monthly NCF sensitivity
+  - `run_unified_sensitivity_analysis()` - Unified function for all Model Sensitivity metrics
+  - Metric calculators: `calculate_equity_irr()`, `calculate_cash_on_cash()`, `calculate_monthly_ncf()`, etc.
+  - Helper functions: `create_sensitivity_result()`, `scale_low_high()`
+  - Modifier functions: `modify_maintenance_rate()`, `modify_cleaning_cost()`, etc.
 
-2. **Sensitivity**: "Analyze how changes in key parameters (like occupancy rate, pricing, costs, etc.) impact monthly cash flow per owner. Use tornado charts to identify which variables have the biggest effect on your investment returns."
+- **`engelberg/model_sensitivity_ranges.py`**: Configuration for Model Sensitivity parameter ranges
+  - `MODEL_SENSITIVITY_PARAMETER_CONFIG` - 12 config parameters with ranges, clamps, and modifiers
+  - `MODEL_SENSITIVITY_SPECIAL_FACTORS` - 3 projection parameters (appreciation, inflation, selling costs)
 
-3. **Monte Carlo**: "Probabilistic risk analysis showing NPV distribution and probability of success across 10,000 simulations. Understand the range of possible outcomes and quantify investment uncertainty."
+- **`engelberg/mc_sensitivity.py`**: Contains MC Sensitivity analysis function
+  - `run_monte_carlo_sensitivity_analysis()` - NPV > 0 probability sensitivity
+  - Helper function: `generate_parameter_range()`
 
-#### Technical Implementation
-- **CSS Positioning**: Custom tooltip positioning for sidebar items
-- **Responsive Design**: Tooltips adapt to sidebar width constraints
-- **Cross-page Consistency**: Same menu names and tooltips across all three HTML pages
-- **Accessibility**: Proper z-index layering and hover states
+- **`engelberg/mc_sensitivity_ranges.py`**: Configuration for MC Sensitivity parameter ranges
+  - `MC_SENSITIVITY_PARAMETER_CONFIG` - 5 parameters with ranges and clamps
 
-#### User Experience Impact
-- **Clearer Navigation**: Menu names immediately suggest functionality
-- **Guided Discovery**: Tooltips explain what each section does
-- **Reduced Cognitive Load**: Users understand navigation options before clicking
-- **Professional Feel**: Consistent with modern web application standards
+#### Updated Files
 
-### Homepage Loading Issues - Critical Fix
+- **`engelberg/analysis.py`**: Now imports and re-exports functions from new modules
+  - Removed all Model Sensitivity and MC Sensitivity implementation code
+  - Maintains backward compatibility by re-exporting functions
+  - Keeps base case analysis and Monte Carlo analysis functions
 
-#### JavaScript Template String Syntax Errors
-**Issue**: Homepage completely failing to load with JavaScript syntax errors
-**Root Cause**: Template string expressions split across multiple lines incorrectly
-**Impact**: Complete failure to display any dashboard content
+- **`engelberg/__init__.py`**: No changes needed (imports from `engelberg.analysis` which re-exports)
 
-**Specific Problems Fixed**:
-1. **Broken State.currentCase Reference**: 
-   ```javascript
-   // BROKEN (causing syntax error):
-   ${State.currentCase
-     .replace("_", " ")
-     .toUpperCase()}
-   
-   // FIXED:
-   ${State.currentCase.replace("_", " ").toUpperCase()}
-   ```
+#### Benefits
 
-2. **Multiple Instances**: Same issue occurred in both main dashboard title and assumptions section title
-3. **JavaScript Execution Halt**: Browser stopped executing JavaScript due to syntax errors, preventing data loading and rendering
+1. **Separation of Concerns**: Each analysis type has its own dedicated module
+2. **Independent Evolution**: Can modify Model Sensitivity without affecting MC Sensitivity
+3. **Clearer Dependencies**: Easy to see what each analysis needs
+4. **Easier Testing**: Can test each module independently
+5. **Better Maintainability**: Smaller, focused files are easier to understand
+6. **Configuration Management**: Parameter ranges are clearly separated and easy to modify
 
-**Technical Details**:
-- **Template Literal Syntax**: JavaScript template strings cannot have expressions split across lines like this
-- **Method Chaining**: `.replace()` and `.toUpperCase()` calls must be on the same line within template expressions
-- **Browser Impact**: Syntax errors prevented the entire `renderDashboard` function from executing
+#### Backward Compatibility
 
-**Resolution**: Consolidated all template string expressions to single lines, ensuring proper JavaScript syntax and allowing the homepage to load and function correctly.
+- All functions remain accessible through `engelberg.analysis` (via imports)
+- All functions remain accessible through `engelberg` package `__init__.py`
+- CLI interface (`scripts/analyze.py`) unchanged
+- JSON output format unchanged
+- Scripts (`generate_all_data.py`, `validate_system.py`) work without changes
 
-### Homepage JavaScript Runtime Errors - Critical Fix
+## [2026-01-26] - MC Sensitivity Analysis & Naming Alignment
 
-#### JavaScript Undefined Property Errors
-**Issue**: Homepage failing to load with "Cannot read properties of undefined (reading 'toLocaleString')" errors
-**Root Cause**: Template literals accessing undefined/null data properties
-**Impact**: Complete failure to display any dashboard content
+### MC Sensitivity Analysis
 
-**Specific Errors Fixed**:
-1. **Incorrect Field Name**: 
-   ```javascript
-   // BROKEN: Field doesn't exist in data
-   irr.npv_at_4pct.toLocaleString()
-   
-   // FIXED: Correct field name
-   (irr.npv_at_5pct || 0).toLocaleString()
-   ```
+Added a new **MC Sensitivity Analysis** (Monte Carlo-based sensitivity) that combines deterministic parameter variation with probabilistic Monte Carlo simulation to show how NPV > 0 probability changes with different parameter values.
 
-2. **Undefined cash_flow_before_tax**: 
-   ```javascript
-   // BROKEN: results.cash_flow_before_tax could be undefined
-   results.cash_flow_before_tax.toLocaleString()
-   
-   // FIXED: Null-safe with fallback
-   (results.cash_flow_before_tax || 0).toLocaleString()
-   ```
+#### Features
 
-3. **Missing Null Checks**: Applied `|| 0` fallbacks to all potentially undefined numeric values in template literals
+- **5 Parameters Tested**:
+  - Amortization Rate (0% to 2x base, clamped to 0-2%)
+  - Interest Rate (0.5x to 2x base, clamped to 0.5%-5%)
+  - Purchase Price (±20% of base)
+  - Occupancy Rate (±20% of base, clamped to 0-100%)
+  - Price per Night (±30% of base, applied proportionally to all seasons)
+- **10 Values per Parameter**: Evenly spaced values across the parameter range
+- **2,000 Simulations per Value**: High accuracy Monte Carlo simulation for each parameter value
+- **Total: 100,000 Simulations**: Comprehensive probabilistic analysis (5 params × 10 values × 2,000 sims)
+- **Line Chart Visualization**: Shows how NPV > 0 probability changes across parameter ranges
+- **Impact Summary Table**: Ranks parameters by their impact on NPV probability
 
-**Template Literal Safety**: Updated all JavaScript template expressions to handle undefined values gracefully, preventing runtime errors that halt page rendering.
+#### Implementation
 
-**Resolution**: Homepage now loads successfully with all KPI cards, charts, and data properly displayed.
+**Backend (`engelberg/analysis.py`)**:
 
-### Monte Carlo Analysis Bug Fixes
+- Added `generate_parameter_range()` helper function to create evenly spaced parameter values
+- Added `run_monte_carlo_sensitivity_analysis()` function that:
+  - Runs base case Monte Carlo to establish baseline NPV probability
+  - For each parameter, generates 10 test values
+  - For each value, modifies config and runs 2,000 Monte Carlo simulations
+  - Extracts NPV > 0 probability from each simulation
+  - Ranks parameters by impact (max - min probability)
 
-#### Data Access Corrections
-**Issue**: Monte Carlo page failing to display median NPV values
-**Root Cause**: JavaScript accessing `stats.npv.p50` but data structure uses `median` key
-**Fix**: Updated all references from `p50` to `median` in KPI cards, tables, and charts
+**Backend (`engelberg/core.py`)**:
 
-#### Dynamic Simulation Count Display
-**Issue**: Hardcoded "10,000 simulations" text regardless of actual data
-**Fix**: Dynamic display using `data.total_simulations` from Monte Carlo JSON
-**Result**: Accurate representation of actual simulation counts (10,000 total, 2,000 samples)
+- Extended `apply_sensitivity()` to support `purchase_price` and `amortization_rate` parameters
+- Added `export_monte_carlo_sensitivity_to_json()` function for structured data export
 
-#### JavaScript Syntax Compatibility
-**Issue**: Arrow function syntax causing potential browser compatibility issues
-**Fix**: Standardized arrow function syntax with proper parentheses
-**Impact**: Improved cross-browser compatibility and error prevention
+**Frontend (`website/index.html`)**:
 
-#### Case Selector Synchronization
-**Verification**: Ensured all three pages (index.html, sensitivity.html, monte_carlo.html) have identical case selector options
-**Result**: Consistent navigation experience across all analysis pages
+- Added new menu item "MC Sensitivity" in sidebar navigation
+- Created `renderMonteCarloSensitivity()` function that:
+  - Displays base NPV > 0 probability as KPI card
+  - Renders multi-line chart showing probability curves for all 5 parameters
+  - Highlights base values with vertical dashed lines
+  - Shows impact summary table with min/max probabilities and impact ranges
+- Updated data loading logic to handle `monte_carlo_sensitivity` analysis type
 
-### New Feature: Yearly After-Tax Cash Flow Chart
+**CLI Integration**:
 
-#### Chart Implementation
-**Location**: Main Dashboard (`website/index.html`)
-**Data Source**: 15-year projection data with tax calculations
-**Visualization**: Interactive line chart with markers
+- Added `--analysis monte_carlo_sensitivity` option to `scripts/analyze.py`
+- Integrated into main analysis workflow
 
-#### Chart Features
-- **Time Series**: Year-over-year cash flow progression per owner
-- **Tax Integration**: Includes tax benefits from interest/amortization deductions
-- **Color Coding**: Green markers for positive cash flow, red for negative
-- **Reference Line**: Dashed zero line to highlight breakeven point
-- **Annotations**: Final year value with directional arrow
-- **Interactive**: Hover tooltips with detailed information
-- **Responsive**: Adapts to different screen sizes
+#### Benefits
 
-#### Data Insights
-- **Trend Analysis**: Shows improving cash flow over time (debt reduction)
-- **Tax Impact**: Demonstrates value of tax deductions on mortgage payments
-- **Break-even Timing**: Clear visualization of when/if profitability achieved
-- **Owner Perspective**: Per-owner cash flow requirements over investment horizon
+- **Risk-Adjusted Sensitivity**: Shows probabilistic impacts, not just deterministic changes
+- **Comprehensive Coverage**: Tests 5 critical parameters with high granularity (10 values each)
+- **High Accuracy**: 2,000 simulations per value provides statistically robust results
+- **Visual Clarity**: Line charts make it easy to see which parameters have the most impact
+- **Actionable Insights**: Identifies which parameters to focus on to improve NPV probability
 
-#### Technical Details
-- **Framework**: Plotly.js for interactive visualization
-- **Data Binding**: Direct integration with projection JSON data
-- **Performance**: Lightweight chart with optimized rendering
-- **Accessibility**: Proper labels, colors, and hover information
+#### Usage
 
-### Dashboard Restructure: Three Dedicated Analysis Pages
+```bash
+# Run MC Sensitivity Analysis
+python scripts/analyze.py assumptions/assumptions.json --analysis monte_carlo_sensitivity
 
-### Dashboard Architecture Overhaul
-
-#### From Single-Page to Multi-Page Structure
-**Before**: One complex `index.html` with dynamic content switching
-**After**: Three dedicated HTML pages for better organization and performance
-
-#### New Page Structure
-1. **`index.html`** - Main Dashboard
-   - Primary financial KPIs and metrics
-   - Overview of investment performance
-   - Key assumptions summary
-   - Main cash requirements per owner
-
-2. **`sensitivity.html`** - Sensitivity Analysis
-   - Dedicated Monthly NCF sensitivity analysis
-   - Interactive tornado chart
-   - Parameter impact tables
-   - Key insights panel
-
-3. **`monte_carlo.html`** - Monte Carlo Risk Analysis
-   - Comprehensive risk metrics
-   - NPV distribution histogram
-   - Cumulative distribution function
-   - Risk assessment dashboard
-   - 10,000 simulation results
-
-#### Consistent Navigation Across Pages
-- **Top Bar**: Same case selector dropdown (11 scenarios)
-- **Left Sidebar**: Cross-page navigation menu
-- **URL Support**: Direct linking with `?case=scenario_name`
-- **Responsive Design**: Consistent styling and mobile support
-
-#### Technical Implementation
-- **Shared Components**: Consistent CSS styling and layout
-- **Data Loading**: Each page loads only its required data
-- **Performance**: Faster loading with dedicated pages
-- **Maintainability**: Easier to update individual analyses
-
-### User Experience Improvements
-
-#### Better Organization
-- **Dedicated Focus**: Each analysis type gets its own page
-- **Reduced Cognitive Load**: No complex tab switching
-- **Clear Purpose**: Each page has a single, clear objective
-- **Progressive Disclosure**: Users can deep-dive into specific analyses
-
-#### Enhanced Navigation
-- **Page Links**: Sidebar now uses proper HTML links between pages
-- **State Preservation**: Case selection maintained via URL parameters
-- **Breadcrumb Clarity**: Users always know which analysis they're viewing
-
-#### Improved Performance
-- **Selective Loading**: Each page loads only relevant data
-- **Reduced Memory**: No need to keep all analysis data in memory
-- **Faster Rendering**: Smaller DOM and focused JavaScript
-
-### Files Created/Modified
-
-#### New Files
-- `website/sensitivity.html` - Dedicated sensitivity analysis page
-- `website/monte_carlo.html` - Dedicated Monte Carlo analysis page
-- `monte_carlo_framework.py` - Standalone Monte Carlo simulation framework
-- `monte_carlo_charts/` - Generated visualization charts
-
-#### Modified Files
-- `website/index.html` - Simplified to main dashboard only
-- `README.md` - Updated to reflect multi-page structure
-- `QUICK_START.md` - Updated navigation instructions
-- All data files regenerated for consistency
-
-### Migration Benefits
-
-#### For Users
-- **Clearer Workflow**: Navigate between analyses using familiar web patterns
-- **Better Focus**: Each analysis gets dedicated attention and space
-- **Mobile Friendly**: Improved responsive design across all pages
-- **Bookmarkable**: Can bookmark specific analyses and cases
-
-#### For Developers
-- **Modular Code**: Each page can be updated independently
-- **Easier Testing**: Isolated functionality per page
-- **Better Debugging**: Clear separation of concerns
-- **Future Extensibility**: Easy to add new analysis pages
-
-### Backward Compatibility
-- **Data Files**: All existing JSON data files remain compatible
-- **API Endpoints**: Same data loading patterns work across pages
-- **Functionality**: All features preserved, just reorganized
-- **Links**: Direct links to specific cases still work
-
-### Performance Metrics
-- **Load Time**: Each page loads 30-50% faster
-- **Memory Usage**: 40% reduction in browser memory usage
-- **Code Size**: More maintainable with focused JavaScript per page
-- **User Experience**: Improved navigation and reduced confusion
-
-This restructuring transforms the dashboard from a complex single-page application into a clean, organized multi-page experience that better serves both analytical depth and user experience.
-
-## [2025-12-25] - Hotfix: Monthly NCF Sensitivity formatValue Function
-
-### Critical Bug Fix: Dashboard Loading Error
-
-#### Issue
-- **Error**: "Failed to load sensitivity_ncf data" and "this.formatValue is not a function"
-- **Root Cause**: `formatValue` helper function was accidentally removed when IRR/CoC sensitivity functions were deleted
-- **Impact**: Monthly NCF sensitivity analysis could not display properly
-
-#### Fix Applied
-- **Added**: `formatValue(value, parameter)` helper function to ChartRenderer object
-- **Function**: Formats parameter values based on type (percentages, currency, nights, etc.)
-- **Location**: Added after `renderSensitivityNCF` function in `website/index.html`
-- **Scope**: Used by Monthly NCF sensitivity tornado chart and data tables
-
-#### Code Changes
-```javascript
-// Added formatValue helper function
-formatValue(value, parameter) {
-  // Handle percentage-based parameters
-  if (parameter.includes("Rate") || parameter.includes("LTV") ||
-      parameter.includes("Fee") || parameter.includes("Occupancy")) {
-    return (value * 100).toFixed(2) + "%";
-  }
-  // Handle currency values
-  else if (parameter.includes("Price") || parameter.includes("Cost")) {
-    return "CHF " + value.toLocaleString("en-US", { maximumFractionDigits: 0 });
-  }
-  // Handle nights/days
-  else if (parameter.includes("Stay")) {
-    return value.toFixed(1) + " nights";
-  }
-  // Default: 2 decimal places
-  else {
-    return value.toFixed(2);
-  }
-}
+# Or include in full analysis
+python scripts/analyze.py assumptions/assumptions.json --analysis all
 ```
 
-#### Validation
-- ✅ Monthly NCF sensitivity data loads correctly
-- ✅ Parameter values format properly (CHF 1.3M, 20.0%, 1.7 nights, etc.)
-- ✅ Tornado chart displays with correct formatting
-- ✅ Data tables show properly formatted values
-- ✅ All 11 scenarios work correctly
+#### Output
 
-#### Files Modified
-- `website/index.html` - Added `formatValue` helper function
-- Data files regenerated to ensure consistency
+- JSON file: `website/data/{case_name}_monte_carlo_sensitivity.json`
+- Dashboard visualization: Accessible via "MC Sensitivity" menu item
+- Shows base probability and sensitivity curves for all 5 parameters
 
-### Lessons Learned
-- Helper functions shared between multiple rendering functions must be preserved when refactoring
-- Test all analysis types after major code changes
-- Consider modularizing shared utility functions
+### Naming Alignment
 
-## [2025-12-25] - Streamlined Sensitivity Analysis
+Standardized naming across the codebase:
 
-### Dashboard Simplification: Removed IRR and Cash-on-Cash Sensitivities
+- **Model Sensitivity**: Deterministic sensitivity analysis (Equity IRR, Cash-on-Cash, Monthly NCF)
+- **MC Sensitivity**: Monte Carlo-based sensitivity analysis (NPV > 0 probability)
 
-#### 1. Removed Analysis Types
-- **Removed**: "Sensitivity - Equity IRR" analysis and menu item
-- **Removed**: "Sensitivity - Cash-on-Cash" analysis and menu item
-- **Kept**: "Sensitivity - Monthly NCF" analysis (renamed and enhanced)
+Updated in:
 
-#### 2. Updated Dashboard Navigation
-- **Before**: 5 analysis options in left sidebar
-- **After**: 3 analysis options in left sidebar
-  - Model (Simulation KPIs)
-  - Sensitivity - Monthly NCF
-  - Monte Carlo
+- Dashboard UI labels and titles
+- Function docstrings and print statements
+- JSON export `analysis_type` fields
+- Documentation (README.md, CHANGELOG.md)
+- CLI help text
 
-#### 3. Enhanced Monthly NCF Focus
-- **Renamed**: "Sensitivity - Monthly NCF" (was "Sensitivity - Monthly NCF")
-- **Enhanced**: Now the primary sensitivity analysis showing parameter impact on monthly cash flow per owner
-- **Rationale**: Monthly cash flow is the most relevant metric for investment viability
+## [2026-01-26] - Scenario Comparison Page & Enhanced Tornado Charts
 
-#### 4. Code Cleanup
-- **Removed**: `renderSensitivity()` and `renderSensitivityCoC()` functions from `index.html`
-- **Removed**: `run_sensitivity_analysis()` and `run_cash_on_cash_sensitivity_analysis()` functions from `analyze.py`
-- **Updated**: `generate_all_data.py` to only generate Monthly NCF sensitivity
-- **Removed**: IRR and CoC sensitivity data generation
+### Scenario Comparison Page
 
-#### 5. Data Impact
-- **Reduced**: JSON data files from 56 to ~45 (removed IRR and CoC sensitivity files)
-- **Focused**: Analysis now centers on the most practical metric (monthly cash flow)
-- **Streamlined**: Faster data generation and smaller repository size
+Added a new **Scenario Comparison** page to the dashboard that provides a comprehensive side-by-side comparison of all investment scenarios.
 
-### Why This Change?
+#### Features
 
-#### Problems with Previous Setup
-1. **IRR Sensitivity**: Long-term metric (15 years) less relevant for short-term investment decisions
-2. **Cash-on-Cash**: Year 1 only metric, too narrow timeframe
-3. **Complexity**: Too many similar analyses confusing users
-4. **Maintenance**: More code to maintain and debug
+- **Comparison Chart**: Horizontal bar chart showing Monthly After-Tax Cash Flow per Person for all scenarios, color-coded (green for positive, red for negative)
+- **Detailed Comparison Table**: Comprehensive table with key metrics:
+  - Monthly After-Tax Cash Flow per Person (primary metric)
+  - Equity IRR
+  - Cash-on-Cash Return
+  - MOIC
+  - Initial Investment per Person
+  - Interest Rate
+  - Number of Owners
+- **Summary KPIs**: Highlighted cards showing best performers:
+  - Best Cash Flow scenario
+  - Best Equity IRR scenario
+  - Best MOIC scenario
+- **Automatic Loading**: Loads all scenario data automatically from `cases_index.json`
+- **Sorted Display**: Scenarios sorted by cash flow (best to worst) for easy comparison
 
-#### Benefits of Monthly NCF Focus
-1. **Practical**: Shows actual monthly cash requirements per owner
-2. **Decision-Relevant**: Critical for assessing if you can afford the investment
-3. **Comprehensive**: Captures both operating costs and financing impacts
-4. **Actionable**: Clear what parameters to negotiate (e.g., maintenance rates, management fees)
+#### Implementation
 
-### Updated User Experience
+**Frontend (`website/index.html`)**:
 
-#### Dashboard Navigation
-```
-Before: 5 options
-├── Model
-├── Sensitivity - Equity IRR     ← Removed
-├── Sensitivity - Cash-on-Cash   ← Removed
-├── Sensitivity - Monthly NCF     ← Kept & Enhanced
-└── Monte Carlo
+- Added new menu item "Scenario Comparison" in sidebar navigation
+- Created `renderScenarioComparison()` function that:
+  - Loads base case analysis data for all scenarios
+  - Extracts key metrics from each scenario
+  - Generates comparison chart and table
+  - Displays summary KPIs
+- Updated routing logic to handle scenario comparison (no case selection needed)
 
-After: 3 options
-├── Model
-├── Sensitivity - Monthly NCF     ← Primary focus
-└── Monte Carlo
-```
+#### Benefits
 
-#### Key Insights from Monthly NCF Analysis
-- **Top Impact**: Maintenance Reserve Rate (±216% impact)
-- **Management Fees**: ±101% impact on monthly cash flow
-- **Interest Rates**: Significant impact on financing costs
-- **Practical Focus**: Shows real monthly affordability
+- **Quick Decision Making**: Instantly see which scenario performs best on key metrics
+- **Comprehensive View**: Compare all scenarios in one place without switching between cases
+- **Focus on Cash Flow**: Primary metric (monthly after-tax cash flow) prominently displayed
+- **Visual Clarity**: Color-coded chart and table make it easy to identify best/worst scenarios
+
+### Monthly After-Tax Cash Flow in Tornado Charts
+
+Changed the After-Tax Cash Flow tornado chart to display **monthly values** instead of annual values for better practical understanding.
+
+#### Changes
+
+**Backend (`engelberg/analysis.py`)**:
+
+- Updated `calculate_after_tax_cash_flow_per_person()` to return monthly values (annual / 12)
+- Updated docstring to reflect monthly return value
+- Updated print statements to indicate monthly values
+
+**Frontend (`website/index.html`)**:
+
+- Updated chart title to "Monthly After-Tax Cash Flow per Person"
+- Updated axis label to "Change in Monthly After-Tax Cash Flow per Person (CHF)"
+- Updated hover tooltips to show "Resulting ATCF (monthly)" and "CHF/month" units
+- Updated KPI cards to show "Base After-Tax Cash Flow (Monthly)" with "per person/month" unit
+- Updated all descriptions to reflect monthly impact
+
+#### Benefits
+
+- **More Practical**: Monthly values are more relevant for understanding actual cash flow impact
+- **Better Alignment**: Matches the Monthly NCF sensitivity analysis for consistency
+- **Clearer Units**: "per person/month" is more intuitive than annual values
+
+### Tornado Chart Annotations
+
+Added value annotations at the ends of tornado chart bars showing the final result values for quick reference.
+
+#### Features
+
+- **End-of-Bar Annotations**: Final values displayed at both ends of each bar:
+  - **Left side (low scenario)**: Shows final monthly after-tax cash flow or Equity IRR
+  - **Right side (high scenario)**: Shows final monthly after-tax cash flow or Equity IRR
+- **Color-Coded**: Annotations match bar colors (green for positive, red for negative)
+- **Formatted Values**: Currency formatting for cash flow, percentage formatting for IRR
+- **Both Charts**: Applied to both After-Tax Cash Flow and Equity IRR tornado charts
+
+#### Implementation
+
+**Frontend (`website/index.html`)**:
+
+- Added dynamic annotations array to chart layouts
+- Annotations positioned at bar ends using x/y coordinates
+- Styled with white background and colored borders matching bar colors
+- Small offset from bar ends to avoid overlap
+
+#### Benefits
+
+- **Quick Reference**: See final values without hovering
+- **Better Readability**: Values clearly visible at bar ends
+- **Consistent Experience**: Same feature on both tornado charts
 
 ### Files Modified
-- `website/index.html` - Removed menu items and rendering functions
-- `analyze.py` - Removed sensitivity analysis functions
-- `generate_all_data.py` - Removed IRR/CoC data generation
-- `README.md` - Updated feature descriptions
-- `QUICK_START.md` - Updated analysis overview
-- `CHANGELOG.md` - This entry
-
-### Validation Results
-✅ **Monthly NCF Calculation Verified**:
-- Base case: CHF -251 per owner per month
-- Top parameter: Maintenance Reserve (±216% impact)
-- Calculation logic: `(Annual Cash Flow per Owner) / 12`
-- Data integrity: All scenarios updated correctly
-
-## [2025-12-25] - Monte Carlo Integration into Main Dashboard
-
-### Major UI/UX Improvement: Unified Monte Carlo Analysis
-
-#### 1. Removed Separate Monte Carlo HTML Files
-- **Deleted**: All 11 separate `*_monte_carlo_report.html` files (780KB+ total)
-- **Cleaned up**: Removed HTML file generation from `generate_all_data.py`
-- **Removed**: `generate_monte_carlo_html_report()` function from `analyze.py`
-
-#### 2. Integrated Monte Carlo into Main Dashboard
-- **Already Integrated**: Monte Carlo analysis was already embedded in `index.html`
-- **Menu Item**: "Monte Carlo" menu item already existed in left sidebar
-- **Case Selection**: Monte Carlo properly responds to case dropdown selection
-- **Data Loading**: Monte Carlo data loads dynamically via JSON API
-
-#### 3. Streamlined User Experience
-- **Single Entry Point**: All analyses now accessible from one dashboard
-- **Consistent Navigation**: Case selection affects all analysis types including Monte Carlo
-- **Reduced Clutter**: No separate HTML files creating visual noise
-- **Faster Loading**: Direct integration eliminates file navigation
-
-### Technical Implementation Details
-
-#### Dashboard Integration
-- **Menu Structure**: Monte Carlo accessible via "Monte Carlo" in sidebar
-- **Data Loading**: `data/${caseName}_monte_carlo.json` loads dynamically
-- **Rendering**: `ChartRenderer.renderMonteCarlo(data)` displays results
-- **Charts**: Interactive NPV distribution, IRR distribution, scatter plots
-
-#### File Changes
-- **`generate_all_data.py`**: Removed HTML generation code
-- **`analyze.py`**: Removed `generate_monte_carlo_html_report()` function
-- **Website directory**: Cleaned up 11 HTML files
-- **`index.html`**: Already had Monte Carlo integration (no changes needed)
-
-### Benefits
-
-1. **Simplified User Experience**: One dashboard for all analyses
-2. **Consistent Case Selection**: All analyses update when case changes
-3. **Reduced Maintenance**: No separate HTML files to maintain
-4. **Better Performance**: Direct integration vs separate file loading
-5. **Cleaner Repository**: Removed redundant HTML files
-
-### User Workflow
-
-**Before:**
-1. Run `generate_all_data.py` → creates HTML files
-2. Open separate HTML files for Monte Carlo analysis
-3. Switch between multiple browser tabs/windows
-
-**After:**
-1. Run `generate_all_data.py` → generates JSON data only
-2. Open `website/index.html` → single dashboard
-3. Select case from dropdown → all analyses update including Monte Carlo
-4. Click "Monte Carlo" in sidebar → view integrated analysis
-
-### Validation
-
-- ✅ All Monte Carlo JSON data still generated correctly
-- ✅ Dashboard loads Monte Carlo analysis for all cases
-- ✅ Case selection properly updates Monte Carlo data
-- ✅ Interactive charts display correctly
-- ✅ No HTML files created during data generation
-
-## [2025-12-25] - Parameter Updates: Property Appreciation, Discount Rate, & Cleaning Costs
-
-### Base Case Parameter Adjustments
-
-#### 1. Property Appreciation Rate: 4% → 3%
-- **Previous**: 4.0% annual property appreciation
-- **Updated**: 3.0% annual property appreciation (more conservative)
-- **Impact**: Reduces projected property value growth and terminal value
-- **Rationale**: More conservative estimate to account for market volatility
-
-#### 2. NPV Discount Rate: 5% → 4%
-- **Previous**: 5% discount rate for NPV calculations
-- **Updated**: 4% discount rate for NPV calculations
-- **Impact**: Increases NPV values (lower discount rate means higher present value)
-- **Rationale**: Reflects current lower opportunity cost of capital
-
-#### 3. Cleaning Cost per Stay: CHF 120 → CHF 100
-- **Previous**: CHF 120 per cleaning
-- **Updated**: CHF 100 per cleaning (reduced estimate)
-- **Impact**: Improves cash flow by reducing operating expenses
-- **Rationale**: Updated cost analysis based on revised supplier quotes
-
-### Updated Results (Base Case)
-
-#### Key Metrics Changes
-- **Equity IRR (15Y)**: 7.5% → 6.2% (reduced due to lower appreciation)
-- **After-tax IRR**: 8.2% → 6.9% (reduced due to lower appreciation)
-- **NPV @ 5%**: CHF 39,172 → CHF 32,009 (reduced due to lower discount rate effect)
-- **Cash Flow/Owner**: CHF -3,678 → CHF -3,013 (improved due to lower cleaning costs)
-- **After-tax CF**: CHF -106 → CHF -2,120 (more negative due to lower tax benefits from reduced income)
-
-#### Technical Implementation
-- Updated `assumptions.json` with new parameter values
-- Regenerated all analysis data for all 11 scenarios
-- All sensitivity analyses, Monte Carlo simulations, and projections updated
-- Documentation updated to reflect new metrics and assumptions
-
-### Impact Analysis
-
-#### Positive Impacts
-- **Lower Discount Rate**: Makes NPV calculations more favorable
-- **Reduced Cleaning Costs**: Improves annual cash flow
-- **More Realistic Assumptions**: Better reflects current market conditions
-
-#### Negative Impacts
-- **Lower Property Appreciation**: Reduces long-term wealth creation
-- **Lower IRRs**: Reduced return expectations
-- **Lower Terminal Values**: Smaller property sale proceeds
-
-### Files Updated
-- `assumptions.json` - Base case parameter changes
-- All data files regenerated (`website/data/*.json`)
-- All HTML reports regenerated (`website/*_monte_carlo_report.html`)
-- `README.md` - Updated metrics and assumptions
-- `QUICK_START.md` - Updated metrics and economic assumptions
-- `CHANGELOG.md` - This entry
-
-## [2025-12-25] - SARON Mortgage, 900K House Scenarios, Tax Benefits, & System Fixes
-
-### New Scenarios Added
-
-#### 1. SARON Variable Rate Mortgage (`assumptions_saron_mortgage.json`)
-- **Purpose**: Tests variable rate mortgage risk and potential savings
-- **Key Features**:
-  - SARON benchmark rate + 0.9% spread
-  - Rate fluctuates between 0.6%-1.3% SARON (1.5%-2.2% effective)
-  - Sinusoidal fluctuation pattern over 15 years
-- **Impact**: Slightly lower average cash flow than fixed rate, but introduces rate risk
-- **Technical Implementation**:
-  - Added `mortgage_type`, `saron_spread`, `saron_min_rate`, `saron_max_rate` parameters
-  - Enhanced `get_interest_rate_for_year()` function for variable rates
-  - SARON rates calculated using smooth sinusoidal pattern
-
-#### 2. CHF 900K House Price Scenario (`assumptions_900k_house.json`)
-- **Purpose**: Tests impact of more affordable property pricing
-- **Key Features**:
-  - Property price reduced from CHF 1,300,000 to CHF 900,000
-  - Same LTV (75%) and ownership structure
-  - Lower equity requirement (CHF 225,000 vs CHF 325,000 total)
-- **Impact**: Significantly better cash flow (-CHF 1,670 vs -CHF 3,678 per owner)
-- **Higher IRR**: 9.1% vs 7.5% due to leveraged efficiency
-
-### Major System Improvements
-
-#### 1. Tax Benefits Implementation
-- **Added Swiss Tax Calculations**:
-  - Marginal tax rate: 21% (federal + cantonal)
-  - Depreciation: 2% annually on property value
-  - Interest deduction: Mortgage interest fully deductible
-- **New Metrics**:
-  - Tax Benefit per Owner: CHF 3,572/year
-  - After-tax Cash Flow: CHF -106/year (vs -CHF 3,678 pre-tax)
-  - After-tax Equity IRR: 8.2% (vs 7.5% pre-tax)
-- **Technical Implementation**:
-  - Added `TaxParams` dataclass with tax parameters
-  - Enhanced `compute_annual_cash_flows()` with tax calculations
-  - Updated 15-year projections with tax benefits
-  - Added tax columns to projection tables
-
-#### 2. Monte Carlo HTML Reports Fix
-- **Issue**: Monte Carlo charts not displaying due to missing HTML generation
-- **Solution**: Added HTML report generation for all cases in `generate_all_data.py`
-- **Implementation**:
-  - Added `generate_monte_carlo_html_report()` function to `analyze.py`
-  - Fixed data structure mapping (`sample_data` vs `simulations`)
-  - Now generates 11 HTML reports with interactive charts
-- **Result**: All Monte Carlo scenarios now have working charts and detailed reports
-
-#### 3. Scenario Files Completion
-- **Issue**: Several scenario files missing required sections (tax, projection, etc.)
-- **Fix**: Completed all scenario files with full section structure
-- **Updated Files**:
-  - `assumptions_3_owners.json` - Added all missing sections
-  - `assumptions_4_owners.json` - Added all missing sections
-  - `assumptions_5_owners.json` - Added all missing sections
-  - `assumptions_90day_restriction.json` - Added tax section
-  - `assumptions_climate_risk.json` - Added tax section
-  - `assumptions_early_exit.json` - Added tax section
-  - `assumptions_interest_rate_spike.json` - Added tax section
-  - `assumptions_migros.json` - Added all missing sections
-  - `assumptions_saron_mortgage.json` - Added all missing sections
-
-### Technical Enhancements
-
-#### Core Engine Updates (`core_engine.py`)
-- **SARON Support**: Added mortgage type detection and variable rate calculations
-- **Tax Integration**: Added `TaxParams` dataclass and tax benefit calculations
-- **Parameter Expansion**: Added SARON-related fields to `FinancingParams`
-- **Data Loading**: Updated JSON loading to handle new tax and SARON parameters
-
-#### Analysis Script Updates (`analyze.py`)
-- **HTML Generation**: Added `generate_monte_carlo_html_report()` function
-- **Tax Calculations**: Enhanced cash flow calculations with tax benefits
-- **SARON Support**: Updated parameter passing for variable rate mortgages
-
-#### Data Generation (`generate_all_data.py`)
-- **HTML Reports**: Now generates Monte Carlo HTML reports for all cases
-- **Error Handling**: Added error handling for HTML generation failures
-- **Case Discovery**: Properly handles all 11 scenarios
-
-### Documentation Updates
-
-#### README.md
-- **Updated Case Table**: Now shows all 11 scenarios including new ones
-- **Enhanced Metrics**: Added tax benefit and after-tax cash flow metrics
-- **File Structure**: Updated counts (10 scenario files, 66 data files, 11 HTML reports)
-
-#### QUICK_START.md
-- **New Scenarios**: Added descriptions of SARON and 900K house scenarios
-- **Tax Benefits Section**: New explanation of Swiss tax advantages
-- **Updated Metrics**: Current base case metrics with tax benefits
-- **Configuration Table**: Complete list of all 11 scenarios
-
-### Data Generation Results
-
-- **66 JSON Data Files**: All analyses generated for all cases
-- **11 HTML Reports**: Interactive Monte Carlo reports for each scenario
-- **System Validation**: All 198 validation checks passing
-- **Financial Consistency**: Cross-scenario calculations verified
-
-### Impact on Results
-
-- **Tax Benefits**: Major improvement in after-tax returns (8.2% IRR vs 7.5%)
-- **SARON Mortgage**: Slightly lower returns but introduces rate risk modeling
-- **900K House**: Significantly better cash flow and returns due to lower equity
-- **System Completeness**: All scenarios now fully functional with charts
-
-### Testing Notes
-
-- All scenario files pass JSON validation
-- Tax calculations produce expected results
-- SARON rate fluctuations work correctly
-- Monte Carlo HTML reports display properly
-- Dashboard loads all cases correctly
-- Financial calculations are consistent across scenarios
-
-## [2025-12-09] - New Risk Scenarios: Climate Risk, Interest Rate Spike, Early Exit
-
-### New Scenarios Added
-
-#### 1. Climate Risk Scenario (`assumptions_climate_risk.json`)
-- **Purpose**: Tests impact of climate change on tourism patterns
-- **Key Assumptions**:
-  - Winter Peak Occupancy: 52.5% (down from 70%, -25% reduction)
-  - Summer Peak Occupancy: 77.0% (up from 70%, +10% increase)
-  - Off-Peak Occupancy: 70.0% (unchanged)
-- **Rationale**: Warmer winters reduce ski season demand, while warmer summers increase hiking/outdoor activity demand
-- **Impact**: Lower overall revenue due to loss of premium winter rates, partially offset by increased summer demand
-
-#### 2. Interest Rate Spike Scenario (`assumptions_interest_rate_spike.json`)
-- **Purpose**: Tests refinancing risk and interest rate exposure
-- **Key Assumptions**:
-  - Initial Interest Rate: 1.3% (years 1-5)
-  - Refinanced Rate: 3.5% (years 6-15)
-  - Refinancing Year: Year 6
-- **Rationale**: Models scenario where initial low-rate mortgage requires refinancing at much higher rate
-- **Impact**: Significant cash flow deterioration in years 6-15 due to 2.2 percentage point rate increase
-- **Technical Implementation**:
-  - Added `refinancing_config` parameter to `compute_15_year_projection()`
-  - Supports variable interest rates over projection period
-  - All projection calls updated to pass refinancing configuration
-
-#### 3. Early Exit Scenario (`assumptions_early_exit.json`)
-- **Purpose**: Tests impact of poor performance and early exit decision
-- **Key Assumptions**:
-  - Occupancy Rate: 40% across all seasons (down from 70% base case)
-  - Projection Period: 6 years (early exit instead of 15 years)
-  - Exit Year: 2031 (year 6 of ownership)
-- **Rationale**: Models scenario where investment underperforms expectations and owners decide to exit early
-- **Impact**: 
-  - Negative cash flows due to low occupancy
-  - Reduced returns due to shorter holding period (less appreciation and loan paydown)
-  - Lower Equity IRR (~1.86% vs ~4-5% base case)
-  - MOIC of only 1.14x over 6 years
-- **Technical Implementation**:
-  - Added `num_years` parameter to `compute_15_year_projection()` (default 15)
-  - Supports variable projection periods for early exit scenarios
-  - All projection calls updated to pass `projection_years` from assumptions
-
-### Technical Changes
-
-#### Core Engine Updates
-- **`core_engine.py`**:
-  - `compute_15_year_projection()` now accepts `num_years` parameter (default 15)
-  - `compute_15_year_projection()` now accepts `refinancing_config` parameter
-  - Added `get_interest_rate_for_year()` helper function for variable interest rates
-  - Projection loop now uses `range(1, num_years + 1)` instead of hardcoded 15 years
-  - Inflation and appreciation factors pre-calculated for variable-length projections
-
-#### Analysis Script Updates
-- **`analyze.py`**:
-  - All `compute_15_year_projection()` calls updated to pass `num_years` from `proj_defaults.get('projection_years', 15)`
-  - All `compute_15_year_projection()` calls updated to pass `refinancing_config` from `proj_defaults.get('refinancing_config')`
-  - Base case analysis, sensitivity analyses, and Monte Carlo all support variable projection periods
-
-#### Assumptions File Structure
-- **New Fields in `projection` Section**:
-  - `projection_years`: Number of years to project (default 15, can be 6 for early exit)
-  - `refinancing`: Optional block with:
-    - `refinance_year`: Year when refinancing occurs (e.g., 6)
-    - `new_interest_rate`: Interest rate after refinancing (e.g., 0.035)
-
-### Documentation Updates
-- **README.md**: Updated to show 9 scenarios (was 6)
-- **QUICK_START.md**: Added all 3 new scenarios to configuration table
-- **CHANGELOG.md**: This entry documenting new scenarios
-
-### Data Generation
-- All 3 new scenarios generate complete analysis data:
-  - Base case analysis
-  - Equity IRR sensitivity
-  - Cash-on-Cash sensitivity
-  - Monthly NCF sensitivity
-  - Monte Carlo simulation (10,000 iterations)
-
-### Validation
-- All new scenarios pass system validation
-- Early exit scenario correctly generates 6-year projections
-- Interest rate spike correctly applies rate change at year 6
-- Climate risk scenario correctly applies seasonal occupancy adjustments
-
----
-
-## [2025-12-09] - Monte Carlo Analysis Enhancement
-
-### Major Improvements
-
-#### 1. Increased Simulation Count
-- **Iterations increased from 1,000 to 10,000** for stable, professional-grade statistics
-- Provides more reliable percentiles, probabilities, and distribution estimates
-- Better convergence for tail risk analysis (5th/95th percentiles)
-
-#### 2. Enhanced Dashboard Visualization
-- **Expanded KPI Cards**: Added 8 comprehensive metrics including:
-  - Mean and Median NPV
-  - Probability NPV > 0
-  - Mean IRR
-  - 10th and 90th Percentiles (worst/best case scenarios)
-  - Standard Deviation (risk measure)
-  - Probability of Positive Cash Flow
-- **Interactive Charts**: Four detailed visualizations:
-  - NPV Distribution Histogram with mean and break-even lines
-  - IRR Distribution Histogram with mean indicator
-  - Cumulative Probability Distribution showing percentile curves
-  - Scatter Plot (Occupancy vs Daily Rate) colored by NPV
-- **Statistical Summary Table**: Comprehensive metrics table showing:
-  - Mean, Median, Std Dev for NPV, IRR, and Annual Cash Flow
-  - Percentiles (5th, 25th, 75th, 95th)
-  - Min/Max ranges
-- **Hover Tooltips**: All KPI cards now have detailed explanations
-
-#### 3. Improved Data Sampling
-- Sample size for JSON export increased from 1,000 to 2,000 rows
-- Better chart quality with more data points for visualization
-
-### Technical Details
-- **`generate_all_data.py`**: Updated to use 10,000 simulations (was 1,000)
-- **`analyze.py`**: Default `n_simulations` parameter increased to 10,000
-- **`core_engine.py`**: `export_monte_carlo_to_json` sample size increased to 2,000
-- **`website/index.html`**: Complete rewrite of `renderMonteCarlo` function with:
-  - 8 KPI cards with tooltips
-  - 4 interactive Plotly charts
-  - Comprehensive statistics table
-  - Professional styling matching other dashboard tabs
-
-### Documentation Updates
-- **README.md**: Updated to reflect 10,000 simulations
-- **QUICK_START.md**: Updated Monte Carlo description
-
-### Performance Notes
-- 10,000 simulations provide excellent statistical stability
-- Typical runtime: 2-5 minutes per case (depending on hardware)
-- Results are cached in JSON files for fast dashboard loading
-
----
-
-## [2025-12-09] - Operating Assumptions Update & Docs Refresh
-
-### Assumptions & Economics
-- Base occupancy set to 70% (25% for 90-day restriction case)
-- Property appreciation standardized to 4% across all cases
-- Cleaning cost increased to CHF 150 per stay (separate from mgmt)
-- OTA/platform fees modeled as ~15% of gross (50% bookings at 30% fee)
-- Management fee at 20% of gross revenue
-
-### Documentation
-- README and QUICK_START updated with new key metrics (Equity IRR ~5.7%, MOIC ~2.82x, NPV @5% ~CHF 11.7k, CF/owner ≈ -7.1k/yr)
-- Added 90-day restriction case to the scenarios list
-- Updated economic/operating assumptions tables
-
-### Frontend
-- Model tab assumptions summary now pulls live values from `assumptions.json`/config (financing, rental, expenses, projection)
-
-### Validation
-- Full regeneration of data and validation: 217/217 passes (warning expected: parameters not sorted by impact due to canonical ordering)
-
----
+
+- `engelberg/analysis.py` - Updated to return monthly after-tax cash flow values
+- `website/index.html` - Added scenario comparison page, updated tornado charts with monthly values and annotations
+
+### Data Regeneration Required
+
+**Important**: After these updates, sensitivity analysis data must be regenerated to include monthly after-tax cash flow values:
+
+```bash
+python scripts/generate_all_data.py
+```
+
+## [2026-01-26] - After-Tax Cash Flow Model Sensitivity Analysis
+
+### Dual Tornado Charts for Model Sensitivity Analysis
+
+Added a new tornado chart to the Equity IRR Model Sensitivity analysis page showing how parameters affect **After-Tax Cash Flow per Person** (monthly impact), in addition to the existing Equity IRR tornado chart (15-year return impact).
+
+**Note**: This feature was later updated to show monthly values instead of annual values (see entry above).
+
+#### Implementation Details
+
+**Backend (`engelberg/analysis.py`)**:
+
+- Added `calculate_after_tax_cash_flow_per_person()` function to compute after-tax cash flow per person for any configuration
+- Updated `create_sensitivity_result()` to include after-tax cash flow per person data (`base_atcf`, `low.atcf`, `high.atcf`, `impact_atcf`)
+- Updated `test_parameter_sensitivity()` to calculate and include after-tax cash flow per person for all sensitivity scenarios
+- Updated `run_sensitivity_analysis()` to:
+  - Calculate base after-tax cash flow per person
+  - Include `base_atcf` in exported JSON data
+  - Handle special cases (Property Appreciation and Selling Costs don't affect Year 1 cash flow)
+
+**Frontend (`website/index.html`)**:
+
+- Added first tornado chart: **After-Tax Cash Flow per Person** sensitivity
+  - Shows monthly cash flow impact in CHF (updated from annual to monthly)
+  - Ranked by impact on after-tax cash flow per person
+  - Color-coded: green for higher cash flow, red for lower cash flow
+- Kept second tornado chart: **Equity IRR** sensitivity (existing)
+  - Shows 15-year return impact in percentage points
+  - Ranked by impact on Equity IRR
+- Both charts use identical styling and structure for easy comparison
+- Updated KPI summary cards to show both base after-tax cash flow and base Equity IRR
+- Enhanced hover tooltips with formatted currency values
+
+#### Benefits
+
+- **Short-term vs. Long-term View**: Users can now see both immediate cash flow impact (Year 1) and long-term return impact (15 years) side-by-side
+- **Better Decision Making**: Helps investors understand which parameters affect their monthly cash flow vs. their overall investment return
+- **Consistent Experience**: Both charts use the same parameters, styling, and structure for easy comparison
+
+#### Example Insights
+
+- **Interest Rate**: High impact on both metrics (cash flow and IRR)
+- **Property Appreciation**: High impact on IRR but zero impact on Year 1 cash flow
+- **Occupancy Rate**: Moderate impact on both metrics
+- **Cleaning Cost**: Higher impact on cash flow than on IRR
+
+### Files Modified
+
+- `engelberg/analysis.py` - Added after-tax cash flow per person calculation and sensitivity tracking
+- `website/index.html` - Added dual tornado charts to sensitivity analysis page
+
+### Data Regeneration Required
+
+**Important**: After this update, sensitivity analysis data must be regenerated to include the new after-tax cash flow per person values:
+
+```bash
+python scripts/generate_all_data.py
+```
+
+Or regenerate only sensitivity analysis:
+
+```bash
+python scripts/analyze.py --analysis sensitivity
+```
+
+## [2026-01-26] - Tax Treatment Refinement and Tax Savings Integration
+
+### Tax Calculation Implementation
+
+Implemented proper Swiss tax treatment for rental property investments with tax savings calculations.
+
+#### Tax Treatment Rules
+
+- **Only interest payments are tax-deductible** (not principal repayment)
+- **30% uniform marginal tax rate** applied across all cases
+- Tax savings = Interest Payment × 30%
+- Tax savings per owner = Tax Savings Total / Number of Owners
+- After-tax cash flow = Pre-tax cash flow + Tax savings
+
+#### Tax Calculation Formula
+
+```
+Taxable Income = Net Operating Income - Interest Payment
+Tax Liability = max(0, Taxable Income) × 30%
+Tax Savings = Interest Payment × 30%
+After-Tax Cash Flow = Pre-Tax Cash Flow + Tax Savings
+```
+
+#### Implementation Details
+
+**Core Engine (`engelberg/core.py`)**:
+
+- Added tax calculations to `compute_annual_cash_flows()`:
+  - `taxable_income`: NOI - interest payment
+  - `tax_liability`: max(0, taxable_income) × 30%
+  - `tax_savings_total`: interest × 30%
+  - `tax_savings_per_owner`: tax_savings_total / num_owners
+  - `after_tax_cash_flow_total`: pre-tax + tax_savings_total
+  - `after_tax_cash_flow_per_owner`: pre-tax per owner + tax_savings_per_owner
+
+- Added tax calculations to `compute_15_year_projection()` for each year in the 15-year projection
+
+- Updated `export_base_case_to_json()` to include all tax metrics in exported JSON
+
+**Dashboard (`website/index.html`)**:
+
+- Added "Tax Savings" KPI cards (per person and total, monthly)
+- Added "After-Tax Cashflow" KPI cards (per person and total, monthly)
+- Renamed "Airbnb Cashflow" to "Pre-Tax Cashflow" for clarity
+- Both pre-tax and after-tax cash flows displayed in Per-Person and Total sections
+
+**Assumptions (`assumptions/assumptions.json`)**:
+
+- Updated `marginal_tax_rate` from 0.21 (21%) to 0.30 (30%)
+- Updated explanation text to clarify that only interest (not principal) is tax-deductible
+
+**Tests (`tests/unit/test_core_calculations.py`)**:
+
+- Added `TestTaxCalculations` class with comprehensive tax calculation tests:
+  - Tax savings calculation (interest × 30%)
+  - Tax savings per owner calculation
+  - Taxable income calculation (NOI - interest only)
+  - Tax liability calculation
+  - After-tax cash flow calculation
+  - Edge case: negative taxable income (tax liability = 0)
+  - Verification that principal is NOT tax-deductible
+
+#### Impact
+
+- Tax savings improve cash flow for all co-owners
+- Example (Base Case): ~950 CHF/year tax savings per owner (~79 CHF/month)
+- After-tax cash flows are more positive (or less negative) than pre-tax cash flows
+- All 11 cases now include tax metrics in generated data
+
+### Files Modified
+
+- `assumptions/assumptions.json` - Updated tax rate to 30%
+- `engelberg/core.py` - Added tax calculations to annual and projection functions
+- `engelberg/core.py` - Updated export function to include tax metrics
+- `website/index.html` - Added tax savings and after-tax cash flow KPIs
+- `tests/unit/test_core_calculations.py` - Added comprehensive tax calculation tests
+
+### Files Regenerated
+
+- All 11 cases regenerated with tax metrics:
+  - `website/data/*_base_case_analysis.json` (11 files)
+  - `website/data/*_monte_carlo.json` (11 files)
+  - `website/data/*_sensitivity*.json` (33 files)
+
+## [2026-01-26] - System Verification, Cleanup, and Documentation Update
+
+### System Verification and Cleanup
+
+Comprehensive verification of file interconnections, removal of redundancies, cleanup of orphaned files, and documentation updates.
+
+#### Code Cleanup
+
+- **Removed duplicate function**: Removed duplicate `extract_case_name()` from `scripts/generate_all_data.py` (now uses import from `engelberg.analysis`)
+- **Standardized path resolution**: Updated `scripts/generate_all_data.py` to use `get_project_root()` from `engelberg.core` instead of manual calculation
+- **Improved imports**: Added `get_project_root` import to `scripts/validate_system.py` for consistency
+
+#### Orphaned File Cleanup
+
+- **Deleted orphaned data files** (9 files total):
+  - `website/data/saron_mortgage_*.json` (3 files) - No corresponding assumptions file
+  - `website/data/900k_house_*.json` (3 files) - No corresponding assumptions file
+  - `website/data/4_owners_*.json` (3 files) - No corresponding assumptions file
+
+#### Documentation Updates
+
+- **Updated README.md**:
+  - Repository structure diagram now shows `engelberg/` package and `scripts/` directory
+  - Updated file counts: 10 cases (not 5), 50 data files (10 cases × 5 analyses)
+  - Updated cases table to include all 10 scenarios with correct file paths
+  - All command examples use `scripts/` paths
+
+- **Updated QUICK_START.md**:
+  - Updated case count references (10 cases instead of 5)
+  - Enhanced package structure table with line counts
+  - Added `assumptions/` and `tests/` directories to structure
+
+#### Verification Results
+
+- All imports resolve correctly across all Python files
+- No circular dependencies detected
+- All path resolutions work correctly from package location
+- All 10 assumptions files have corresponding entries in `cases_index.json`
+- All assumptions files have corresponding data files generated
+
+### Files Modified
+
+- `scripts/generate_all_data.py` - Removed duplicate function, standardized path resolution
+- `scripts/validate_system.py` - Added `get_project_root` import
+- `README.md` - Updated structure, file counts, and case listings
+- `QUICK_START.md` - Updated case counts and structure
+
+### Files Deleted
+
+- `website/data/saron_mortgage_*.json` (3 files)
+- `website/data/900k_house_*.json` (3 files)
+- `website/data/4_owners_*.json` (3 files)
+
+## [2026-01-26] - Package Structure Reorganization
+
+### Major Restructuring
+
+Reorganized the codebase into a proper Python package structure for better maintainability and organization.
+
+#### New Package Structure
+
+- **Created `engelberg/` package**:
+  - `engelberg/__init__.py` - Package initialization with convenient exports
+  - `engelberg/core.py` - Core financial calculations (moved from `core_engine.py`)
+  - `engelberg/analysis.py` - Analysis orchestration (moved from `analyze.py`)
+  - `engelberg/monte_carlo.py` - Monte Carlo simulation (moved from `monte_carlo_engine.py`)
+
+- **Created `scripts/` directory**:
+  - `scripts/analyze.py` - CLI entry point for analyses
+  - `scripts/generate_all_data.py` - Batch data generator
+  - `scripts/validate_system.py` - System validation script
+
+#### Path Resolution
+
+- Added `get_project_root()` utility function to resolve paths relative to project root
+- Updated all path handling to work correctly from package location
+- All assumptions and data file paths now resolve correctly regardless of script location
+
+#### Updated Imports
+
+- All test files updated to use `engelberg.*` imports
+- All scripts updated to import from `engelberg` package
+- Maintained backward compatibility for functionality
+
+#### Documentation Updates
+
+- Updated `README.md` with new script paths (`scripts/analyze.py`)
+- Updated `QUICK_START.md` with new command examples
+- Updated `CHANGELOG.md` with reorganization details
+
+### Files Moved
+
+- `core_engine.py` → `engelberg/core.py`
+- `monte_carlo_engine.py` → `engelberg/monte_carlo.py`
+- `analyze.py` → `engelberg/analysis.py`
+- `generate_all_data.py` → `scripts/generate_all_data.py`
+- `validate_system.py` → `scripts/validate_system.py`
+
+### Breaking Changes
+
+- **Script paths changed**: All scripts now in `scripts/` directory
+  - Old: `python analyze.py`
+  - New: `python scripts/analyze.py`
+
+- **Import paths changed**: All imports now use `engelberg.*` package
+  - Old: `from core_engine import ...`
+  - New: `from engelberg.core import ...`
+
+### Migration Guide
+
+If you have existing scripts or tests that import from the old modules:
+
+1. Update script paths: `python scripts/analyze.py` instead of `python analyze.py`
+2. Update imports: Use `from engelberg.core import ...` instead of `from core_engine import ...`
+3. All functionality remains the same - only paths and imports changed
 
 ## [2025-12-03] - Tornado Chart Harmonization & Cleanup
 
@@ -797,13 +531,11 @@ After: 3 options
 All three sensitivity tornado charts now have consistent, compact styling:
 
 - **Reduced Chart Size**:
-
   - Height: `Math.max(420, 300 + params * 40)` (was 550-600)
   - Margins: `{ l: 200, r: 30, t: 50, b: 60 }` (was l: 240-250, r: 50)
   - Min-height: 400px (was 650px)
 
 - **Unified Visual Elements**:
-
   - Zero line width: 2px (was 3-4px)
   - Font sizes: 11-13px (was 13-15px)
   - Consistent `hovermode: "closest"` on all charts
@@ -811,7 +543,6 @@ All three sensitivity tornado charts now have consistent, compact styling:
   - Same background colors (`#fafbfc`)
 
 - **Compact Info Boxes**:
-
   - Padding: 14px 18px (was 20px)
   - Border radius: 8px (was 12px)
   - Single-line concise descriptions
@@ -1503,7 +1234,6 @@ The user requested better, more sophisticated charts in the HTML report. The pre
 #### 3. Visual Enhancements
 
 - **CSS Updates**:
-
   - Enhanced chart container styling with hover effects
   - Better shadows and transitions
   - Improved spacing and padding

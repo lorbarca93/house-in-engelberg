@@ -6,165 +6,20 @@
     "description": "Migros Bank financing: 60% LTV, 1.8% interest (fixed for 5 years), no amortization",
     "enabled": true
   },
-
+  
   "financing": {
-    "_explanation": "Financing assumptions reflect Migros Bank alternative financing terms for investment properties. The 60% LTV is lower than standard mortgages, requiring more equity upfront but providing different risk/reward characteristics.",
-
+    "_explanation": "Migros Bank offers alternative financing terms with lower LTV (60% vs 75%), higher interest rate (1.8% vs 1.3%), and no amortization requirement. This scenario evaluates the impact of these different financing terms on investment returns.",
+    
     "purchase_price": 1300000.0,
-    "_purchase_price_explanation": "Market value based on comparable properties in Engelberg. Engelberg is a premium mountain resort destination at the foot of Mount Titlis, with strong property values due to tourism demand and limited supply. This price reflects a typical 3-4 bedroom property suitable for vacation rental.",
-
+    "num_owners": 4,
+    
     "ltv": 0.60,
     "_ltv_explanation": "60% loan-to-value ratio is lower than the base case (75%), requiring more equity upfront (40% vs 25%). This reduces leverage but also reduces interest costs and improves cash flow. Migros Bank typically offers lower LTV ratios for investment properties.",
-
+    
     "interest_rate": 0.018,
     "_interest_rate_explanation": "1.8% annual interest rate is higher than the base case (1.3%) but is fixed for 5 years, providing rate certainty. After 5 years, the rate will need to be rolled/refinanced. This rate reflects Migros Bank's current offering for investment property mortgages.",
-
+    
     "amortization_rate": 0.00,
-    "_amortization_explanation": "0% amortization means pure interest payment with no principal paydown. This improves cash flow in the short term (no amortization expense) but means the loan balance remains constant. This is a common structure for investment properties where cash flow is prioritized over principal reduction.",
-
-    "num_owners": 4,
-    "_num_owners_explanation": "Four co-owners is a practical number for managing a vacation property. It balances personal use (5 nights per owner = 20 total nights) with rental income potential. More owners would reduce equity per person but also reduce individual cash flow requirements. Fewer owners would increase equity requirements per person."
-  },
-
-  "rental": {
-    "_explanation": "Rental assumptions are calibrated to real Engelberg Airbnb analytics data. Engelberg experiences strong seasonal variation with peak demand during ski season (winter) and hiking season (summer), with lower demand during shoulder seasons.",
-
-    "owner_nights_per_person": 5,
-    "_owner_nights_explanation": "Five nights per owner per year provides meaningful personal use while maximizing rental income. This is distributed across seasons (8 winter, 7 summer, 5 off-peak) to align with peak demand periods. More owner nights would reduce rental income, fewer would increase income but reduce personal value.",
-
-    "days_per_year": 365,
-    "_days_per_year_explanation": "Standard calendar year. The property is available for rental 365 days minus owner nights.",
-
-    "legacy_occupancy_rate": 0.65,
-    "_legacy_occupancy_explanation": "65% overall occupancy reflects realistic Engelberg market conditions. Seasonal rates vary: higher in peak seasons (winter/summer) and lower in shoulder seasons. This provides a balanced, achievable target based on market data.",
-
-    "legacy_average_daily_rate": 200.0,
-    "_legacy_adr_explanation": "200 CHF average daily rate is calibrated to actual Engelberg Airbnb market data. This is the weighted average across all seasons. Premium rates during ski season (250 CHF) and moderate rates in summer (200 CHF) average to approximately 200 CHF overall. This is a legacy parameter - actual rates vary by season as defined below.",
-
-    "owner_nights_distribution": {
-      "_explanation": "Owner nights are distributed across seasons to align with peak demand periods. More owner nights are allocated to winter and summer when rental demand is highest, maximizing rental income during peak periods.",
-      "winter": 8,
-      "_winter_nights_explanation": "8 owner nights during winter peak (Dec-Mar) when ski season demand is highest and rates are premium. Owners get priority during this high-value period.",
-      "summer": 7,
-      "_summer_nights_explanation": "7 owner nights during summer peak (Jun-Sep) when hiking and mountain activities drive strong demand. Good balance between personal use and rental income.",
-      "offpeak": 5,
-      "_offpeak_nights_explanation": "5 owner nights during off-peak shoulder seasons (Apr-May, Oct-Nov) when demand is lower. Minimizes impact on rental income during lower-demand periods."
-    }
-  },
-
-  "seasonal": {
-    "_explanation": "Engelberg experiences three distinct tourism seasons, each with different demand patterns and pricing. This seasonal breakdown is critical for accurate revenue modeling and reflects real market dynamics in the region.",
-
-    "winter_peak": {
-      "_explanation": "Winter Peak (December through March) is the ski season, representing the highest demand and premium pricing period. Engelberg's proximity to Mount Titlis and world-class skiing drives strong demand.",
-      "name": "Winter Peak (Ski Season)",
-      "months": [12, 1, 2, 3],
-      "occupancy_rate": 0.75,
-      "_occupancy_rate_explanation": "75% occupancy during ski season reflects strong demand for Engelberg's premium winter tourism. December-January peak weeks can reach 85-90% occupancy, while shoulder weeks maintain 65-70%. This 75% average is realistic and achievable with proper marketing and pricing strategy.",
-      "average_daily_rate": 260.0,
-      "_adr_explanation": "260 CHF per night during ski season reflects premium pricing due to high demand. Peak weeks (Christmas, New Year, February school holidays) command 280-300 CHF, while regular winter weeks average 240-250 CHF. This 260 CHF average optimizes revenue while maintaining competitiveness. Based on actual Engelberg market data showing 250-280 CHF range for comparable properties."
-    },
-
-    "summer_peak": {
-      "_explanation": "Summer Peak (June through September) is the hiking and mountain activities season. Engelberg offers excellent hiking, mountain biking, and outdoor activities during summer months.",
-      "name": "Summer Peak (Hiking Season)",
-      "months": [6, 7, 8, 9],
-      "occupancy_rate": 0.72,
-      "_occupancy_rate_explanation": "72% occupancy during summer reflects strong demand for mountain activities. July-August peak weeks can reach 80-85% occupancy, while June and September maintain 65-70%. This 72% average balances peak performance with realistic expectations for shoulder summer months.",
-      "average_daily_rate": 210.0,
-      "_adr_explanation": "210 CHF per night during summer reflects strong pricing for the hiking season. Peak summer weeks (July-August) can command 220-230 CHF, while June and September average 190-200 CHF. This 210 CHF average optimizes revenue while remaining competitive. Based on market data showing 200-220 CHF range for comparable properties during summer months."
-    },
-
-    "offpeak": {
-      "_explanation": "Off-Peak periods (April-May and October-November) are shoulder seasons with lower tourism demand. These periods experience reduced occupancy and discounted rates.",
-      "name": "Off-Peak (Shoulder Seasons)",
-      "months": [4, 5, 10, 11],
-      "occupancy_rate": 0.50,
-      "_occupancy_rate_explanation": "50% occupancy during off-peak reflects realistic shoulder season demand. April and November are particularly slow (40-45%), while May and October can reach 55-60% with targeted marketing. This 50% average is realistic and allows for strategic pricing to maximize revenue during slower periods.",
-      "average_daily_rate": 160.0,
-      "_adr_explanation": "160 CHF per night during off-peak reflects strategic pricing to balance occupancy and revenue. Lower rates (140-150 CHF) can boost occupancy to 60%+, while maintaining 160 CHF average optimizes revenue per available room. Market data shows 150-170 CHF range for comparable properties during shoulder seasons. Strategic discounts for longer stays can improve overall performance."
-    }
-  },
-
-  "expenses": {
-    "_explanation": "Operating expense assumptions are based on typical Swiss vacation rental property costs. These include property management, utilities, insurance, and maintenance reserves.",
-
-    "property_management_fee_rate": 0.2,
-    "_management_fee_explanation": "20% of gross rental income for property management (updated per manager quote). Cleaning is separate (see cleaning_cost_per_stay).",
-
-    "cleaning_cost_per_stay": 120.0,
-    "_cleaning_cost_explanation": "120 CHF per stay for cleaning per latest property manager quote. Charged separately from management fees.",
-
-    "average_length_of_stay": 1.7,
-    "_length_of_stay_explanation": "1.7 nights average length of stay is based on Engelberg Airbnb analytics. Most guests stay 1-3 nights, with weekend stays common. This affects the number of cleaning cycles and tourist tax calculations.",
-
-    "tourist_tax_per_person_per_night": 3.0,
-    "_tourist_tax_explanation": "3 CHF per person per night is the standard tourist tax in Engelberg. This is a municipal tax charged to all overnight guests and is a legal requirement. The rate is set by the municipality and applies to all vacation rentals.",
-
-    "avg_guests_per_night": 2.0,
-    "_avg_guests_explanation": "2.0 average guests per night is based on typical booking patterns. Most bookings are for couples or small families. This affects tourist tax calculations and utility usage.",
-
-    "insurance_rate": 0.003,
-    "_insurance_rate_explanation": "0.3% of property value annually for insurance is standard for Swiss vacation rental properties. This equals CHF 3,900/year (0.3% of CHF 1.3M) and covers property insurance, liability insurance, and rental interruption insurance. Insurance costs in Switzerland typically range from 0.3-0.5% of property value for vacation rentals.",
-
-    "nubbing_costs_annual": 2000.0,
-    "_nubbing_costs_explanation": "2,000 CHF annually for nubbing costs (shared expenses for shared parts like water and heating in multi-unit buildings). This is typical for properties in shared buildings in Switzerland. These are fixed costs for common areas and shared utilities.",
-
-    "electricity_internet_annual": 1000.0,
-    "_electricity_internet_explanation": "1,000 CHF annually for electricity and internet. Swiss electricity costs are moderate, and internet is essential for vacation rentals (guests expect WiFi). This covers both utilities and is based on typical consumption for a 3-4 bedroom vacation rental property.",
-
-    "maintenance_rate": 0.004,
-    "_maintenance_rate_explanation": "0.4% of property value annually for maintenance reserve is realistic for a newer property in good condition. This equals CHF 5,200/year (0.4% of CHF 1.3M) and covers routine maintenance and minor repairs while maintaining healthy cash flow. Major capital expenditures can be funded separately if needed. This aligns with industry best practices of 5-10% of gross revenue for maintenance.",
-
-    "ota_booking_percentage": 0.5,
-    "_ota_booking_percentage_explanation": "50% of bookings come through Online Travel Agencies (OTAs) like Airbnb or Booking.com. The remaining 50% come through direct bookings or other channels. This percentage can be adjusted based on actual booking channel mix.",
-
-    "ota_fee_rate": 0.3,
-    "_ota_fee_rate_explanation": "30% fee charged by OTAs (Airbnb, Booking.com) on gross revenue for bookings made through their platform. This covers their services for listing, marketing, payment processing, and customer support. The effective platform fee on total revenue is calculated as ota_booking_percentage × ota_fee_rate (50% × 30% = 15%)."
-  },
-
-  "tax": {
-    "_explanation": "Tax assumptions for calculating after-tax returns on investment property income in Switzerland.",
-
-    "marginal_tax_rate": 0.21,
-    "_marginal_tax_rate_explanation": "21% marginal tax rate for rental income. This represents the combined federal and cantonal tax rate applicable to investment property income in Switzerland.",
-
-    "depreciation_rate": 0.02,
-    "_depreciation_rate_explanation": "2% annual depreciation rate on property value. In Switzerland, investment properties can be depreciated for tax purposes, typically 2-3% annually. This provides additional tax deductions beyond interest and operating expenses."
-  },
-
-  "projection": {
-    "_explanation": "Projection assumptions define how the investment evolves over time. These parameters affect the 15-year forecast and terminal value calculations.",
-
-    "start_year": 2026,
-    "_start_year_explanation": "Starting in January 2026 assumes purchase/closing in late 2025. This allows for full year analysis starting from the first operational year.",
-
-    "projection_years": 15,
-    "_projection_years_explanation": "15-year projection is standard for real estate investment analysis. It's long enough to see appreciation and loan paydown effects, but short enough to be realistic. Most Swiss mortgages are refinanced after 10-15 years anyway.",
-
-    "inflation_rate": 0.01,
-    "_inflation_rate_explanation": "1% annual inflation is conservative for Switzerland. The Swiss National Bank targets 2%, but using 1% provides a more cautious forecast. This affects both revenue (rents increase) and expenses (costs increase) over time.",
-
-    "property_appreciation_rate": 0.04,
-    "_property_appreciation_explanation": "4.0% annual property appreciation (updated) applied consistently across all cases per latest guidance.",
-
-    "discount_rate": 0.05,
-    "_discount_rate_explanation": "5% discount rate for NPV calculations reflects the opportunity cost of capital and investment risk. This is a typical required return for real estate investments in Switzerland.",
-
-    "selling_costs": {
-      "_explanation": "Selling costs incurred when the property is sold at year 15. These are deducted from sale proceeds in IRR calculations.",
-
-      "broker_fee_rate": 0.03,
-      "_broker_fee_explanation": "3% broker/agent commission is standard in Switzerland for property sales. This is negotiable but typically 2-4%.",
-
-      "notary_fee_rate": 0.015,
-      "_notary_fee_explanation": "1.5% notary and legal fees for property transfer documentation, title transfer, and legal work. Swiss notaries handle all real estate transactions.",
-
-      "transfer_tax_rate": 0.033,
-      "_transfer_tax_explanation": "3.3% transfer tax (Handänderungssteuer) in Canton Obwalden. This varies by canton (1-3.3%). Obwalden has one of the highest rates in Switzerland.",
-
-      "total_rate": 0.078,
-      "_total_explanation": "Total selling costs = 7.8% of sale price (3% broker + 1.5% notary + 3.3% transfer tax). This significantly impacts net proceeds and thus IRR."
-    }
+    "_amortization_explanation": "0% amortization means pure interest payment with no principal paydown. This improves cash flow in the short term (no amortization expense) but means the loan balance remains constant. This is a common structure for investment properties where cash flow is prioritized over principal reduction."
   }
 }

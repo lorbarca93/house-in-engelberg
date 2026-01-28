@@ -6,8 +6,11 @@
       "assumptions_file": "assumptions.json",
       "data_files": {
         "base_case_analysis": "base_case_base_case_analysis.json",
+        "sensitivity": "base_case_sensitivity.json",
+        "sensitivity_coc": "base_case_sensitivity_coc.json",
         "sensitivity_ncf": "base_case_sensitivity_ncf.json",
-        "monte_carlo": "base_case_monte_carlo.json"
+        "monte_carlo": "base_case_monte_carlo.json",
+        "monte_carlo_sensitivity": "base_case_monte_carlo_sensitivity.json"
       },
       "status": "success",
       "errors": []
@@ -18,20 +21,11 @@
       "assumptions_file": "assumptions_3_owners.json",
       "data_files": {
         "base_case_analysis": "3_owners_base_case_analysis.json",
+        "sensitivity": "3_owners_sensitivity.json",
+        "sensitivity_coc": "3_owners_sensitivity_coc.json",
         "sensitivity_ncf": "3_owners_sensitivity_ncf.json",
-        "monte_carlo": "3_owners_monte_carlo.json"
-      },
-      "status": "success",
-      "errors": []
-    },
-    {
-      "case_name": "4_owners",
-      "display_name": "4 Owners",
-      "assumptions_file": "assumptions_4_owners.json",
-      "data_files": {
-        "base_case_analysis": "4_owners_base_case_analysis.json",
-        "sensitivity_ncf": "4_owners_sensitivity_ncf.json",
-        "monte_carlo": "4_owners_monte_carlo.json"
+        "monte_carlo": "3_owners_monte_carlo.json",
+        "monte_carlo_sensitivity": "3_owners_monte_carlo_sensitivity.json"
       },
       "status": "success",
       "errors": []
@@ -42,20 +36,11 @@
       "assumptions_file": "assumptions_5_owners.json",
       "data_files": {
         "base_case_analysis": "5_owners_base_case_analysis.json",
+        "sensitivity": "5_owners_sensitivity.json",
+        "sensitivity_coc": "5_owners_sensitivity_coc.json",
         "sensitivity_ncf": "5_owners_sensitivity_ncf.json",
-        "monte_carlo": "5_owners_monte_carlo.json"
-      },
-      "status": "success",
-      "errors": []
-    },
-    {
-      "case_name": "900k_house",
-      "display_name": "900K House Price",
-      "assumptions_file": "assumptions_900k_house.json",
-      "data_files": {
-        "base_case_analysis": "900k_house_base_case_analysis.json",
-        "sensitivity_ncf": "900k_house_sensitivity_ncf.json",
-        "monte_carlo": "900k_house_monte_carlo.json"
+        "monte_carlo": "5_owners_monte_carlo.json",
+        "monte_carlo_sensitivity": "5_owners_monte_carlo_sensitivity.json"
       },
       "status": "success",
       "errors": []
@@ -66,8 +51,11 @@
       "assumptions_file": "assumptions_90day_restriction.json",
       "data_files": {
         "base_case_analysis": "90day_restriction_base_case_analysis.json",
+        "sensitivity": "90day_restriction_sensitivity.json",
+        "sensitivity_coc": "90day_restriction_sensitivity_coc.json",
         "sensitivity_ncf": "90day_restriction_sensitivity_ncf.json",
-        "monte_carlo": "90day_restriction_monte_carlo.json"
+        "monte_carlo": "90day_restriction_monte_carlo.json",
+        "monte_carlo_sensitivity": "90day_restriction_monte_carlo_sensitivity.json"
       },
       "status": "success",
       "errors": []
@@ -78,8 +66,11 @@
       "assumptions_file": "assumptions_climate_risk.json",
       "data_files": {
         "base_case_analysis": "climate_risk_base_case_analysis.json",
+        "sensitivity": "climate_risk_sensitivity.json",
+        "sensitivity_coc": "climate_risk_sensitivity_coc.json",
         "sensitivity_ncf": "climate_risk_sensitivity_ncf.json",
-        "monte_carlo": "climate_risk_monte_carlo.json"
+        "monte_carlo": "climate_risk_monte_carlo.json",
+        "monte_carlo_sensitivity": "climate_risk_monte_carlo_sensitivity.json"
       },
       "status": "success",
       "errors": []
@@ -90,8 +81,56 @@
       "assumptions_file": "assumptions_early_exit.json",
       "data_files": {
         "base_case_analysis": "early_exit_base_case_analysis.json",
+        "sensitivity": "early_exit_sensitivity.json",
+        "sensitivity_coc": "early_exit_sensitivity_coc.json",
         "sensitivity_ncf": "early_exit_sensitivity_ncf.json",
-        "monte_carlo": "early_exit_monte_carlo.json"
+        "monte_carlo": "early_exit_monte_carlo.json",
+        "monte_carlo_sensitivity": "early_exit_monte_carlo_sensitivity.json"
+      },
+      "status": "success",
+      "errors": []
+    },
+    {
+      "case_name": "engelbergerstrasse53",
+      "display_name": "Engelbergerstrasse 53",
+      "assumptions_file": "assumptions_engelbergerstrasse53.json",
+      "data_files": {
+        "base_case_analysis": "engelbergerstrasse53_base_case_analysis.json",
+        "sensitivity": "engelbergerstrasse53_sensitivity.json",
+        "sensitivity_coc": "engelbergerstrasse53_sensitivity_coc.json",
+        "sensitivity_ncf": "engelbergerstrasse53_sensitivity_ncf.json",
+        "monte_carlo": "engelbergerstrasse53_monte_carlo.json",
+        "monte_carlo_sensitivity": "engelbergerstrasse53_monte_carlo_sensitivity.json"
+      },
+      "status": "success",
+      "errors": []
+    },
+    {
+      "case_name": "engelbergerstrasse53_145",
+      "display_name": "Engelbergerstrasse 53 (1.45%)",
+      "assumptions_file": "assumptions_engelbergerstrasse53_145.json",
+      "data_files": {
+        "base_case_analysis": "engelbergerstrasse53_145_base_case_analysis.json",
+        "sensitivity": "engelbergerstrasse53_145_sensitivity.json",
+        "sensitivity_coc": "engelbergerstrasse53_145_sensitivity_coc.json",
+        "sensitivity_ncf": "engelbergerstrasse53_145_sensitivity_ncf.json",
+        "monte_carlo": "engelbergerstrasse53_145_monte_carlo.json",
+        "monte_carlo_sensitivity": "engelbergerstrasse53_145_monte_carlo_sensitivity.json"
+      },
+      "status": "success",
+      "errors": []
+    },
+    {
+      "case_name": "engelbergerstrasse53_longterm",
+      "display_name": "Engelbergerstrasse 53 (Long-Term Rental)",
+      "assumptions_file": "assumptions_engelbergerstrasse53_longterm.json",
+      "data_files": {
+        "base_case_analysis": "engelbergerstrasse53_longterm_base_case_analysis.json",
+        "sensitivity": "engelbergerstrasse53_longterm_sensitivity.json",
+        "sensitivity_coc": "engelbergerstrasse53_longterm_sensitivity_coc.json",
+        "sensitivity_ncf": "engelbergerstrasse53_longterm_sensitivity_ncf.json",
+        "monte_carlo": "engelbergerstrasse53_longterm_monte_carlo.json",
+        "monte_carlo_sensitivity": "engelbergerstrasse53_longterm_monte_carlo_sensitivity.json"
       },
       "status": "success",
       "errors": []
@@ -102,8 +141,11 @@
       "assumptions_file": "assumptions_interest_rate_spike.json",
       "data_files": {
         "base_case_analysis": "interest_rate_spike_base_case_analysis.json",
+        "sensitivity": "interest_rate_spike_sensitivity.json",
+        "sensitivity_coc": "interest_rate_spike_sensitivity_coc.json",
         "sensitivity_ncf": "interest_rate_spike_sensitivity_ncf.json",
-        "monte_carlo": "interest_rate_spike_monte_carlo.json"
+        "monte_carlo": "interest_rate_spike_monte_carlo.json",
+        "monte_carlo_sensitivity": "interest_rate_spike_monte_carlo_sensitivity.json"
       },
       "status": "success",
       "errors": []
@@ -114,28 +156,16 @@
       "assumptions_file": "assumptions_migros.json",
       "data_files": {
         "base_case_analysis": "migros_base_case_analysis.json",
+        "sensitivity": "migros_sensitivity.json",
+        "sensitivity_coc": "migros_sensitivity_coc.json",
         "sensitivity_ncf": "migros_sensitivity_ncf.json",
-        "monte_carlo": "migros_monte_carlo.json"
-      },
-      "status": "success",
-      "errors": []
-    },
-    {
-      "case_name": "saron_mortgage",
-      "display_name": "SARON Mortgage",
-      "assumptions_file": "assumptions_saron_mortgage.json",
-      "data_files": {
-        "base_case_analysis": "saron_mortgage_base_case_analysis.json",
-        "sensitivity_ncf": "saron_mortgage_sensitivity_ncf.json",
-        "monte_carlo": "saron_mortgage_monte_carlo.json"
+        "monte_carlo": "migros_monte_carlo.json",
+        "monte_carlo_sensitivity": "migros_monte_carlo_sensitivity.json"
       },
       "status": "success",
       "errors": []
     }
   ],
-  "generated_at": "2025-12-26T09:34:13.889591",
-  "total_cases": 11,
-  "assumptions_version": "2025-12-10",
-  "assumptions_hash": "b161e71d360ca2bb5925b38ab8367e687e5e65119f307a1e48830c8232ab937c",
-  "assumptions_last_updated": "2025-12-10T00:00:00Z"
+  "generated_at": "2026-01-28T08:04:38.413434",
+  "total_cases": 11
 }

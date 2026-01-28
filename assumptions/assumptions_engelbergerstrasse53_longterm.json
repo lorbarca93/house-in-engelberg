@@ -1,0 +1,116 @@
+{
+  "_comment": "Engelbergerstrasse 53 Long-Term Rental Scenario",
+  "_description": "Property built 1971, renovated 2018. Long-term rental to existing tenant at 1,850 CHF/month base rent plus Nebenkosten (utilities). No Airbnb, no cleaning costs, no tourist tax, minimal property management. Financing: 1.45% fixed 10yr, accelerated amortization to 70% LTV in 5 years.",
+  "_case_metadata": {
+    "display_name": "Engelbergerstrasse 53 (Long-Term Rental)",
+    "description": "1971 property, renovated 2018. Long-term rental at 1,850 CHF/month + Nebenkosten. 25% down, 1.45% fixed 10yr, accelerated amortization to 70% LTV in 5 years. Tenant already in place.",
+    "enabled": true
+  },
+  
+  "financing": {
+    "_explanation": "Engelbergerstrasse 53 financing terms: 25% down payment (235,000 CHF equity), 75% LTV loan (705,000 CHF), 1.45% fixed interest rate for 10 years. Special amortization requirement: must pay down to 70% LTV (658,000 CHF) within 5 years, requiring 47,000 CHF total amortization (9,400 CHF/year = 1.333% of initial loan).",
+    
+    "purchase_price": 940000.0,
+    "_purchase_price_explanation": "Purchase price for Engelbergerstrasse 53 property. Property was built in 1971 and renovated in 2018. Tenant is already in place, so no vacancy period.",
+    
+    "ltv": 0.75,
+    "_ltv_explanation": "75% loan-to-value ratio means 25% down payment (235,000 CHF equity). Starting loan amount is 705,000 CHF. The loan must be amortized to 70% LTV (658,000 CHF) within 5 years, requiring 47,000 CHF total amortization.",
+    
+    "interest_rate": 0.0145,
+    "_interest_rate_explanation": "1.45% annual interest rate, fixed for 10 years. This provides good cash flow while maintaining rate certainty for the first 10 years. After year 10, the loan will need to be refinanced at prevailing market rates.",
+    
+    "amortization_rate": 0.01333,
+    "_amortization_explanation": "1.333% annual amortization rate calculated to reduce loan from 705,000 CHF (75% LTV) to 658,000 CHF (70% LTV) in exactly 5 years. Annual amortization: 705,000 × 0.01333 = 9,400 CHF/year. Total amortization over 5 years: 47,000 CHF. Monthly amortization: 783.33 CHF/month.",
+    
+    "num_owners": 4,
+    "_num_owners_explanation": "Four co-owners is the default assumption, matching the base case."
+  },
+
+  "rental": {
+    "_explanation": "Long-term rental scenario: Tenant pays 1,850 CHF/month base rent (22,200 CHF/year) plus Nebenkosten (utilities: electricity, waste, heating). Tenant is already in place, so 100% occupancy with no vacancy period. No owner nights as this is a pure rental investment.",
+    
+    "owner_nights_per_person": 0,
+    "_owner_nights_explanation": "Zero owner nights - this is a pure rental investment property, not for personal use.",
+    
+    "days_per_year": 365,
+    "_days_per_year_explanation": "Standard calendar year. Property is rented year-round with no vacancy.",
+    
+    "legacy_occupancy_rate": 1.0,
+    "_legacy_occupancy_explanation": "100% occupancy - tenant is already in place and paying rent. No vacancy period expected as tenant is established and property is already occupied.",
+    
+    "legacy_average_daily_rate": 60.82191780821918,
+    "_legacy_adr_explanation": "60.8219 CHF average daily rate calculated to yield exactly 22,200 CHF/year: 1,850 CHF/month × 12 months / 365 days = 60.8219 CHF/day. This ensures annual revenue is exactly 22,200 CHF. This is a legacy parameter for the system - actual revenue is fixed monthly rent.",
+    
+    "owner_nights_distribution": {
+      "_explanation": "No owner nights in long-term rental scenario.",
+      "winter": 0,
+      "summer": 0,
+      "offpeak": 0
+    }
+  },
+
+  "seasonal": {
+    "_explanation": "Long-term rental has no seasonal variation - rent is constant year-round at 1,850 CHF/month. All seasons set to same values for consistency.",
+    
+    "winter_peak": {
+      "_explanation": "Winter season - same rent year-round for long-term rental.",
+      "name": "Winter Peak (Ski Season)",
+      "months": [12, 1, 2, 3],
+      "occupancy_rate": 1.0,
+      "_occupancy_rate_explanation": "100% occupancy - tenant is in place year-round.",
+      "average_daily_rate": 60.82191780821918,
+      "_adr_explanation": "60.8219 CHF/day = 1,850 CHF/month × 12 / 365 days = 22,200 CHF/year exactly. Constant rate year-round."
+    },
+    
+    "summer_peak": {
+      "_explanation": "Summer season - same rent year-round for long-term rental.",
+      "name": "Summer",
+      "months": [6, 7, 8, 9],
+      "occupancy_rate": 1.0,
+      "_occupancy_rate_explanation": "100% occupancy - tenant is in place year-round.",
+      "average_daily_rate": 60.82191780821918,
+      "_adr_explanation": "60.8219 CHF/day = 1,850 CHF/month × 12 / 365 days = 22,200 CHF/year exactly. Constant rate year-round."
+    },
+    
+    "offpeak": {
+      "_explanation": "Off-peak season - same rent year-round for long-term rental.",
+      "name": "Off-Peak",
+      "months": [4, 5, 10, 11],
+      "occupancy_rate": 1.0,
+      "_occupancy_rate_explanation": "100% occupancy - tenant is in place year-round.",
+      "average_daily_rate": 60.82191780821918,
+      "_adr_explanation": "60.8219 CHF/day = 1,850 CHF/month × 12 / 365 days = 22,200 CHF/year exactly. Constant rate year-round."
+    }
+  },
+
+  "expenses": {
+    "_explanation": "Long-term rental expenses: No Airbnb-related costs (cleaning, tourist tax, platform fees). Minimal property management (5% for basic oversight). Tenant pays Nebenkosten (utilities), so those are 0. Insurance and maintenance reserve still apply.",
+    
+    "property_management_fee_rate": 0.05,
+    "_management_fee_explanation": "5% of gross rental income for minimal property management (basic oversight, rent collection). Much lower than Airbnb management (20%) since no guest coordination, check-ins, or marketing needed. Long-term rentals require minimal management.",
+    
+    "cleaning_cost_per_stay": 0.0,
+    "_cleaning_cost_explanation": "Zero cleaning costs - no Airbnb turnover cleaning needed. Long-term tenant maintains the property.",
+    
+    "average_length_of_stay": 365.0,
+    "_length_of_stay_explanation": "365 days average stay - long-term rental with established tenant. This parameter is not used for cleaning calculations (cleaning_cost_per_stay = 0) but kept for system consistency.",
+    
+    "tourist_tax_per_person_per_night": 0.0,
+    "_tourist_tax_explanation": "Zero tourist tax - no tourists, this is a long-term residential rental. Tourist tax only applies to short-term vacation rentals.",
+    
+    "avg_guests_per_night": 0.0,
+    "_avg_guests_explanation": "Not applicable for long-term rental - this parameter is for tourist tax calculations which don't apply here.",
+    
+    "insurance_rate": 0.0015,
+    "_insurance_rate_explanation": "0.15% of property value annually for insurance - still applies for long-term rental. Covers property insurance and liability.",
+    
+    "nubbing_costs_annual": 0.0,
+    "_nubbing_costs_explanation": "Zero nubbing costs - tenant pays Nebenkosten (utilities including shared expenses like water and heating) as part of their monthly payment. These costs are covered by the tenant, not the landlord.",
+    
+    "electricity_internet_annual": 0.0,
+    "_electricity_internet_explanation": "Zero electricity/internet costs - tenant pays these as part of Nebenkosten. All utilities are covered by the tenant's monthly payment (1,850 CHF base rent + Nebenkosten).",
+    
+    "maintenance_rate": 0.0025,
+    "_maintenance_rate_explanation": "0.25% of property value annually for maintenance reserve. Still applies for long-term rental - property needs maintenance regardless of rental type. This equals CHF 2,350/year for 940,000 CHF property."
+  }
+}

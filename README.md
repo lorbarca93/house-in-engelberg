@@ -24,7 +24,7 @@ pip install -r requirements.txt
 **Option A: Generate All Cases Automatically** (Recommended)
 
 ```bash
-python generate_all_data.py
+python scripts/generate_all_data.py
 ```
 
 This script:
@@ -32,17 +32,18 @@ This script:
 - Auto-detects all `assumptions_*.json` files
 - Generates base case, sensitivity (3 types), and Monte Carlo data for each case
 - Creates `website/data/cases_index.json` with metadata
-- Produces 26 JSON data files
+- Produces 50 JSON data files (10 cases × 5 analyses each)
 
 **Option B: Run Individual Analyses**
 
 ```bash
-python analyze.py                              # All analyses for base case
-python analyze.py assumptions_migros.json      # All analyses for Migros
-python analyze.py --analysis base              # Only base case analysis
-python analyze.py --analysis sensitivity       # Only sensitivity analysis
-python analyze.py --analysis monte_carlo       # Only Monte Carlo
-python analyze.py --quiet                      # Minimal output
+python scripts/analyze.py                              # All analyses for base case
+python scripts/analyze.py assumptions_migros.json      # All analyses for Migros
+python scripts/analyze.py --analysis base                      # Only base case analysis
+python scripts/analyze.py --analysis sensitivity               # Only Model Sensitivity analysis
+python scripts/analyze.py --analysis monte_carlo               # Only Monte Carlo
+python scripts/analyze.py --analysis monte_carlo_sensitivity    # Only MC Sensitivity
+python scripts/analyze.py --quiet                              # Minimal output
 ```
 
 ### 3. Open the Dashboard
@@ -63,34 +64,24 @@ python -m http.server 8080
 ### 4. Validate the System
 
 ```bash
-python validate_system.py    # 198 comprehensive checks
+python scripts/validate_system.py    # 198 comprehensive checks
 ```
 
-## Multi-Page Dashboard Structure
+## Dynamic Dashboard Features
 
-The analysis is organized into three dedicated HTML pages:
+The dashboard (`website/index.html`) provides:
 
-### 1. Main Dashboard (`website/index.html`)
-- **Overview**: Key financial metrics and main simulation KPIs
-- **Features**: Purchase price, revenue, expenses, cash flow analysis, return metrics
-- **Purpose**: High-level summary of investment performance
-
-### 2. Sensitivity Analysis (`website/sensitivity.html`)
-- **Analysis**: Monthly Net Cash Flow per owner sensitivity
-- **Features**: Tornado chart, parameter impact analysis, detailed tables
-- **Purpose**: Understand how individual parameters affect monthly cash requirements
-
-### 3. Monte Carlo Analysis (`website/monte_carlo.html`)
-- **Analysis**: Probabilistic risk assessment with 10,000 scenarios
-- **Features**: NPV distribution, risk metrics, cumulative distribution function
-- **Purpose**: Quantify investment risk and probability of success
-
-### Navigation Features
-
-All pages share consistent navigation:
-- **Top Navigation Bar**: Case selector dropdown (11 scenarios available)
-- **Left Sidebar**: Cross-page navigation between analysis types
-- **URL Parameters**: Direct linking to specific cases (?case=base_case)
+- **Top Navigation Bar**: Case selector dropdown (11 available cases)
+- **Left Sidebar**: Analysis type selector with 7 options:
+  - **Model** (Simulation KPIs): Base case metrics and 15-year projection
+  - **Model Sensitivity - Equity IRR**: Dual tornado charts showing:
+    - Monthly After-Tax Cash Flow per Person (monthly cash flow impact)
+    - Equity IRR (15-year return impact)
+  - **Model Sensitivity - Cash-on-Cash**: How parameters affect Year 1 cash yield
+  - **Model Sensitivity - Monthly NCF**: How parameters affect monthly cash flow
+  - **Monte Carlo**: Probabilistic simulation with 1,000+ scenarios
+  - **MC Sensitivity**: Shows how NPV > 0 probability changes with parameter variations (5 parameters × 10 values × 2,000 sims)
+  - **Scenario Comparison**: Side-by-side comparison of all scenarios with key metrics
 - **Dynamic Content Area**:
   - KPI cards with key metrics (12+ per page)
   - Interactive Plotly.js tornado charts
@@ -106,57 +97,87 @@ All pages share consistent navigation:
 
 ## Available Cases
 
-The system supports 11 investment scenarios:
+The system supports 10 investment scenarios:
 
-| Case                 | File                            | LTV | Interest     | Amort  | Owners | Description |
-| -------------------- | ------------------------------- | --- | ------------ | ------ | ------ | ----------- |
-| **Base Case**        | `assumptions.json`              | 75% | 1.3% fixed   | 0.444% | 4      | Standard financing |
-| **900K House**       | `assumptions_900k_house.json`   | 75% | 1.3% fixed   | 0.444% | 4      | More affordable property |
-| **SARON Mortgage**   | `assumptions_saron_mortgage.json` | 75% | SARON +0.9%  | 0.444% | 4      | Variable rate mortgage |
-| **Migros**           | `assumptions_migros.json`       | 60% | 1.8% fixed   | 0%     | 4      | Alternative lender |
-| **3 Owners**         | `assumptions_3_owners.json`     | 75% | 1.3% fixed   | 0.444% | 3      | Smaller ownership group |
-| **4 Owners**         | `assumptions_4_owners.json`     | 75% | 1.3% fixed   | 0.444% | 4      | Matches base case |
-| **5 Owners**         | `assumptions_5_owners.json`     | 75% | 1.3% fixed   | 0.444% | 5      | Larger ownership group |
-| **90-Day Restriction** | `assumptions_90day_restriction.json` | 75% | 1.3% fixed | 0.444% | 4      | Airbnb regulation impact |
-| **Climate Risk**     | `assumptions_climate_risk.json` | 75% | 1.3% fixed   | 0.444% | 4      | Weather change impact |
-| **Early Exit**       | `assumptions_early_exit.json`   | 75% | 1.3% fixed   | 0.444% | 4      | Poor performance exit |
-| **Interest Rate Spike** | `assumptions_interest_rate_spike.json` | 75% | 1.3→3.5%     | 0.444% | 4      | Rate increase risk |
+| Case                              | File                                                    | LTV | Interest | Amort | Owners |
+| --------------------------------- | ------------------------------------------------------- | --- | -------- | ----- | ------ |
+| **Base Case**                     | `assumptions/assumptions.json`                          | 75% | 1.3%     | 1%    | 4      |
+| **Migros**                        | `assumptions/assumptions_migros.json`                   | 60% | 1.8%     | 0%    | 4      |
+| **3 Owners**                      | `assumptions/assumptions_3_owners.json`                 | 75% | 1.3%     | 1%    | 3      |
+| **5 Owners**                      | `assumptions/assumptions_5_owners.json`                 | 75% | 1.3%     | 1%    | 5      |
+| **90-Day Restriction**            | `assumptions/assumptions_90day_restriction.json`        | 75% | 1.3%     | 1%    | 4      |
+| **Climate Risk**                  | `assumptions/assumptions_climate_risk.json`             | 75% | 1.3%     | 1%    | 4      |
+| **Early Exit**                    | `assumptions/assumptions_early_exit.json`               | 75% | 1.3%     | 1%    | 4      |
+| **Engelbergerstrasse 53**         | `assumptions/assumptions_engelbergerstrasse53.json`     | 75% | 1.8%     | 1.33% | 4      |
+| **Engelbergerstrasse 53 (1.45%)** | `assumptions/assumptions_engelbergerstrasse53_145.json` | 75% | 1.45%    | 1.33% | 4      |
+| **Interest Rate Spike**           | `assumptions/assumptions_interest_rate_spike.json`      | 75% | 2.5%     | 1%    | 4      |
+
+## Tax Treatment
+
+The model implements proper Swiss tax treatment for rental property investments:
+
+- **Only interest payments are tax-deductible** (principal repayments are not)
+- **30% uniform marginal tax rate** applied across all cases
+- **Tax savings** = Interest Payment × 30%
+- **After-tax cash flow** = Pre-tax cash flow + Tax savings
+
+**Example Calculation** (Base Case):
+
+- Interest payment: 12,675 CHF/year
+- Tax savings: 12,675 × 30% = 3,802.50 CHF/year (total)
+- Tax savings per owner: 3,802.50 / 4 = 950.63 CHF/year (~79 CHF/month)
+- Pre-tax cash flow per owner: -1,183.71 CHF/year
+- After-tax cash flow per owner: -1,183.71 + 950.63 = -233.08 CHF/year
+
+The dashboard displays both **Pre-Tax Cashflow** and **After-Tax Cashflow** metrics, allowing investors to see the impact of tax savings on their returns.
 
 ## Key Metrics (Base Case)
 
-| Metric              | Value            | Description                    |
-| ------------------- | ---------------- | ------------------------------ |
-| **Equity IRR**      | 7.5%             | Return on equity over 15 years |
-| **After-tax IRR**   | 8.2%             | IRR after tax benefits         |
-| **Project IRR**     | 3.7%             | Unlevered return (no debt)     |
-| **NPV @ 5%**        | CHF 39,172       | Present value at 5% discount   |
-| **MOIC**            | 3.23×            | Multiple on invested capital   |
-| **Cash Flow/Owner** | CHF -3,678/year  | Annual net cash flow           |
-| **Tax Benefit/Owner**| CHF 3,572/year   | Annual tax savings from debt   |
-| **After-tax CF/Owner**| CHF -106/year   | Cash flow after tax benefits   |
-| **Payback Period**  | 15 years         | With property sale             |
+| Metric              | Value           | Description                    |
+| ------------------- | --------------- | ------------------------------ |
+| **Equity IRR**      | 4.63%           | Return on equity over 15 years |
+| **Project IRR**     | 2.53%           | Unlevered return (no debt)     |
+| **NPV @ 5%**        | -CHF 5,007      | Present value at 5% discount   |
+| **MOIC**            | 2.17×           | Multiple on invested capital   |
+| **Cash Flow/Owner** | -CHF 2,870/year | Annual net cash flow           |
+| **Payback Period**  | 15 years        | With property sale             |
 
 ## Repository Structure
 
 ```
 .
-├── assumptions.json                 # Base case assumptions (single source of truth)
-├── assumptions_*.json               # Case-specific assumption overrides (10 files)
-├── analyze.py                       # 🆕 Unified analysis script (1,500+ lines)
-├── core_engine.py                   # 🆕 Core calculation engine (1,250+ lines)
-├── monte_carlo_engine.py            # Monte Carlo simulation engine (1,870+ lines)
-├── generate_all_data.py             # Master data generator (auto-discovers cases)
-├── validate_system.py               # System validation (comprehensive checks)
-├── requirements.txt                 # Python dependencies
+├── engelberg/                       # Main Python package
+│   ├── __init__.py                  # Package initialization and exports
+│   ├── core.py                      # Core calculation engine (1,250+ lines)
+│   ├── analysis.py                  # Analysis orchestration (main entry point)
+│   ├── model_sensitivity.py         # Model Sensitivity analysis (deterministic)
+│   ├── model_sensitivity_ranges.py  # Model Sensitivity parameter ranges config
+│   ├── mc_sensitivity.py           # MC Sensitivity analysis (probabilistic)
+│   ├── mc_sensitivity_ranges.py     # MC Sensitivity parameter ranges config
+│   └── monte_carlo.py               # Monte Carlo simulation engine (1,870+ lines)
+├── scripts/                         # Entry point scripts (CLI)
+│   ├── analyze.py                   # Main analysis CLI script
+│   ├── generate_all_data.py         # Master data generator (auto-discovers cases)
+│   └── validate_system.py           # System validation (198 checks)
+├── assumptions/                     # Assumptions files (JSON configs)
+│   ├── assumptions.json              # Base case assumptions (single source of truth)
+│   └── assumptions_*.json           # Case-specific assumption overrides (9 files)
+├── tests/                           # Test suite
+│   ├── unit/                        # Unit tests
+│   ├── integration/                 # Integration tests
+│   ├── regression/                  # Regression tests
+│   └── fixtures/                    # Test fixtures
 ├── website/
 │   ├── index.html                   # Dynamic single-page dashboard
-│   └── data/                        # JSON data files (56 files)
+│   └── data/                        # JSON data files (50 files: 10 cases × 5 analyses)
 │       ├── cases_index.json         # Master index of all cases
 │       ├── {case}_base_case_analysis.json
 │       ├── {case}_sensitivity.json
 │       ├── {case}_sensitivity_coc.json
 │       ├── {case}_sensitivity_ncf.json
 │       └── {case}_monte_carlo.json
+├── requirements.txt                 # Python dependencies
+├── requirements-dev.txt              # Development dependencies (pytest, etc.)
 ├── README.md                        # Project guide (this file)
 ├── QUICK_START.md                   # Quick start guide
 └── CHANGELOG.md                     # Detailed implementation history
@@ -170,26 +191,57 @@ The system supports 11 investment scenarios:
 - **Main Assumptions Summary**: Financing, rental, projection parameters
 - **15-Year Projection Table**: Revenue, expenses, debt service, equity
 
-### 2. Sensitivity Analysis - Equity IRR
+### 2. Model Sensitivity Analysis - Equity IRR
 
 - **15 parameters tested**: Property appreciation, interest rate, occupancy, etc.
-- **Tornado chart**: Visual impact ranking
+- **Two tornado charts**:
+  - **Monthly After-Tax Cash Flow per Person**: Shows monthly cash flow impact (what hits your bank account each month)
+  - **Equity IRR**: Shows 15-year return impact (long-term investment performance)
+- **End-of-bar annotations**: Final values displayed at the ends of each bar for quick reference
 - **Data table**: Low/base/high scenarios with results
-- **Hover tooltips**: Detailed explanations for each parameter
+- **Hover tooltips**: Detailed explanations for each parameter with formatted values
+- **Ranked by impact**: Parameters sorted by their effect on each metric
 
-### 3. Sensitivity Analysis - Cash-on-Cash
+### 3. Model Sensitivity Analysis - Cash-on-Cash
 
 - **Year 1 cash yield focus**: How parameters affect first-year returns
 - **Filters out zero-impact params**: Property appreciation, selling costs
 - **Same 15 parameters**: Different metric focus
 
-### 4. Sensitivity Analysis - Monthly NCF
+### 4. Model Sensitivity Analysis - Monthly NCF
 
 - **Monthly cash flow per owner**: Practical "what hits your bank account"
 - **CHF values**: Shows actual monthly impact in Swiss Francs
 - **Filters non-monthly impacts**: Appreciation, inflation, selling costs
 
 ### 5. Monte Carlo Simulation
+
+- **1,000 probabilistic scenarios**: Tests uncertainty in key parameters
+- **Statistical outputs**: Mean, median, percentiles for NPV and IRR
+- **Distribution charts**: Histograms showing range of possible outcomes
+
+### 6. MC Sensitivity Analysis
+
+- **Risk-adjusted parameter impacts**: Shows how NPV > 0 probability changes with parameter variations
+- **5 parameters tested**: Amortization Rate, Interest Rate, Purchase Price, Occupancy Rate, Price per Night
+- **10 values per parameter**: Evenly spaced across parameter ranges
+- **2,000 simulations per value**: High accuracy probabilistic analysis
+- **Line chart visualization**: Shows probability curves for all parameters
+
+### 7. Scenario Comparison
+
+- **Comprehensive comparison table**: All scenarios side-by-side with key metrics
+- **After-Tax Cash Flow chart**: Horizontal bar chart showing monthly cash flow per person for all scenarios
+- **Key metrics compared**:
+  - Monthly After-Tax Cash Flow per Person (primary metric)
+  - Equity IRR
+  - Cash-on-Cash Return
+  - MOIC (Multiple on Invested Capital)
+  - Initial Investment per Person
+  - Interest Rate
+  - Number of Owners
+- **Summary KPIs**: Best performers highlighted for each metric
+- **Sorted by cash flow**: Scenarios ranked from best to worst cash flow
 
 - **1,000+ simulations**: Probabilistic outcomes
 - **Statistics**: Mean, median, std dev, percentiles
@@ -233,9 +285,9 @@ To create a new investment scenario:
 | Parameter                 | Value     | Description                    |
 | ------------------------- | --------- | ------------------------------ |
 | **Inflation**             | 1.0%/year | Revenue and expense growth     |
-| **Property Appreciation** | 3.0%/year | Annual property value increase |
-| **Discount Rate**         | 4.0%      | NPV calculation rate           |
-| **Maintenance Reserve**   | 0.4%/year | Of property value              |
+| **Property Appreciation** | 2.5%/year | Annual property value increase |
+| **Discount Rate**         | 5.0%      | NPV calculation rate           |
+| **Maintenance Reserve**   | 0.5%/year | Of property value              |
 | **Selling Costs**         | 7.8%      | Broker + notary + transfer tax |
 
 ### Selling Costs Breakdown (7.8% total)
@@ -266,20 +318,20 @@ Run the comprehensive validation script:
 python validate_system.py
 ```
 
-**Comprehensive validation across multiple categories:**
+**198 checks across 12 categories:**
 
 - ✅ File structure and existence
-- ✅ Python module imports and dependencies
-- ✅ Assumptions file structure (11 complete scenarios)
-- ✅ Cross-dependencies and parameter consistency
-- ✅ Generated data files (66 JSON + 11 HTML reports)
-- ✅ Financial calculation consistency across scenarios
-- ✅ Tax benefit calculations and IRR accuracy
-- ✅ SARON variable rate mortgage implementation
-- ✅ Monte Carlo simulation and HTML report generation
-- ✅ Dashboard components and case loading
-- ✅ Script integration and data flow
-- ✅ End-to-end consistency and error handling
+- ✅ Python module imports
+- ✅ Assumptions file structure
+- ✅ Cross-dependencies
+- ✅ Generated data files
+- ✅ Calculation consistency
+- ✅ Cross-validation (assumptions ↔ data)
+- ✅ Sensitivity analysis
+- ✅ Monte Carlo simulation
+- ✅ Dashboard components
+- ✅ Script integration
+- ✅ End-to-end consistency
 
 **Example Output:**
 
@@ -343,6 +395,6 @@ The dashboard (`website/index.html`) uses:
 
 ---
 
-**Last Updated**: December 25, 2025
-**Status**: Production Ready ✅
-**Validation**: All systems operational (Monte Carlo integrated)
+**Last Updated**: January 26, 2026  
+**Status**: Production Ready ✅  
+**Validation**: 198/198 checks passing

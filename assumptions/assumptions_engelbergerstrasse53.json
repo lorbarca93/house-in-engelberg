@@ -1,0 +1,28 @@
+{
+  "_comment": "Engelbergerstrasse 53 Scenario Assumptions",
+  "_description": "Property built 1971, renovated 2018. Special financing with accelerated amortization to 70% LTV in 5 years. Located in Engelberg, suitable for vacation rental investment.",
+  "_case_metadata": {
+    "display_name": "Engelbergerstrasse 53",
+    "description": "1971 property, renovated 2018. 25% down, 1.8% fixed 10yr, accelerated amortization to 70% LTV in 5 years",
+    "enabled": true
+  },
+  
+  "financing": {
+    "_explanation": "Engelbergerstrasse 53 financing terms: 25% down payment (235,000 CHF equity), 75% LTV loan (705,000 CHF), 1.8% fixed interest rate for 10 years. Special amortization requirement: must pay down to 70% LTV (658,000 CHF) within 5 years, requiring 47,000 CHF total amortization (9,400 CHF/year = 1.333% of initial loan).",
+    
+    "purchase_price": 940000.0,
+    "_purchase_price_explanation": "Purchase price for Engelbergerstrasse 53 property. Property was built in 1971 and renovated in 2018, making it suitable for vacation rental with modern amenities while maintaining character.",
+    
+    "ltv": 0.75,
+    "_ltv_explanation": "75% loan-to-value ratio means 25% down payment (235,000 CHF equity). Starting loan amount is 705,000 CHF. The loan must be amortized to 70% LTV (658,000 CHF) within 5 years, requiring 47,000 CHF total amortization.",
+    
+    "interest_rate": 0.018,
+    "_interest_rate_explanation": "1.8% annual interest rate, fixed for 10 years. This is higher than the base case (1.3%) but provides rate certainty for the first 10 years. After year 10, the loan will need to be refinanced at prevailing market rates.",
+    
+    "amortization_rate": 0.01333,
+    "_amortization_explanation": "1.333% annual amortization rate calculated to reduce loan from 705,000 CHF (75% LTV) to 658,000 CHF (70% LTV) in exactly 5 years. Annual amortization: 705,000 × 0.01333 = 9,400 CHF/year. Total amortization over 5 years: 47,000 CHF. Monthly amortization: 783.33 CHF/month. This accelerated amortization improves equity position faster but increases monthly debt service compared to slower amortization schedules.",
+    
+    "num_owners": 4,
+    "_num_owners_explanation": "Four co-owners is the default assumption, matching the base case. This can be adjusted if the property will have a different ownership structure."
+  }
+}

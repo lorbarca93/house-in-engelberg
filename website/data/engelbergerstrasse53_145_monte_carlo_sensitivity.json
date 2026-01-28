@@ -1,0 +1,254 @@
+{
+  "case_name": "engelbergerstrasse53_145",
+  "base_npv_probability": 0.682,
+  "sensitivities": [
+    {
+      "parameter": "Interest Rate",
+      "base_value": 0.0145,
+      "values": [
+        {
+          "value": 0.00725,
+          "npv_probability": 0.72
+        },
+        {
+          "value": 0.009666666666666667,
+          "npv_probability": 0.7
+        },
+        {
+          "value": 0.012083333333333335,
+          "npv_probability": 0.7
+        },
+        {
+          "value": 0.0145,
+          "npv_probability": 0.73
+        },
+        {
+          "value": 0.016916666666666667,
+          "npv_probability": 0.62
+        },
+        {
+          "value": 0.019333333333333334,
+          "npv_probability": 0.63
+        },
+        {
+          "value": 0.021750000000000002,
+          "npv_probability": 0.6
+        },
+        {
+          "value": 0.02416666666666667,
+          "npv_probability": 0.6
+        },
+        {
+          "value": 0.026583333333333334,
+          "npv_probability": 0.6
+        },
+        {
+          "value": 0.029,
+          "npv_probability": 0.58
+        }
+      ],
+      "min_probability": 0.58,
+      "max_probability": 0.73,
+      "impact": 0.15000000000000002
+    },
+    {
+      "parameter": "Purchase Price",
+      "base_value": 940000.0,
+      "values": [
+        {
+          "value": 752000.0,
+          "npv_probability": 0.74
+        },
+        {
+          "value": 793777.7777777778,
+          "npv_probability": 0.67
+        },
+        {
+          "value": 835555.5555555555,
+          "npv_probability": 0.72
+        },
+        {
+          "value": 877333.3333333334,
+          "npv_probability": 0.67
+        },
+        {
+          "value": 919111.1111111111,
+          "npv_probability": 0.72
+        },
+        {
+          "value": 960888.8888888889,
+          "npv_probability": 0.7
+        },
+        {
+          "value": 1002666.6666666666,
+          "npv_probability": 0.66
+        },
+        {
+          "value": 1044444.4444444445,
+          "npv_probability": 0.65
+        },
+        {
+          "value": 1086222.2222222222,
+          "npv_probability": 0.65
+        },
+        {
+          "value": 1128000.0,
+          "npv_probability": 0.6
+        }
+      ],
+      "min_probability": 0.6,
+      "max_probability": 0.74,
+      "impact": 0.14
+    },
+    {
+      "parameter": "Price per Night",
+      "base_value": 200.0,
+      "values": [
+        {
+          "value": 140.0,
+          "npv_probability": 0.67
+        },
+        {
+          "value": 153.33333333333334,
+          "npv_probability": 0.69
+        },
+        {
+          "value": 166.66666666666666,
+          "npv_probability": 0.66
+        },
+        {
+          "value": 180.0,
+          "npv_probability": 0.61
+        },
+        {
+          "value": 193.33333333333331,
+          "npv_probability": 0.68
+        },
+        {
+          "value": 206.66666666666669,
+          "npv_probability": 0.68
+        },
+        {
+          "value": 220.0,
+          "npv_probability": 0.72
+        },
+        {
+          "value": 233.33333333333331,
+          "npv_probability": 0.69
+        },
+        {
+          "value": 246.66666666666666,
+          "npv_probability": 0.71
+        },
+        {
+          "value": 260.0,
+          "npv_probability": 0.65
+        }
+      ],
+      "min_probability": 0.61,
+      "max_probability": 0.72,
+      "impact": 0.10999999999999999
+    },
+    {
+      "parameter": "Amortization Rate",
+      "base_value": 0.01333,
+      "values": [
+        {
+          "value": 0.0,
+          "npv_probability": 0.71
+        },
+        {
+          "value": 0.0022222222222222222,
+          "npv_probability": 0.73
+        },
+        {
+          "value": 0.0044444444444444444,
+          "npv_probability": 0.69
+        },
+        {
+          "value": 0.006666666666666666,
+          "npv_probability": 0.71
+        },
+        {
+          "value": 0.008888888888888889,
+          "npv_probability": 0.65
+        },
+        {
+          "value": 0.011111111111111112,
+          "npv_probability": 0.67
+        },
+        {
+          "value": 0.013333333333333332,
+          "npv_probability": 0.69
+        },
+        {
+          "value": 0.015555555555555557,
+          "npv_probability": 0.66
+        },
+        {
+          "value": 0.017777777777777778,
+          "npv_probability": 0.64
+        },
+        {
+          "value": 0.02,
+          "npv_probability": 0.67
+        }
+      ],
+      "min_probability": 0.64,
+      "max_probability": 0.73,
+      "impact": 0.08999999999999997
+    },
+    {
+      "parameter": "Occupancy Rate",
+      "base_value": 0.65,
+      "values": [
+        {
+          "value": 0.52,
+          "npv_probability": 0.69
+        },
+        {
+          "value": 0.5488888888888889,
+          "npv_probability": 0.69
+        },
+        {
+          "value": 0.5777777777777778,
+          "npv_probability": 0.67
+        },
+        {
+          "value": 0.6066666666666667,
+          "npv_probability": 0.66
+        },
+        {
+          "value": 0.6355555555555555,
+          "npv_probability": 0.69
+        },
+        {
+          "value": 0.6644444444444445,
+          "npv_probability": 0.75
+        },
+        {
+          "value": 0.6933333333333334,
+          "npv_probability": 0.67
+        },
+        {
+          "value": 0.7222222222222222,
+          "npv_probability": 0.7
+        },
+        {
+          "value": 0.7511111111111111,
+          "npv_probability": 0.73
+        },
+        {
+          "value": 0.78,
+          "npv_probability": 0.7
+        }
+      ],
+      "min_probability": 0.66,
+      "max_probability": 0.75,
+      "impact": 0.08999999999999997
+    }
+  ],
+  "analysis_type": "mc_sensitivity",
+  "metric": "NPV > 0 Probability",
+  "timestamp": "2026-01-28T08:03:43.924462"
+}

@@ -21,7 +21,17 @@
     "_amortization_explanation": "0.444% annual amortization rate calculated to reduce LTV from 75% to 70% over 15 years. Starting loan: CHF 975,000 (75% of CHF 1,300,000). Target loan after 15 years: CHF 910,000 (70% of original purchase price). Annual amortization: CHF 4,333. This gradual paydown improves equity position while maintaining cash flow.",
 
     "num_owners": 4,
-    "_num_owners_explanation": "Four co-owners is a practical number for managing a vacation property. It balances personal use (5 nights per owner = 20 total nights) with rental income potential. More owners would reduce equity per person but also reduce individual cash flow requirements. Fewer owners would increase equity requirements per person."
+    "_num_owners_explanation": "Four co-owners is a practical number for managing a vacation property. It balances personal use (5 nights per owner = 20 total nights) with rental income potential. More owners would reduce equity per person but also reduce individual cash flow requirements. Fewer owners would increase equity requirements per person.",
+
+    "acquisition_costs": {
+      "_explanation": "Acquisition costs paid by buyer at purchase. Transfer tax and broker fees are paid by seller. Notary fees are split 50-50 with seller.",
+      "notary_fee_rate": 0.0075,
+      "_notary_fee_rate_explanation": "0.75% notary fees (buyer's share of 1.5% total, split 50-50 with seller)",
+      "legal_documentation_fee_rate": 0.003,
+      "_legal_documentation_fee_rate_explanation": "0.3% legal documentation fees",
+      "total_rate": 0.0105,
+      "_total_explanation": "Total acquisition costs = 1.05% of purchase price (0.75% notary + 0.3% legal)"
+    }
   },
 
   "rental": {
@@ -91,7 +101,7 @@
     "_management_fee_explanation": "20% of gross rental income for property management (updated per manager quote). Cleaning is separate (see cleaning_cost_per_stay).",
 
     "cleaning_cost_per_stay": 100.0,
-    "_cleaning_cost_explanation": "100 CHF per stay for cleaning. Reduced from previous estimate based on updated cost analysis.",
+    "_cleaning_cost_explanation": "100 CHF per stay for cleaning per latest property manager quote. Charged separately from management fees.",
 
     "average_length_of_stay": 1.7,
     "_length_of_stay_explanation": "1.7 nights average length of stay is based on Engelberg Airbnb analytics. Most guests stay 1-3 nights, with weekend stays common. This affects the number of cleaning cycles and tourist tax calculations.",
@@ -102,8 +112,8 @@
     "avg_guests_per_night": 2.0,
     "_avg_guests_explanation": "2.0 average guests per night is based on typical booking patterns. Most bookings are for couples or small families. This affects tourist tax calculations and utility usage.",
 
-    "insurance_rate": 0.003,
-    "_insurance_rate_explanation": "0.3% of property value annually for insurance is standard for Swiss vacation rental properties. This covers property insurance, liability insurance, and rental interruption insurance. Insurance costs in Switzerland typically range from 0.3-0.5% of property value for vacation rentals.",
+    "insurance_rate": 0.0015,
+    "_insurance_rate_explanation": "0.15% of property value annually for insurance is standard for Swiss vacation rental properties. This covers property insurance, liability insurance, and rental interruption insurance. Insurance costs in Switzerland typically range from 0.3-0.5% of property value for vacation rentals.",
 
     "nubbing_costs_annual": 2000.0,
     "_nubbing_costs_explanation": "2,000 CHF annually for nubbing costs (shared expenses for shared parts like water and heating in multi-unit buildings). This is typical for properties in shared buildings in Switzerland. These are fixed costs for common areas and shared utilities.",
@@ -111,8 +121,8 @@
     "electricity_internet_annual": 1000.0,
     "_electricity_internet_explanation": "1,000 CHF annually for electricity and internet. Swiss electricity costs are moderate, and internet is essential for vacation rentals (guests expect WiFi). This covers both utilities and is based on typical consumption for a 3-4 bedroom vacation rental property.",
 
-    "maintenance_rate": 0.004,
-    "_maintenance_rate_explanation": "0.4% of property value annually for maintenance reserve is realistic for a newer property in good condition. This equals CHF 3,600/year (0.4% of CHF 900K) for the 900K house scenario, and CHF 5,200/year (0.4% of CHF 1.3M) for the base case. Covers routine maintenance and minor repairs while maintaining healthy cash flow. Major capital expenditures can be funded separately if needed. This aligns with industry best practices of 5-10% of gross revenue for maintenance.",
+    "maintenance_rate": 0.0025,
+    "_maintenance_rate_explanation": "0.25% of property value annually for maintenance reserve is realistic for a newer property in good condition. This equals CHF 3,250/year and covers routine maintenance and minor repairs while maintaining healthy cash flow. Major capital expenditures can be funded separately if needed. This aligns with industry best practices of 5-10% of gross revenue for maintenance.",
 
     "ota_booking_percentage": 0.5,
     "_ota_booking_percentage_explanation": "50% of bookings come through Online Travel Agencies (OTAs) like Airbnb or Booking.com. The remaining 50% come through direct bookings or other channels. This percentage can be adjusted based on actual booking channel mix.",
@@ -122,13 +132,13 @@
   },
 
   "tax": {
-    "_explanation": "Tax assumptions for calculating after-tax returns on investment property income in Switzerland.",
+    "_explanation": "Tax assumptions for calculating after-tax returns on investment property income in Switzerland. Only interest payments (not principal repayment) are tax-deductible. Tax savings from interest deductions are added to cash flows.",
 
-    "marginal_tax_rate": 0.21,
-    "_marginal_tax_rate_explanation": "21% marginal tax rate for rental income. This represents the combined federal and cantonal tax rate applicable to investment property income in Switzerland.",
+    "marginal_tax_rate": 0.3,
+    "_marginal_tax_rate_explanation": "30% marginal tax rate for rental income. This represents the combined federal and cantonal tax rate applicable to investment property income in Switzerland. Interest payments on the mortgage are tax-deductible, providing tax savings equal to interest × 30%. Principal repayments are not tax-deductible.",
 
     "depreciation_rate": 0.02,
-    "_depreciation_rate_explanation": "2% annual depreciation rate on property value. In Switzerland, investment properties can be depreciated for tax purposes, typically 2-3% annually. This provides additional tax deductions beyond interest and operating expenses."
+    "_depreciation_rate_explanation": "2% annual depreciation rate on property value. In Switzerland, investment properties can be depreciated for tax purposes, typically 2-3% annually. This provides additional tax deductions beyond interest and operating expenses. Note: Currently only interest deductions are applied in cash flow calculations."
   },
 
   "projection": {
@@ -140,14 +150,14 @@
     "projection_years": 15,
     "_projection_years_explanation": "15-year projection is standard for real estate investment analysis. It's long enough to see appreciation and loan paydown effects, but short enough to be realistic. Most Swiss mortgages are refinanced after 10-15 years anyway.",
 
-    "inflation_rate": 0.01,
-    "_inflation_rate_explanation": "1% annual inflation is conservative for Switzerland. The Swiss National Bank targets 2%, but using 1% provides a more cautious forecast. This affects both revenue (rents increase) and expenses (costs increase) over time.",
+    "inflation_rate": 0.008,
+    "_inflation_rate_explanation": "0.8% annual inflation is conservative for Switzerland. The Swiss National Bank targets 2%, but using 0.8% provides a more cautious forecast. This affects both revenue (rents increase) and expenses (costs increase) over time.",
 
-    "property_appreciation_rate": 0.03,
-    "_property_appreciation_explanation": "3.0% annual property appreciation applied consistently across all cases. More conservative estimate than previous 4% rate.",
+    "property_appreciation_rate": 0.04,
+    "_property_appreciation_explanation": "4.0% annual property appreciation (updated) applied consistently across all cases per latest guidance.",
 
-    "discount_rate": 0.04,
-    "_discount_rate_explanation": "4% discount rate for NPV calculations reflects a lower opportunity cost of capital. Reduced from 5% to better reflect current market conditions.",
+    "discount_rate": 0.05,
+    "_discount_rate_explanation": "5% discount rate for NPV calculations reflects the opportunity cost of capital and investment risk. This is a typical required return for real estate investments in Switzerland.",
 
     "selling_costs": {
       "_explanation": "Selling costs incurred when the property is sold at year 15. These are deducted from sale proceeds in IRR calculations.",

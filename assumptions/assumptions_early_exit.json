@@ -27,21 +27,21 @@
     "winter_peak": {
       "name": "Winter Peak (Ski Season)",
       "months": [12, 1, 2, 3],
-      "occupancy_rate": 0.40,
+      "occupancy_rate": 0.4,
       "_occupancy_rate_explanation": "40% occupancy (down from 70% base case). Poor winter performance significantly impacts revenue since winter has the highest rates (250 CHF/night).",
       "average_daily_rate": 250.0
     },
     "summer_peak": {
       "name": "Summer Peak (Hiking Season)",
       "months": [6, 7, 8, 9],
-      "occupancy_rate": 0.40,
+      "occupancy_rate": 0.4,
       "_occupancy_rate_explanation": "40% occupancy (down from 70% base case). Poor summer performance reduces revenue during the second-highest demand period.",
       "average_daily_rate": 200.0
     },
     "offpeak": {
       "name": "Off-Peak (Shoulder Seasons)",
       "months": [4, 5, 10, 11],
-      "occupancy_rate": 0.40,
+      "occupancy_rate": 0.4,
       "_occupancy_rate_explanation": "40% occupancy (down from 70% base case). Poor off-peak performance further reduces overall revenue.",
       "average_daily_rate": 150.0
     }
@@ -50,24 +50,16 @@
   "expenses": {
     "_explanation": "Expense assumptions remain the same as base case. Lower occupancy means fewer cleanings, but fixed costs remain.",
     "property_management_fee_rate": 0.2,
-    "cleaning_cost_per_stay": 150.0,
+    "cleaning_cost_per_stay": 100.0,
     "average_length_of_stay": 1.7,
     "tourist_tax_per_person_per_night": 3.0,
     "avg_guests_per_night": 2.0,
-    "insurance_rate": 0.004,
+    "insurance_rate": 0.0015,
     "nubbing_costs_annual": 2000.0,
     "electricity_internet_annual": 1000.0,
-    "maintenance_rate": 0.005,
+    "maintenance_rate": 0.0025,
     "ota_booking_percentage": 0.5,
     "ota_fee_rate": 0.3
-  },
-
-  "tax": {
-    "_explanation": "Tax assumptions for calculating after-tax returns on investment property income in Switzerland.",
-    "marginal_tax_rate": 0.21,
-    "_marginal_tax_rate_explanation": "21% marginal tax rate for rental income. This represents the combined federal and cantonal tax rate applicable to investment property income in Switzerland.",
-    "depreciation_rate": 0.02,
-    "_depreciation_rate_explanation": "2% annual depreciation rate on property value. In Switzerland, investment properties can be depreciated for tax purposes, typically 2-3% annually. This provides additional tax deductions beyond interest and operating expenses."
   },
 
   "projection": {
@@ -75,7 +67,7 @@
     "start_year": 2026,
     "projection_years": 6,
     "_projection_years_explanation": "6-year projection period. Owners decide to exit after 6 years of poor performance (40% occupancy vs expected 70%). Early exit means less time for property appreciation and loan paydown to improve returns.",
-    "inflation_rate": 0.01,
+    "inflation_rate": 0.008,
     "property_appreciation_rate": 0.04,
     "discount_rate": 0.05,
     "selling_costs": {
@@ -86,4 +78,3 @@
     }
   }
 }
-
