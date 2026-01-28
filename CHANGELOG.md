@@ -2,6 +2,40 @@
 
 All notable changes to the Engelberg Property Investment Simulation will be documented in this file.
 
+## [2026-01-28] - Calculation Rigor, Monte Carlo Enhancements, and Documentation
+
+### Fee and Expense Logic (Consistent Across All Models)
+
+- **Property management fee**: Applied only on **revenue after deducting OTA platform fees and cleaning fees**. Base = gross rental income − OTA fees − cleaning cost; management cost = base × management fee rate. Implemented in `compute_annual_cash_flows()`, `compute_15_year_projection()`, and `compute_detailed_expenses()` in `engelberg/core.py`.
+- **Cleaning fee**: Applied only at the end of each short-term guest stay. Cost = (rented nights ÷ average length of stay) × cleaning cost per stay (CHF). Projection logic now recalculates cleaning and tourist tax from actual rented nights and variable length-of-stay / avg-guests when provided.
+
+### Monte Carlo Analysis Improvements
+
+- **Stochastic parameters**: Added OTA booking percentage, OTA fee rate, average length of stay, avg guests per night, cleaning cost per stay, marginal tax rate, and discount rate to `get_default_distributions()` with calibrated bounds. Occupancy and daily rate distributions refined.
+- **Time-varying parameters**: AR(1) mean-reverting series for inflation and property appreciation over the 15-year horizon (inflation bounds 0–3%, appreciation bounds -2% to 9%).
+- **Events**: Major maintenance (Poisson process), market shock scenarios (low probability, occupancy/rate/value impact with recovery), and refinancing opportunities (when market rate drops vs current rate).
+- **Fixed parameters in MC**: Interest rate, management fee, owner nights, and nubbing costs are no longer sampled; base config values are used.
+- **Projection fixes**: Rented nights calculated per year from base × inflation × shock multiplier; cleaning cost and tourist tax recalculated from rented nights, avg length of stay, and avg guests. Revenue under shocks uses occupancy and rate multipliers consistently.
+- **Correlation matrix**: Expanded for new stochastic parameters; fixed parameters removed from sampling and correlation.
+
+### Calculation and Code Quality
+
+- Removed unused `discount_rate` parameter from `run_monte_carlo_simulation()` (discount rate is now sampled).
+- Verified revenue calculation under market shocks (occupancy × rate multipliers).
+- Verified inflation factor indexing (year N uses factor from year N-1).
+- Updated docstrings and comments for management fee base, projection logic, and time series usage.
+
+### Testing and Validation
+
+- New unit tests for projection: variable length of stay, variable avg guests, rented nights calculation.
+- Updated unit tests for management fee (revenue-after-platform-and-cleaning base) and IRR (decimal format, edge cases).
+- System validation: 352 checks passing; 11 cases × 6 analyses (base case, sensitivity, sensitivity_coc, sensitivity_ncf, monte_carlo, monte_carlo_sensitivity).
+
+### Documentation
+
+- **README.md**: Updated to 11 cases, 6 analyses, 66+ data files, 352 validation checks; added "Fee and Expense Logic" section; updated Key Metrics (base case); expanded Monte Carlo description (stochastic/fixed params, time-varying, events); corrected script paths and validation counts; Last Updated January 28, 2026.
+- **QUICK_START.md**: Updated to 11 scenarios, 7 analysis types (including MC Sensitivity), 352 checks, current base case metrics, configuration table; Last Updated January 28, 2026.
+
 ## [2026-01-26] - Module Separation: Model Sensitivity and MC Sensitivity
 
 ### Module Structure Refactoring

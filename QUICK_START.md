@@ -1,133 +1,99 @@
-# 🚀 Engelberg Property Investment - Quick Start Guide
+# Quick Start Guide
 
-## ⚡ Run Analysis in One Command
+Get the Engelberg Property Investment Simulation running in a few steps. For full documentation, see [README.md](README.md).
 
-### Unified Analysis Script
+---
+
+## Contents
+
+- [Run analysis](#run-analysis)
+- [View results](#view-results)
+- [Key metrics](#current-results-base-case)
+- [File structure](#file-structure)
+- [Modify assumptions](#modify-assumptions)
+- [Sensitivity overview](#sensitivity-analysis-overview)
+- [Understanding metrics](#key-metrics-explained)
+- [Validation](#validation)
+
+---
+
+## Run analysis
+
+**Single case (base or named file):**
 
 ```bash
-python scripts/analyze.py                              # All analyses for base case
-python scripts/analyze.py assumptions_migros.json      # All analyses for Migros
-python scripts/analyze.py --analysis base              # Only base case
-python scripts/analyze.py --analysis sensitivity       # Only sensitivity (all 3 types)
-python scripts/analyze.py --analysis monte_carlo       # Only Monte Carlo
+python scripts/analyze.py                              # Base case, all analyses
+python scripts/analyze.py assumptions_migros.json     # Migros case
+python scripts/analyze.py --analysis base              # Base case only
+python scripts/analyze.py --analysis sensitivity      # All 3 sensitivity types
+python scripts/analyze.py --analysis monte_carlo      # Monte Carlo only
 python scripts/analyze.py --simulations 5000           # Custom simulation count
 python scripts/analyze.py --quiet                      # Minimal output
 ```
 
-### Generate All Cases at Once
+**All cases at once:**
 
 ```bash
-python scripts/generate_all_data.py  # Generates 5 cases × 5 analyses = 26 files
+python scripts/generate_all_data.py   # 11 cases × 6 analyses → 66+ files
 ```
 
-### Validate System
+**Validate:**
 
 ```bash
-python scripts/validate_system.py    # 198 comprehensive checks
+python scripts/validate_system.py      # 352 checks
 ```
 
 ---
 
-## 📊 View Results
+## View results
 
-**Start the server:**
+1. Start a local server:
 
-```bash
-cd website
-python -m http.server 8080
-```
+   ```bash
+   cd website
+   python -m http.server 8080
+   ```
 
-**Open in browser**: http://localhost:8080/index.html
+2. Open **http://localhost:8080/index.html** in your browser.
 
-**Dashboard Features:**
-
-- 🔄 Switch between 11 cases (Base, Migros, 3/5 Owners, Engelbergerstrasse 53 variants, and more)
-- 📈 View 6 analysis types:
-  - **Model** - Base case KPIs and 15-year projection
-  - **Sensitivity - Equity IRR** - Dual tornado charts: Monthly After-Tax Cash Flow per Person and Equity IRR (15-year)
-  - **Sensitivity - Cash-on-Cash** - Parameter impact on Year 1 yield
-  - **Sensitivity - Monthly NCF** - Parameter impact on monthly cash
-  - **Monte Carlo** - 1,000 probabilistic simulations
-  - **Scenario Comparison** - Side-by-side comparison of all scenarios
-- 🎨 Interactive Plotly tornado charts with:
-  - Hover explanations with detailed information
-  - Value annotations at bar ends showing final results
-- 📋 Detailed data tables
+**Dashboard:** Switch between 11 cases and 7 analysis types (Model, Sensitivity ×3, Monte Carlo, MC Sensitivity, Scenario Comparison). Charts and tables load from JSON.
 
 ---
 
-## 🎯 Current Results (Base Case)
+## Current results (base case)
 
-### Key Metrics
+| Metric               | Value                |
+| -------------------- | -------------------- |
+| Equity IRR (15Y)     | 7.92%                |
+| Project IRR          | 3.97%                |
+| NPV @ 5%             | CHF 45,630           |
+| MOIC                 | 3.27×                |
+| Cash Flow/Owner      | -CHF 1,007/year      |
+| Monthly NCF (AT)     | ~CHF -5/month        |
+| Payback Period       | 15 years (at sale)   |
 
-| Metric               | Value              |
-| -------------------- | ------------------ |
-| **Equity IRR (15Y)** | 4.63%              |
-| **Project IRR**      | 2.53%              |
-| **NPV @ 5%**         | -CHF 5,007         |
-| **MOIC**             | 2.17×              |
-| **Cash Flow/Owner**  | -CHF 2,870/year    |
-| **Monthly NCF**      | -CHF 239/month     |
-| **Payback Period**   | 15 years (at sale) |
-
-### Economic Assumptions
-
-| Parameter                   | Value      |
-| --------------------------- | ---------- |
-| **Inflation**               | 1.0%/year  |
-| **Property Appreciation**   | 2.5%/year  |
-| **Discount Rate**           | 5.0%       |
-| **Maintenance Reserve**     | 0.5%/year  |
-| **Selling Costs @ Year 15** | 7.8% total |
-
-### Selling Costs Breakdown
-
-- **Broker Fee**: 3.0%
-- **Notary Fees**: 1.5%
-- **Transfer Tax**: 3.3% (Canton Obwalden)
+**Assumptions:** Inflation 1.0%/year, appreciation 2.5%/year, discount 5.0%, maintenance 0.5%/year, selling costs 7.8% (broker 3%, notary 1.5%, transfer tax 3.3%).
 
 ---
 
-## 📁 File Structure
+## File structure
 
-### Core Package Structure
+| Path                    | Purpose                    |
+| ----------------------- | -------------------------- |
+| `engelberg/`            | Core package (core, analysis, monte_carlo, sensitivity) |
+| `scripts/`              | CLI: analyze, generate_all_data, validate_system        |
+| `assumptions/`          | JSON configs (11 cases)    |
+| `website/`              | Dashboard + `data/*.json`   |
+| `tests/`                | Unit, integration, regression |
 
-| Location                                | Purpose                                    |
-| --------------------------------------- | ------------------------------------------ |
-| `engelberg/`                            | Main Python package                        |
-| `engelberg/core.py`                     | Calculation engine (1,250+ lines)          |
-| `engelberg/analysis.py`                 | Analysis orchestration (main entry point)  |
-| `engelberg/model_sensitivity.py`        | Model Sensitivity analysis (deterministic) |
-| `engelberg/model_sensitivity_ranges.py` | Model Sensitivity parameter ranges config  |
-| `engelberg/mc_sensitivity.py`           | MC Sensitivity analysis (probabilistic)    |
-| `engelberg/mc_sensitivity_ranges.py`    | MC Sensitivity parameter ranges config     |
-| `engelberg/monte_carlo.py`              | Monte Carlo simulation (1,870+ lines)      |
-| `scripts/analyze.py`                    | CLI entry point for analyses               |
-| `scripts/generate_all_data.py`          | Batch data generator                       |
-| `scripts/validate_system.py`            | System validator (198 checks)              |
-| `assumptions/`                          | Assumptions files (10 cases)               |
-| `tests/`                                | Test suite (unit, integration, regression) |
-
-### Configuration (5 scenarios)
-
-| File                        | Description                                  |
-| --------------------------- | -------------------------------------------- |
-| `assumptions.json`          | Base case (4 owners, 75% LTV, 1.3% interest) |
-| `assumptions_migros.json`   | Migros financing (60% LTV, 1.8%, no amort)   |
-| `assumptions_3_owners.json` | 3 owners scenario                            |
-| `assumptions_5_owners.json` | 5 owners scenario                            |
-| `assumptions_6_owners.json` | 6 owners scenario                            |
-
-### Output
-
-- `website/index.html` - Dynamic dashboard
-- `website/data/*.json` - 26 data files
+**Cases (11):** Base, Migros, 3/5 Owners, 90-Day Restriction, Climate Risk, Early Exit, Engelbergerstrasse 53 (×3), Interest Rate Spike.
 
 ---
 
-## 🔧 Modify Assumptions
+## Modify assumptions
 
-Edit `assumptions.json`:
+
+Edit `assumptions/assumptions.json` (base case) or add `assumptions/assumptions_mycase.json` (new case):
 
 ```json
 {
@@ -149,81 +115,112 @@ Edit `assumptions.json`:
 }
 ```
 
-Then regenerate:
-
-```bash
-python scripts/generate_all_data.py
-```
+Then run `python scripts/generate_all_data.py` and refresh the dashboard.
 
 ---
 
-## 📈 Sensitivity Analysis Overview
+## Sensitivity analysis overview
 
-### Top 5 Most Impactful Parameters (Equity IRR)
+Sensitivity analysis shows which parameters have the biggest impact on your investment returns. Focus optimization efforts on high-impact parameters.
+
+### Top 5 Most Impactful Parameters (Equity IRR - 15-Year Return)
 
 1. **Property Appreciation** (±4.09% IRR impact)
+   - Long-term value driver
+   - Hard to control, but critical for returns
 2. **Interest Rate** (±3.52% IRR impact)
+   - Negotiate best mortgage rate possible
+   - Consider refinancing opportunities
 3. **Average Daily Rate** (±2.94% IRR impact)
+   - Pricing strategy directly affects returns
+   - Test different rate levels in sensitivity
 4. **Maintenance Reserve** (±2.93% IRR impact)
+   - Budget for unexpected repairs
+   - Higher reserve = more conservative
 5. **Loan-to-Value** (±1.21% IRR impact)
+   - More equity = lower leverage = lower returns (but less risk)
 
-### Top 5 for Monthly Cash Flow
+### Top 5 for Monthly Cash Flow (What Hits Your Bank Account)
 
 1. **Interest Rate** (±CHF 406/month)
+   - Biggest monthly cash flow driver
+   - Small rate changes = big monthly impact
 2. **Amortization Rate** (±CHF 406/month)
+   - Faster paydown = more monthly cash out
+   - But builds equity faster
 3. **Average Daily Rate** (±CHF 225/month)
+   - Revenue driver
+   - Test pricing strategies
 4. **Occupancy Rate** (±CHF 160/month)
+   - Fill vacant nights
+   - Marketing and property quality matter
 5. **Purchase Price** (±CHF 140/month)
+   - Negotiate purchase price
+   - Lower price = better cash flow
 
 ---
 
-## 🎓 Understanding Negative Cash Flow
+## Understanding negative cash flow
 
-**Monthly Cash Flow: -CHF 239/month per owner**
+**Current Base Case: -CHF 1,007/year per owner (~CHF -84/month)**
 
-This means you contribute ~CHF 240/month. Why?
+This means you contribute cash each month. Why?
 
 ### The Math:
 
 ```
-Revenue:          CHF  51,360
-- Expenses:       CHF  40,413
-= NOI:            CHF  10,946
-- Debt Service:   CHF  22,426  (2× higher than NOI!)
-= Cash Flow:      CHF -11,479
-÷ 4 owners:       CHF  -2,870/year
-÷ 12 months:      CHF    -239/month
+Gross Rental Income:    CHF  48,783
+- Operating Expenses:   CHF  28,487
+= Net Operating Income: CHF  12,978  ✅ POSITIVE!
+
+- Debt Service:         CHF  17,008  (interest + principal)
+= Cash Flow:            CHF  -4,029
+÷ 4 owners:             CHF  -1,007/year
+÷ 12 months:             CHF     -84/month
 ```
+
+**Key Insight**: The property generates positive NOI, but debt service exceeds it. This is common in leveraged real estate investments.
 
 ### But You're Building Wealth:
 
 ```
-Negative Cash:    -CHF   2,870/year
-+ Equity Buildup: +CHF   2,437/year (amortization)
-+ Appreciation:   +CHF   8,125/year (2.5% × CHF 325k share)
-+ Personal Use:   +CHF   1,000/year (5 nights @ CHF 200)
-= Economic Value: +CHF   8,692/year  ✅ POSITIVE!
+Negative Cash Flow:     -CHF   1,007/year
++ Tax Savings:          +CHF     951/year (interest deduction)
++ Equity Buildup:       +CHF   1,083/year (principal payments)
++ Property Appreciation:+CHF   8,125/year (2.5% × CHF 325k share)
++ Personal Use Value:   +CHF   1,000/year (5 nights @ market rate)
+─────────────────────────────────────────────────────
+= Total Economic Value: +CHF  10,152/year  ✅ POSITIVE!
 ```
 
----
-
-## ⚠️ Key Metrics Explained
-
-| Metric           | Description                                     |
-| ---------------- | ----------------------------------------------- |
-| **Equity IRR**   | Return on your equity investment over 15 years  |
-| **Project IRR**  | Return if you bought with 100% cash (no debt)   |
-| **Cash-on-Cash** | Year 1 cash flow ÷ Initial equity               |
-| **Monthly NCF**  | Actual CHF hitting your bank account monthly    |
-| **NPV**          | Present value of all cash flows at 5% discount  |
-| **MOIC**         | Total cash returned ÷ Initial investment        |
-| **Payback**      | Years until cumulative cash flow turns positive |
+**The investment is profitable when you account for all value creation, not just cash flow!**
 
 ---
 
-## 🔍 Validation
+## Key metrics explained
 
-Run 198 comprehensive checks:
+| Metric           | Description                                                                 | Good Value        |
+| ---------------- | --------------------------------------------------------------------------- | ----------------- |
+| **Equity IRR**   | Annualized return on your equity investment over 15 years (includes sale)   | > 7%              |
+| **Project IRR**  | Return if you bought with 100% cash (no debt) - shows property fundamentals | > 3%              |
+| **Cash-on-Cash** | Year 1 cash flow ÷ Initial equity - immediate yield                        | > 0% (positive)   |
+| **Monthly NCF**  | Actual CHF hitting your bank account monthly (after-tax)                    | > 0 (positive)    |
+| **NPV**          | Present value of all cash flows at 5% discount - value creation            | > 0 (positive)    |
+| **MOIC**         | Total cash returned ÷ Initial investment - wealth multiplier               | > 2×              |
+| **Payback**      | Years until cumulative cash flow turns positive (with sale)                | < 15 years        |
+
+### Quick Interpretation Guide
+
+- **IRR > 7%**: Strong return, beats most fixed-income investments
+- **NPV > 0**: Investment creates value at 5% discount rate
+- **MOIC > 3×**: Excellent wealth creation over 15 years
+- **Negative Cash Flow**: Normal for leveraged investments; focus on total returns
+
+---
+
+## Validation
+
+Run 352 comprehensive checks:
 
 ```bash
 python scripts/validate_system.py
@@ -233,15 +230,28 @@ Expected output:
 
 ```
 [SUCCESS] SYSTEM VALIDATION PASSED
-[PASS] Passed:  198
+[PASS] Passed:  352
 [FAIL] Failed:  0
 ```
 
 ---
 
 **Created**: December 3, 2025  
-**Last Updated**: January 26, 2026  
+**Last Updated**: January 28, 2026  
 **Status**: Production Ready ✅  
-**Validation**: 198/198 checks passing
+**Validation**: 352/352 checks passing
 
-**Questions?** See README.md for full documentation.
+## Pro tips
+
+1. **Start with Base Case**: Understand the base scenario before exploring alternatives
+2. **Use Scenario Comparison**: Quickly identify best-performing scenarios across all metrics
+3. **Focus on High-Impact Parameters**: Use sensitivity analysis to prioritize optimization efforts
+4. **Monte Carlo for Risk**: Understand probability distributions, not just point estimates
+5. **After-Tax Cash Flow**: Most practical metric for monthly budgeting
+6. **IRR for Comparison**: Best metric for comparing to other investments
+
+## See also
+
+- **[README.md](README.md)** — Full documentation, analysis types, troubleshooting
+- **[CHANGELOG.md](CHANGELOG.md)** — Version history and implementation notes
+- **Validation** — `python scripts/validate_system.py` (352 checks)
