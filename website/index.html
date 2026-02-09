@@ -8,6 +8,12 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+    />
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
       * {
@@ -60,6 +66,7 @@
         --font-size-xl: 1.25rem;
         --font-size-2xl: 1.5rem;
         --font-size-3xl: 2rem;
+        --font-family: "Space Grotesk", "Segoe UI", Arial, sans-serif;
 
         /* Shadows */
         --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -78,9 +85,7 @@
       }
 
       body {
-        font-family:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-          "Helvetica Neue", Arial, sans-serif;
+        font-family: var(--font-family);
         background: #f5f6fa;
         color: var(--dark);
         line-height: 1.5;
@@ -112,6 +117,13 @@
         display: flex;
         align-items: center;
         gap: 10px;
+      }
+
+      .top-controls {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
       }
 
       .case-selector {
@@ -373,6 +385,177 @@
         border-bottom: 1px solid var(--border);
       }
 
+      .story-hero {
+        background: linear-gradient(145deg, #ffffff 0%, #eef3ff 100%);
+        border: 1px solid #d9e4ff;
+        border-radius: var(--radius-lg);
+        padding: var(--space-xl);
+        margin-bottom: var(--space-xl);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .story-header {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--space-md);
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .story-header h2 {
+        margin: 0;
+        color: var(--primary);
+        font-size: var(--font-size-2xl);
+      }
+
+      .signal-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: var(--font-size-sm);
+        font-weight: 700;
+      }
+
+      .signal-good {
+        background: #dcfce7;
+        color: #166534;
+      }
+
+      .signal-neutral {
+        background: #fef3c7;
+        color: #92400e;
+      }
+
+      .signal-risk {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+
+      .story-lead {
+        margin-top: var(--space-md);
+        color: var(--gray-700);
+        font-size: var(--font-size-base);
+        line-height: 1.7;
+      }
+
+      .story-list {
+        margin-top: var(--space-md);
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: var(--space-md);
+      }
+
+      .story-item {
+        background: rgba(255, 255, 255, 0.75);
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius-md);
+        padding: var(--space-md);
+      }
+
+      .story-item h4 {
+        margin: 0 0 6px 0;
+        color: var(--primary);
+        font-size: var(--font-size-sm);
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+      }
+
+      .story-item p {
+        margin: 0;
+        color: var(--gray-700);
+        font-size: var(--font-size-sm);
+        line-height: 1.6;
+      }
+
+      .insight-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: var(--space-md);
+        margin-bottom: var(--space-lg);
+      }
+
+      .insight-card {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius-md);
+        padding: var(--space-md);
+      }
+
+      .insight-card h4 {
+        margin: 0;
+        font-size: var(--font-size-sm);
+        color: var(--gray-500);
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+      }
+
+      .insight-card .insight-value {
+        margin-top: 6px;
+        font-size: var(--font-size-xl);
+        font-weight: 700;
+        color: var(--primary);
+      }
+
+      .insight-card .insight-note {
+        margin-top: 6px;
+        font-size: var(--font-size-xs);
+        color: var(--gray-500);
+      }
+
+      .chart-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: var(--space-lg);
+      }
+
+      .chart-panel {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius-lg);
+        padding: var(--space-md);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .chart-panel h3 {
+        margin: 0 0 var(--space-sm) 0;
+        color: var(--primary);
+        font-size: var(--font-size-lg);
+      }
+
+      .chart-panel p {
+        margin: 0 0 var(--space-md) 0;
+        color: var(--gray-500);
+        font-size: var(--font-size-sm);
+      }
+
+      .metric-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: var(--space-md);
+      }
+
+      .metric-block {
+        background: var(--gray-50);
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius-md);
+        padding: var(--space-md);
+      }
+
+      .metric-block h4 {
+        margin: 0 0 var(--space-sm) 0;
+        color: var(--primary);
+        font-size: var(--font-size-base);
+      }
+
+      .metric-block p {
+        margin: 0;
+        color: var(--gray-700);
+        font-size: var(--font-size-sm);
+        line-height: 1.7;
+      }
+
       /* Responsive Design */
       @media (max-width: 768px) {
         .main-layout {
@@ -390,6 +573,11 @@
           flex-direction: column;
           gap: var(--space-md);
           padding: var(--space-md);
+        }
+
+        .top-controls {
+          width: 100%;
+          justify-content: stretch;
         }
 
         .case-selector {
@@ -450,11 +638,17 @@
     <!-- Top Navigation Bar -->
     <div class="top-bar">
       <h1><i class="fas fa-chart-line"></i> Engelberg Property Investment</h1>
-      <div class="case-selector">
-        <label for="caseSelect">Case:</label>
-        <select id="caseSelect">
-          <option value="">Loading cases...</option>
-        </select>
+      <div class="top-controls">
+        <div class="case-selector">
+          <label for="caseSelect">Case:</label>
+          <select id="caseSelect">
+            <option value="">Loading cases...</option>
+          </select>
+        </div>
+        <div class="case-selector" id="horizonSelectorContainer" style="display: none">
+          <label for="horizonSelect">Horizon:</label>
+          <select id="horizonSelect"></select>
+        </div>
       </div>
     </div>
 
@@ -482,7 +676,7 @@
             <i class="fas fa-dice"></i> Monte Carlo
           </li>
           <li class="sidebar-menu-item" data-analysis="monte_carlo_sensitivity">
-            <i class="fas fa-chart-line"></i> MC Sensitivity
+            <i class="fas fa-chart-line"></i> Monte Carlo Sensitivity
           </li>
           <li class="sidebar-menu-item" data-analysis="scenario_comparison">
             <i class="fas fa-balance-scale"></i> Scenario Comparison
@@ -504,8 +698,48 @@
       const State = {
         currentCase: null,
         currentAnalysis: "base_case",
+        currentHorizon: 15,
+        supportedHorizons: [5, 10, 15, 20, 25, 30, 35, 40],
         cases: [],
         data: {},
+      };
+
+      const HorizonResolver = {
+        supportedAnalyses: new Set(["base_case", "sensitivity"]),
+        hiddenAnalyses: new Set([
+          "sensitivity_coc",
+          "sensitivity_ncf",
+          "monte_carlo",
+          "monte_carlo_sensitivity",
+          "scenario_comparison",
+        ]),
+
+        isEligibleAnalysis(analysisType) {
+          return this.supportedAnalyses.has(analysisType);
+        },
+
+        hasSelectedHorizonData(data) {
+          if (!data || !data.by_horizon || typeof data.by_horizon !== "object") {
+            return false;
+          }
+          return Object.prototype.hasOwnProperty.call(
+            data.by_horizon,
+            String(State.currentHorizon),
+          );
+        },
+
+        resolve(data, analysisType) {
+          if (!this.isEligibleAnalysis(analysisType)) {
+            return { payload: data, horizonApplied: false };
+          }
+
+          if (!this.hasSelectedHorizonData(data)) {
+            return { payload: data, horizonApplied: false };
+          }
+
+          const horizonPayload = data.by_horizon[String(State.currentHorizon)];
+          return { payload: horizonPayload, horizonApplied: true };
+        },
       };
 
       // Data Manager
@@ -625,6 +859,42 @@
           });
         },
 
+        populateHorizonSelector() {
+          const select = document.getElementById("horizonSelect");
+          if (!select) return;
+
+          select.innerHTML = "";
+          State.supportedHorizons.forEach((horizon) => {
+            const option = document.createElement("option");
+            option.value = String(horizon);
+            option.textContent = `${horizon} years`;
+            if (horizon === State.currentHorizon) {
+              option.selected = true;
+            }
+            select.appendChild(option);
+          });
+        },
+
+        updateHorizonVisibility(currentAnalysis, data) {
+          const container = document.getElementById("horizonSelectorContainer");
+          const select = document.getElementById("horizonSelect");
+          if (!container || !select) return;
+
+          if (HorizonResolver.hiddenAnalyses.has(currentAnalysis)) {
+            container.style.display = "none";
+            return;
+          }
+
+          if (!HorizonResolver.isEligibleAnalysis(currentAnalysis)) {
+            container.style.display = "none";
+            return;
+          }
+
+          const showSelector = HorizonResolver.hasSelectedHorizonData(data);
+          container.style.display = showSelector ? "flex" : "none";
+          select.value = String(State.currentHorizon);
+        },
+
         updateAnalysisMenu(activeAnalysis) {
           document.querySelectorAll(".sidebar-menu-item").forEach((item) => {
             item.classList.remove("active");
@@ -634,23 +904,26 @@
           });
         },
 
-        showLoading() {
+        setContent(html) {
           const content = document.getElementById("contentArea");
-          content.innerHTML = `
+          content.innerHTML = html;
+        },
+
+        showLoading() {
+          UIManager.setContent(`
                     <div class="loading">
                         <i class="fas fa-spinner"></i>
                         <p>Loading data...</p>
                     </div>
-                `;
+                `);
         },
 
         showError(message) {
-          const content = document.getElementById("contentArea");
-          content.innerHTML = `
+          UIManager.setContent(`
                     <div class="error">
                         <i class="fas fa-exclamation-triangle"></i> ${message}
                     </div>
-                `;
+                `);
         },
       };
 
@@ -658,7 +931,7 @@
       const unifiedChartConfig = {
         paper_bgcolor: "#ffffff",
         plot_bgcolor: "#fafbfc",
-        font: { family: "Segoe UI, Arial", size: 13, color: "#2c3e50" },
+        font: { family: "Space Grotesk, Segoe UI, Arial, sans-serif", size: 13, color: "#2c3e50" },
         margin: { l: 240, r: 40, t: 70, b: 80 },
         hovermode: "closest",
         showlegend: true,
@@ -683,753 +956,572 @@
       // Chart Renderer
       const ChartRenderer = {
         renderBaseCase(data) {
-          const content = document.getElementById("contentArea");
-          const results = data.annual_results || {};
-          const kpis = data.kpis || {};
-          const irr = data.irr_results || {};
-          const projection = data.projection_15yr || [];
-          const numOwners = data.config?.financing?.num_owners || 1;
+          const resolved = HorizonResolver.resolve(data, "base_case");
+          const scopedData = resolved.payload || {};
 
-          // Helper function to format currency
-          const formatCHF = (value) => {
-            return value.toLocaleString("en-US", {
+          const results = data.annual_results || {};
+          const kpis = scopedData.kpis || data.kpis || {};
+          const irr = scopedData.irr_results || data.irr_results || {};
+          const projectionRaw =
+            scopedData.projection ||
+            data.projection ||
+            data.projection_15yr ||
+            [];
+          const projection = Array.isArray(projectionRaw)
+            ? projectionRaw.slice(
+                0,
+                resolved.horizonApplied ? State.currentHorizon : projectionRaw.length,
+              )
+            : [];
+          const horizonYears =
+            resolved.horizonApplied
+              ? State.currentHorizon
+              : Math.max(projection.length, 15);
+
+          const financing = data.config?.financing || {};
+          const rental = data.config?.rental || {};
+          const projectionConfig = data.config?.projection || {};
+          const numOwners = financing.num_owners || 1;
+
+          const formatCHF = (value) =>
+            Number(value || 0).toLocaleString("en-US", {
               style: "currency",
               currency: "CHF",
               maximumFractionDigits: 0,
             });
-          };
 
-          // Calculate per-person monthly values
-          const interestMonthlyPerPerson =
-            (results.interest_payment || 0) / 12 / numOwners;
-          const principalMonthlyPerPerson =
-            (results.amortization_payment || 0) / 12 / numOwners;
-          const maintenanceMonthlyPerPerson =
-            (results.maintenance_reserve || 0) / 12 / numOwners;
-          const operatingExpensesMonthlyPerPerson =
-            (results.total_operating_expenses || 0) / 12 / numOwners;
-          const airbnbCashflowMonthlyPerPerson =
-            (results.cash_flow_per_owner || 0) / 12;
-          const taxSavingsMonthlyPerPerson =
-            (results.tax_savings_per_owner || 0) / 12;
-          const afterTaxCashflowMonthlyPerPerson =
-            (results.after_tax_cash_flow_per_owner || 0) / 12;
-          const propertyManagementMonthlyPerPerson =
-            (results.property_management_cost || 0) / 12 / numOwners;
-          const cleaningMonthlyPerPerson =
-            (results.cleaning_cost || 0) / 12 / numOwners;
-          const insuranceMonthlyPerPerson =
-            (results.insurance || 0) / 12 / numOwners;
-          const grossRentalIncomeMonthlyPerPerson =
-            (results.gross_rental_income || 0) / 12 / numOwners;
+          const formatPct = (value, digits = 1) =>
+            `${Number(value || 0).toFixed(digits)}%`;
 
-          // Calculate total monthly values
-          const interestMonthlyTotal = (results.interest_payment || 0) / 12;
-          const principalMonthlyTotal =
-            (results.amortization_payment || 0) / 12;
-          const maintenanceMonthlyTotal =
-            (results.maintenance_reserve || 0) / 12;
-          const operatingExpensesMonthlyTotal =
-            (results.total_operating_expenses || 0) / 12;
-          const airbnbCashflowMonthlyTotal =
-            (results.cash_flow_after_debt_service || 0) / 12;
-          const taxSavingsMonthlyTotal = (results.tax_savings_total || 0) / 12;
-          const afterTaxCashflowMonthlyTotal =
-            (results.after_tax_cash_flow_total || 0) / 12;
-          const propertyManagementMonthlyTotal =
-            (results.property_management_cost || 0) / 12;
-          const cleaningMonthlyTotal = (results.cleaning_cost || 0) / 12;
-          const insuranceMonthlyTotal = (results.insurance || 0) / 12;
-          const grossRentalIncomeMonthlyTotal =
-            (results.gross_rental_income || 0) / 12;
-
-          // Calculate additional metrics for new structure
-          const purchasePrice =
-            data.config?.financing?.purchase_price ||
-            results.purchase_price ||
-            0;
-          const loanAmount =
-            data.config?.financing?.loan_amount || results.loan_amount || 0;
-          const equityTotal =
-            data.config?.financing?.equity_total || results.equity_total || 0;
-          const acquisitionCostsTotal =
-            data.config?.financing?.acquisition_costs_total || 0;
+          const purchasePrice = financing.purchase_price || 0;
+          const acquisitionCostsTotal = financing.acquisition_costs_total || 0;
           const totalInitialInvestment =
-            data.config?.financing?.total_initial_investment ||
-            equityTotal + acquisitionCostsTotal;
+            financing.total_initial_investment ||
+            (financing.equity_total || 0) + acquisitionCostsTotal;
           const totalInitialInvestmentPerOwner =
-            data.config?.financing?.total_initial_investment_per_owner ||
-            totalInitialInvestment / numOwners;
+            financing.total_initial_investment_per_owner ||
+            totalInitialInvestment / Math.max(numOwners, 1);
+
           const grossRentalIncome = results.gross_rental_income || 0;
-          const otaFeesTotal = results.ota_fees_total || 0;
-          const netRentalIncome =
-            results.net_rental_income || grossRentalIncome;
+          const otaFees = results.ota_fees_total || 0;
+          const operatingExpenses = results.total_operating_expenses || 0;
           const noi = results.net_operating_income || 0;
           const debtService = results.debt_service || 0;
           const preTaxCashFlow = results.cash_flow_after_debt_service || 0;
-          const taxSavingsTotal = results.tax_savings_total || 0;
+          const taxSavings = results.tax_savings_total || 0;
           const afterTaxCashFlow =
             results.after_tax_cash_flow_total || preTaxCashFlow;
 
-          let html = `
-                    <!-- Section 1: Investment Overview -->
-                    <div class="section">
-                        <h2 class="section-title">💰 Investment Overview</h2>
-                        <div class="kpi-grid">
-                            <div class="kpi-card">
-                                <h3>Purchase Price</h3>
-                                <div class="value">${formatCHF(purchasePrice)}</div>
-                            </div>
-                            <div class="kpi-card">
-                                <h3>Loan Amount</h3>
-                                <div class="value">${formatCHF(loanAmount)}</div>
-                            </div>
-                            <div class="kpi-card">
-                                <h3>Equity Total</h3>
-                                <div class="value">${formatCHF(equityTotal)}</div>
-                            </div>
-                            <div class="kpi-card">
-                                <h3>Acquisition Costs</h3>
-                                <div class="value">${formatCHF(acquisitionCostsTotal)}</div>
-                            </div>
-                            <div class="kpi-card" style="border: 2px solid var(--accent); background: linear-gradient(135deg, #f8f9ff 0%, #e8ecff 100%);">
-                                <h3>Total Initial Investment</h3>
-                                <div class="value" style="color: var(--accent);">${formatCHF(totalInitialInvestment)}</div>
-                            </div>
-                            <div class="kpi-card" style="border: 2px solid var(--accent); background: linear-gradient(135deg, #f8f9ff 0%, #e8ecff 100%);">
-                                <h3>Total Investment per Owner</h3>
-                                <div class="value" style="color: var(--accent);">${formatCHF(totalInitialInvestmentPerOwner)}</div>
-                            </div>
-                            <div class="kpi-card">
-                                <h3>LTV</h3>
-                                <div class="value">${((data.config?.financing?.ltv || 0) * 100).toFixed(0)}%</div>
-                            </div>
-                            <div class="kpi-card">
-                                <h3>Interest Rate</h3>
-                                <div class="value">${((data.config?.financing?.interest_rate || 0) * 100).toFixed(2)}%</div>
-                            </div>
-                            <div class="kpi-card">
-                                <h3>Number of Owners</h3>
-                                <div class="value">${numOwners}</div>
-                            </div>
-                        </div>
-                    </div>
+          const monthlyAfterTaxPerOwner =
+            (results.after_tax_cash_flow_per_owner || 0) / 12;
+          const monthlyTaxSavingsPerOwner =
+            (results.tax_savings_per_owner || 0) / 12;
 
-                    <!-- Section 2: Revenue & Operating Model -->
-                    <div class="section">
-                        <h2 class="section-title">📊 Revenue & Operating Model</h2>
-                        <div class="kpi-grid" style="margin-bottom: var(--space-lg);">
-                            <div class="kpi-card">
-                                <h3>Gross Rental Income</h3>
-                                <div class="value positive">${formatCHF(grossRentalIncome)}</div>
-                                <div class="unit" style="font-size: var(--font-size-xs); color: var(--gray-500); margin-top: var(--space-xs);">annual</div>
-                            </div>
-                            <div class="kpi-card">
-                                <h3>OTA Platform Fees</h3>
-                                <div class="value negative">-${formatCHF(otaFeesTotal)}</div>
-                                <div class="unit" style="font-size: var(--font-size-xs); color: var(--gray-500); margin-top: var(--space-xs);">${((otaFeesTotal / grossRentalIncome) * 100).toFixed(1)}% of gross</div>
-                            </div>
-                            <div class="kpi-card" style="border: 2px solid var(--color-info);">
-                                <h3>Net Rental Income</h3>
-                                <div class="value positive" style="color: var(--color-info);">${formatCHF(netRentalIncome)}</div>
-                                <div class="unit" style="font-size: var(--font-size-xs); color: var(--gray-500); margin-top: var(--space-xs);">after OTA fees</div>
-                            </div>
-                        </div>
-                        <h3 class="section-subtitle">Operating Expenses</h3>
-                        <div class="kpi-grid" style="margin-bottom: var(--space-lg);">
-                            <div class="kpi-card">
-                                <h3>Property Management</h3>
-                                <div class="value">${formatCHF(results.property_management_cost || 0)}</div>
-                            </div>
-                            <div class="kpi-card">
-                                <h3>Cleaning Cost</h3>
-                                <div class="value">${formatCHF(results.cleaning_cost || 0)}</div>
-                            </div>
-                            <div class="kpi-card">
-                                <h3>Tourist Tax</h3>
-                                <div class="value">${formatCHF(results.tourist_tax || 0)}</div>
-                            </div>
-                            <div class="kpi-card">
-                                <h3>Insurance</h3>
-                                <div class="value">${formatCHF(results.insurance || 0)}</div>
-                            </div>
-                            <div class="kpi-card">
-                                <h3>Nubbing Costs</h3>
-                                <div class="value">${formatCHF(results.nubbing_costs || 0)}</div>
-                            </div>
-                            <div class="kpi-card">
-                                <h3>Electricity & Internet</h3>
-                                <div class="value">${formatCHF(results.electricity_internet || 0)}</div>
-                            </div>
-                            <div class="kpi-card">
-                                <h3>Maintenance Reserve</h3>
-                                <div class="value">${formatCHF(results.maintenance_reserve || 0)}</div>
-                            </div>
-                            <div class="kpi-card">
-                                <h3>Total Operating Expenses</h3>
-                                <div class="value">${formatCHF(results.total_operating_expenses || 0)}</div>
-                            </div>
-                        </div>
-                        <div class="kpi-card" style="border: 2px solid var(--color-positive); background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); margin-top: var(--space-md);">
-                            <h3>Net Operating Income (NOI)</h3>
-                            <div class="value positive" style="font-size: var(--font-size-3xl);">${formatCHF(noi)}</div>
-                            <div class="unit" style="font-size: var(--font-size-sm); color: var(--gray-500); margin-top: var(--space-xs);">Revenue - Operating Expenses</div>
-                        </div>
-                    </div>
+          const equityIrr = irr.equity_irr_with_sale_pct || 0;
+          const projectIrr = irr.project_irr_with_sale_pct || 0;
+          const cashOnCash = kpis.cash_on_cash_return_pct || 0;
+          const npv = irr.npv_at_5pct || 0;
+          const moic = irr.moic || 0;
+          const paybackYears = irr.payback_period_years;
 
-                    <!-- Section 3: Cash Flow Analysis (KEY SECTION) -->
-                    <div class="section" style="border: 2px solid var(--accent); background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);">
-                        <h2 class="section-title">💵 Cash Flow Analysis</h2>
-                        <div class="kpi-grid" style="margin-bottom: var(--space-lg);">
-                            <div class="kpi-card">
-                                <h3>Debt Service (Interest)</h3>
-                                <div class="value negative">-${formatCHF(results.interest_payment || 0)}</div>
-                                <div class="unit" style="font-size: var(--font-size-xs); color: var(--gray-500); margin-top: var(--space-xs);">annual</div>
-                            </div>
-                            <div class="kpi-card">
-                                <h3>Debt Service (Principal)</h3>
-                                <div class="value negative">-${formatCHF(results.amortization_payment || 0)}</div>
-                                <div class="unit" style="font-size: var(--font-size-xs); color: var(--gray-500); margin-top: var(--space-xs);">annual</div>
-                            </div>
-                            <div class="kpi-card">
-                                <h3>Total Debt Service</h3>
-                                <div class="value negative">-${formatCHF(debtService)}</div>
-                            </div>
-                        </div>
-                        <div class="kpi-card" style="border: 1px solid var(--gray-300); margin-bottom: var(--space-md);">
-                            <h3>Pre-Tax Cash Flow</h3>
-                            <div class="value ${preTaxCashFlow >= 0 ? "positive" : "negative"}">${formatCHF(preTaxCashFlow)}</div>
-                            <div class="unit" style="font-size: var(--font-size-sm); color: var(--gray-500); margin-top: var(--space-xs);">NOI - Debt Service</div>
-                        </div>
-                        <div class="kpi-card" style="border: 2px solid var(--color-positive); background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); margin-bottom: var(--space-md);">
-                            <h3>Tax Savings</h3>
-                            <div class="value positive" style="font-size: var(--font-size-2xl);">+${formatCHF(taxSavingsTotal)}</div>
-                            <div class="unit" style="font-size: var(--font-size-sm); color: var(--gray-500); margin-top: var(--space-xs);">Interest × 30% tax rate</div>
-                        </div>
-                        <div class="kpi-card" style="border: 3px solid var(--accent); background: linear-gradient(135deg, #f8f9ff 0%, #e8ecff 100%);">
-                            <h3>After-Tax Cash Flow (KEY METRIC)</h3>
-                            <div class="value ${afterTaxCashFlow >= 0 ? "positive" : "negative"}" style="font-size: var(--font-size-3xl);">${formatCHF(afterTaxCashFlow)}</div>
-                            <div class="unit" style="font-size: var(--font-size-sm); color: var(--gray-500); margin-top: var(--space-xs);">Pre-tax + Tax Savings</div>
-                        </div>
-                        <div style="margin-top: var(--space-lg); padding: var(--space-md); background: var(--gray-50); border-radius: var(--radius-md);">
-                            <h3 class="section-subtitle" style="margin-top: 0;">Per-Person Monthly Breakdown</h3>
-                            <div class="kpi-grid">
-                                <div class="kpi-card">
-                                    <h3>Pre-Tax Cashflow</h3>
-                                    <div class="value ${airbnbCashflowMonthlyPerPerson >= 0 ? "positive" : "negative"}">${formatCHF(airbnbCashflowMonthlyPerPerson)}</div>
-                                    <div class="unit" style="font-size: var(--font-size-xs); color: var(--gray-500); margin-top: var(--space-xs);">per person/month</div>
-                                </div>
-                                <div class="kpi-card">
-                                    <h3>Tax Savings</h3>
-                                    <div class="value positive">${formatCHF(taxSavingsMonthlyPerPerson)}</div>
-                                    <div class="unit" style="font-size: var(--font-size-xs); color: var(--gray-500); margin-top: var(--space-xs);">per person/month</div>
-                                </div>
-                                <div class="kpi-card" style="border: 2px solid var(--accent);">
-                                    <h3>After-Tax Cashflow</h3>
-                                    <div class="value ${afterTaxCashflowMonthlyPerPerson >= 0 ? "positive" : "negative"}">${formatCHF(afterTaxCashflowMonthlyPerPerson)}</div>
-                                    <div class="unit" style="font-size: var(--font-size-xs); color: var(--gray-500); margin-top: var(--space-xs);">per person/month</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+          let signalLabel = "Balanced";
+          let signalClass = "signal-neutral";
+          if (equityIrr >= 6 && monthlyAfterTaxPerOwner >= 0) {
+            signalLabel = "Attractive";
+            signalClass = "signal-good";
+          } else if (equityIrr < 4 || monthlyAfterTaxPerOwner < -300) {
+            signalLabel = "Caution";
+            signalClass = "signal-risk";
+          }
 
-                    <!-- Section 4: Investment Returns & Performance -->
-                    <div class="section">
-                        <h2 class="section-title">📈 Investment Returns & Performance</h2>
-                        <div class="kpi-grid">
-                            <div class="kpi-grid">
-                                <div class="kpi-card">
-                                    <h3>Interest Payment</h3>
-                                    <div class="value">${formatCHF(interestMonthlyPerPerson)}</div>
-                                    <div class="unit" style="font-size: 0.75em; color: #666; margin-top: 4px;">per person/month</div>
-                                </div>
-                                <div class="kpi-card">
-                                    <h3>Principal Payment</h3>
-                                    <div class="value">${formatCHF(principalMonthlyPerPerson)}</div>
-                                    <div class="unit" style="font-size: 0.75em; color: #666; margin-top: 4px;">per person/month</div>
-                                </div>
-                                <div class="kpi-card">
-                                    <h3>Maintenance Reserve</h3>
-                                    <div class="value">${formatCHF(maintenanceMonthlyPerPerson)}</div>
-                                    <div class="unit" style="font-size: 0.75em; color: #666; margin-top: 4px;">per person/month</div>
-                                </div>
-                                <div class="kpi-card">
-                                    <h3>Operating Expenses</h3>
-                                    <div class="value">${formatCHF(operatingExpensesMonthlyPerPerson)}</div>
-                                    <div class="unit" style="font-size: 0.75em; color: #666; margin-top: 4px;">per person/month</div>
-                                </div>
-                                <div class="kpi-card">
-                                    <h3>Pre-Tax Cashflow</h3>
-                                    <div class="value ${
-                                      airbnbCashflowMonthlyPerPerson >= 0
-                                        ? "positive"
-                                        : "negative"
-                                    }">${formatCHF(airbnbCashflowMonthlyPerPerson)}</div>
-                                    <div class="unit" style="font-size: 0.75em; color: #666; margin-top: 4px;">per person/month</div>
-                                </div>
-                                <div class="kpi-card">
-                                    <h3>Tax Savings</h3>
-                                    <div class="value positive">${formatCHF(taxSavingsMonthlyPerPerson)}</div>
-                                    <div class="unit" style="font-size: 0.75em; color: #666; margin-top: 4px;">per person/month</div>
-                                </div>
-                                <div class="kpi-card">
-                                    <h3>After-Tax Cashflow</h3>
-                                    <div class="value ${
-                                      afterTaxCashflowMonthlyPerPerson >= 0
-                                        ? "positive"
-                                        : "negative"
-                                    }">${formatCHF(afterTaxCashflowMonthlyPerPerson)}</div>
-                                    <div class="unit" style="font-size: 0.75em; color: #666; margin-top: 4px;">per person/month</div>
-                                </div>
-                                <div class="kpi-card">
-                                    <h3>Property Management</h3>
-                                    <div class="value">${formatCHF(propertyManagementMonthlyPerPerson)}</div>
-                                    <div class="unit" style="font-size: 0.75em; color: #666; margin-top: 4px;">per person/month</div>
-                                </div>
-                                <div class="kpi-card">
-                                    <h3>Cleaning Cost</h3>
-                                    <div class="value">${formatCHF(cleaningMonthlyPerPerson)}</div>
-                                    <div class="unit" style="font-size: 0.75em; color: #666; margin-top: 4px;">per person/month</div>
-                                </div>
-                                <div class="kpi-card">
-                                    <h3>Insurance</h3>
-                                    <div class="value">${formatCHF(insuranceMonthlyPerPerson)}</div>
-                                    <div class="unit" style="font-size: 0.75em; color: #666; margin-top: 4px;">per person/month</div>
-                                </div>
-                                <div class="kpi-card">
-                                    <h3>Gross Rental Income</h3>
-                                    <div class="value positive">${formatCHF(grossRentalIncomeMonthlyPerPerson)}</div>
-                                    <div class="unit" style="font-size: 0.75em; color: #666; margin-top: 4px;">per person/month</div>
-                                </div>
-                            </div>
-                        </div>
+          const occupancyPct = (rental.occupancy_rate || 0) * 100;
+          let breakEvenOccupancy = null;
+          if (grossRentalIncome > 0 && occupancyPct > 0) {
+            breakEvenOccupancy =
+              occupancyPct *
+              ((operatingExpenses + debtService - taxSavings) / grossRentalIncome);
+            breakEvenOccupancy = Math.max(0, Math.min(100, breakEvenOccupancy));
+          }
 
-                        <!-- Section 2: Total Monthly Cash Flow -->
-                        <div style="margin-bottom: 40px;">
-                            <h3 class="section-subtitle">💼 Total Monthly Cash Flow</h3>
-                            <div class="kpi-grid">
-                                <div class="kpi-card">
-                                    <h3>Interest Payment</h3>
-                                    <div class="value">${formatCHF(interestMonthlyTotal)}</div>
-                                    <div class="unit" style="font-size: 0.75em; color: #666; margin-top: 4px;">total/month</div>
-                                </div>
-                                <div class="kpi-card">
-                                    <h3>Principal Payment</h3>
-                                    <div class="value">${formatCHF(principalMonthlyTotal)}</div>
-                                    <div class="unit" style="font-size: 0.75em; color: #666; margin-top: 4px;">total/month</div>
-                                </div>
-                                <div class="kpi-card">
-                                    <h3>Maintenance Reserve</h3>
-                                    <div class="value">${formatCHF(maintenanceMonthlyTotal)}</div>
-                                    <div class="unit" style="font-size: 0.75em; color: #666; margin-top: 4px;">total/month</div>
-                                </div>
-                                <div class="kpi-card">
-                                    <h3>Operating Expenses</h3>
-                                    <div class="value">${formatCHF(operatingExpensesMonthlyTotal)}</div>
-                                    <div class="unit" style="font-size: 0.75em; color: #666; margin-top: 4px;">total/month</div>
-                                </div>
-                                <div class="kpi-card">
-                                    <h3>Pre-Tax Cashflow</h3>
-                                    <div class="value ${
-                                      airbnbCashflowMonthlyTotal >= 0
-                                        ? "positive"
-                                        : "negative"
-                                    }">${formatCHF(airbnbCashflowMonthlyTotal)}</div>
-                                    <div class="unit" style="font-size: 0.75em; color: #666; margin-top: 4px;">total/month</div>
-                                </div>
-                                <div class="kpi-card">
-                                    <h3>Tax Savings</h3>
-                                    <div class="value positive">${formatCHF(taxSavingsMonthlyTotal)}</div>
-                                    <div class="unit" style="font-size: 0.75em; color: #666; margin-top: 4px;">total/month</div>
-                                </div>
-                                <div class="kpi-card">
-                                    <h3>After-Tax Cashflow</h3>
-                                    <div class="value ${
-                                      afterTaxCashflowMonthlyTotal >= 0
-                                        ? "positive"
-                                        : "negative"
-                                    }">${formatCHF(afterTaxCashflowMonthlyTotal)}</div>
-                                    <div class="unit" style="font-size: 0.75em; color: #666; margin-top: 4px;">total/month</div>
-                                </div>
-                                <div class="kpi-card">
-                                    <h3>Property Management</h3>
-                                    <div class="value">${formatCHF(propertyManagementMonthlyTotal)}</div>
-                                    <div class="unit" style="font-size: 0.75em; color: #666; margin-top: 4px;">total/month</div>
-                                </div>
-                                <div class="kpi-card">
-                                    <h3>Cleaning Cost</h3>
-                                    <div class="value">${formatCHF(cleaningMonthlyTotal)}</div>
-                                    <div class="unit" style="font-size: 0.75em; color: #666; margin-top: 4px;">total/month</div>
-                                </div>
-                                <div class="kpi-card">
-                                    <h3>Insurance</h3>
-                                    <div class="value">${formatCHF(insuranceMonthlyTotal)}</div>
-                                    <div class="unit" style="font-size: 0.75em; color: #666; margin-top: 4px;">total/month</div>
-                                </div>
-                                <div class="kpi-card">
-                                    <h3>Gross Rental Income</h3>
-                                    <div class="value positive">${formatCHF(grossRentalIncomeMonthlyTotal)}</div>
-                                    <div class="unit" style="font-size: 0.75em; color: #666; margin-top: 4px;">total/month</div>
-                                </div>
-                            </div>
-                        </div>
+          const years = projection.map((p, idx) => p.year || `Y${idx + 1}`);
+          const propertyValues = projection.map((p) => p.property_value || 0);
+          const loanBalances = projection.map((p) => p.remaining_loan_balance || 0);
+          const equityCurve = projection.map(
+            (p) => (p.property_value || 0) - (p.remaining_loan_balance || 0),
+          );
 
-                            <div class="kpi-card">
-                                <h3>Equity IRR (15Y)</h3>
-                                <div class="value positive">${(
-                                  irr.equity_irr_with_sale_pct || 0
-                                ).toFixed(2)}%</div>
-                            </div>
-                            <div class="kpi-card">
-                                <h3>Project IRR</h3>
-                                <div class="value positive">${(
-                                  irr.project_irr_with_sale_pct || 0
-                                ).toFixed(2)}%</div>
-                            </div>
-                            <div class="kpi-card">
-                                <h3>NPV @ 5%</h3>
-                                <div class="value ${
-                                  (irr.npv_at_5pct || 0) >= 0
-                                    ? "positive"
-                                    : "negative"
-                                }">${formatCHF(irr.npv_at_5pct || 0)}</div>
-                            </div>
-                            <div class="kpi-card">
-                                <h3>MOIC</h3>
-                                <div class="value ${
-                                  (irr.moic || 0) >= 1 ? "positive" : "negative"
-                                }">${(irr.moic || 0).toFixed(2)}x</div>
-                            </div>
-                            <div class="kpi-card">
-                                <h3>Cash-on-Cash Return</h3>
-                                <div class="value ${
-                                  (results.cash_on_cash_return_pct ||
-                                    kpis.cash_on_cash_return_pct ||
-                                    0) >= 0
-                                    ? "positive"
-                                    : "negative"
-                                }">${(
-                                  results.cash_on_cash_return_pct ||
-                                  kpis.cash_on_cash_return_pct ||
-                                  0
-                                ).toFixed(2)}%</div>
-                            </div>
-                            <div class="kpi-card">
-                                <h3>Payback Period</h3>
-                                <div class="value">${
-                                  irr.payback_period_years
-                                    ? irr.payback_period_years + "Y"
-                                    : "N/A"
-                                }</div>
-                            </div>
-                        </div>
-                    </div>
+          const noiSeries = projection.map((p) => p.net_operating_income || 0);
+          const debtSeries = projection.map((p) => -(p.debt_service || 0));
+          const cashSeries = projection.map(
+            (p) => p.cash_flow_after_debt_service || 0,
+          );
 
-                    <!-- Section 5: Property Fundamentals -->
-                    <div class="section">
-                        <h2 class="section-title">🏠 Property Fundamentals</h2>
-                        <div class="kpi-grid">
-                            <div class="kpi-card">
-                                <h3>Property Value</h3>
-                                <div class="value">${formatCHF(purchasePrice)}</div>
-                            </div>
-                            <div class="kpi-card">
-                                <h3>Loan Balance</h3>
-                                <div class="value">${formatCHF(loanAmount)}</div>
-                            </div>
-                            <div class="kpi-card">
-                                <h3>Equity</h3>
-                                <div class="value">${formatCHF(equityTotal)}</div>
-                            </div>
-                            <div class="kpi-card">
-                                <h3>Cap Rate</h3>
-                                <div class="value">${(
-                                  kpis.cap_rate_pct ||
-                                  results.cap_rate_pct ||
-                                  0
-                                ).toFixed(2)}%</div>
-                            </div>
-                            <div class="kpi-card">
-                                <h3>Debt Coverage Ratio</h3>
-                                <div class="value">${(
-                                  results.debt_coverage_ratio ||
-                                  kpis.debt_coverage_ratio ||
-                                  0
-                                ).toFixed(2)}x</div>
-                            </div>
-                            <div class="kpi-card">
-                                <h3>Operating Expense Ratio</h3>
-                                <div class="value">${(
-                                  results.operating_expense_ratio_pct || 0
-                                ).toFixed(1)}%</div>
-                            </div>
-                        </div>
-                    </div>
+          const capRateSeries = projection.map((p) => p.cap_rate_pct || 0);
+          const equityYieldSeries = projection.map((p) => {
+            if (!totalInitialInvestmentPerOwner) return 0;
+            return ((p.cash_flow_per_owner || 0) / totalInitialInvestmentPerOwner) * 100;
+          });
 
-                    <!-- Section 6: 15-Year Projection -->
-                    <div class="section">
-                        <h2 class="section-title">📅 15-Year Financial Projection</h2>
-                        
-                        <!-- Summary Row -->
-                        ${
-                          projection.length > 0
-                            ? `
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-md); margin-bottom: var(--space-lg); padding: var(--space-md); background: var(--gray-50); border-radius: var(--radius-md);">
-                            <div>
-                                <strong style="color: var(--secondary); font-size: var(--font-size-sm);">Year 1</strong>
-                                <div style="margin-top: var(--space-xs);">
-                                    <div>Cash Flow: <strong style="color: ${projection[0]?.cash_flow_after_debt_service >= 0 ? "var(--color-positive)" : "var(--color-negative)"}">${formatCHF(projection[0]?.cash_flow_after_debt_service || 0)}</strong></div>
-                                    <div>Property Value: <strong>${formatCHF(projection[0]?.property_value || 0)}</strong></div>
-                                </div>
-                            </div>
-                            ${
-                              projection.length >= 5
-                                ? `
-                            <div>
-                                <strong style="color: var(--secondary); font-size: var(--font-size-sm);">Year 5</strong>
-                                <div style="margin-top: var(--space-xs);">
-                                    <div>Cash Flow: <strong style="color: ${projection[4]?.cash_flow_after_debt_service >= 0 ? "var(--color-positive)" : "var(--color-negative)"}">${formatCHF(projection[4]?.cash_flow_after_debt_service || 0)}</strong></div>
-                                    <div>Property Value: <strong>${formatCHF(projection[4]?.property_value || 0)}</strong></div>
-                                </div>
-                            </div>
-                            `
-                                : ""
-                            }
-                            ${
-                              projection.length >= 10
-                                ? `
-                            <div>
-                                <strong style="color: var(--secondary); font-size: var(--font-size-sm);">Year 10</strong>
-                                <div style="margin-top: var(--space-xs);">
-                                    <div>Cash Flow: <strong style="color: ${projection[9]?.cash_flow_after_debt_service >= 0 ? "var(--color-positive)" : "var(--color-negative)"}">${formatCHF(projection[9]?.cash_flow_after_debt_service || 0)}</strong></div>
-                                    <div>Property Value: <strong>${formatCHF(projection[9]?.property_value || 0)}</strong></div>
-                                </div>
-                            </div>
-                            `
-                                : ""
-                            }
-                            ${
-                              projection.length >= 15
-                                ? `
-                            <div>
-                                <strong style="color: var(--secondary); font-size: var(--font-size-sm);">Year 15</strong>
-                                <div style="margin-top: var(--space-xs);">
-                                    <div>Cash Flow: <strong style="color: ${projection[14]?.cash_flow_after_debt_service >= 0 ? "var(--color-positive)" : "var(--color-negative)"}">${formatCHF(projection[14]?.cash_flow_after_debt_service || 0)}</strong></div>
-                                    <div>Property Value: <strong>${formatCHF(projection[14]?.property_value || 0)}</strong></div>
-                                </div>
-                            </div>
-                            `
-                                : ""
-                            }
-                        </div>
-                        `
-                            : ""
-                        }
-                        
-                        <!-- Assumptions Summary -->
-                        <div class="chart-container" style="background: #f8f9fa; border-left: 4px solid var(--accent);">
-                            <h3 style="color: var(--primary); margin-bottom: 15px;">📋 Main Assumptions</h3>
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; font-size: 0.9em;">
-                                <div>
-                                    <strong style="color: var(--secondary);">Financing</strong>
-                                    <div style="margin-top: 8px; line-height: 1.8;">
-                                        • Purchase Price: <strong>CHF ${(
-                                          data.config?.financing
-                                            ?.purchase_price || 0
-                                        ).toLocaleString()}</strong><br>
-                                        • LTV: <strong>${(
-                                          (data.config?.financing?.ltv || 0) *
-                                          100
-                                        ).toFixed(0)}%</strong> (Loan: CHF ${(
-                                          data.config?.financing?.loan_amount ||
-                                          0
-                                        ).toLocaleString()})<br>
-                                        • Interest Rate: <strong>${(
-                                          (data.config?.financing
-                                            ?.interest_rate || 0) * 100
-                                        ).toFixed(2)}%</strong><br>
-                                        • Amortization: <strong>${(
-                                          (data.config?.financing
-                                            ?.amortization_rate || 0) * 100
-                                        ).toFixed(1)}%</strong> per year<br>
-                                        • Owners: <strong>${
-                                          data.config?.financing?.num_owners ||
-                                          0
-                                        }</strong> (Equity: CHF ${(
-                                          (data.config?.financing
-                                            ?.equity_total || 0) /
-                                          (data.config?.financing?.num_owners ||
-                                            1)
-                                        ).toLocaleString()}/owner)
-                                    </div>
-                                </div>
-                                <div>
-                                    <strong style="color: var(--secondary);">Rental Income</strong>
-                                    <div style="margin-top: 8px; line-height: 1.8;">
-                                        • Occupancy Rate: <strong>${(
-                                          (data.config?.rental
-                                            ?.occupancy_rate || 0) * 100
-                                        ).toFixed(0)}%</strong><br>
-                                        • Average Daily Rate: <strong>CHF ${(
-                                          data.config?.rental
-                                            ?.average_daily_rate || 0
-                                        ).toFixed(0)}</strong><br>
-                                        • Rentable Nights: <strong>${
-                                          results.rentable_nights || 0
-                                        }</strong> nights/year<br>
-                                        • Rented Nights: <strong>${
-                                          results.rented_nights || 0
-                                        }</strong> nights/year<br>
-                                        • Owner Nights: <strong>${
-                                          data.config?.rental
-                                            ?.owner_nights_per_person || 0
-                                        } per owner</strong>
-                                    </div>
-                                </div>
-                                <div>
-                                    <strong style="color: var(--secondary);">Projections & Exit</strong>
-                                    <div style="margin-top: 8px; line-height: 1.8;">
-                                        • Inflation: <strong>0.8%</strong> per year<br>
-                                        • Property Appreciation: <strong>1.5%</strong> per year<br>
-                                        • Projection Period: <strong>15 years</strong> (2026-2040)<br>
-                                        • Selling Costs (Year 15): <strong>7.8%</strong><br>
-                                        • Discount Rate (NPV): <strong>5.0%</strong>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Enhanced 15-Year Projection Table -->
-                        <div class="data-table">
-                            <h3 style="padding: var(--space-md); margin: 0; border-bottom: 2px solid var(--border); background: var(--gray-50); font-size: var(--font-size-lg);">15-Year Financial Projection</h3>
-                            <table style="font-size: var(--font-size-sm);">
-                                <thead>
-                                    <tr style="background: var(--gray-100);">
-                                        <th style="padding: var(--space-sm) var(--space-md);">Year</th>
-                                        <th style="padding: var(--space-sm) var(--space-md);">Revenue</th>
-                                        <th style="padding: var(--space-sm) var(--space-md);">Expenses</th>
-                                        <th style="padding: var(--space-sm) var(--space-md);">NOI</th>
-                                        <th style="padding: var(--space-sm) var(--space-md);">Debt Service</th>
-                                        <th style="padding: var(--space-sm) var(--space-md);">Cash Flow</th>
-                                        <th style="padding: var(--space-sm) var(--space-md);">CF/Owner</th>
-                                        <th style="padding: var(--space-sm) var(--space-md);">Property Value</th>
-                                        <th style="padding: var(--space-sm) var(--space-md);">Loan Balance</th>
-                                        <th style="padding: var(--space-sm) var(--space-md);">Equity</th>
-                                        <th style="padding: var(--space-sm) var(--space-md);">Cap Rate</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${projection
-                                      .slice(0, 15)
-                                      .map((year, index) => {
-                                        const equity =
-                                          year.property_value -
-                                          year.remaining_loan_balance;
-                                        const isKeyYear =
-                                          index === 0 ||
-                                          index === 4 ||
-                                          index === 9 ||
-                                          index === 14;
-                                        return `
-                                        <tr style="${isKeyYear ? "background: #fffbf0; font-weight: 600;" : ""} ${index % 2 === 0 ? "background-color: " + (isKeyYear ? "#fffbf0" : "transparent") + ";" : "background-color: var(--gray-50);"}">
-                                            <td style="padding: var(--space-sm) var(--space-md);"><strong>${
-                                              year.year
-                                            }</strong></td>
-                                            <td style="padding: var(--space-sm) var(--space-md);">${(
-                                              year.gross_rental_income || 0
-                                            ).toLocaleString("en-US", {
-                                              style: "currency",
-                                              currency: "CHF",
-                                              maximumFractionDigits: 0,
-                                            })}</td>
-                                            <td style="padding: var(--space-sm) var(--space-md);">${(
-                                              year.total_operating_expenses || 0
-                                            ).toLocaleString("en-US", {
-                                              style: "currency",
-                                              currency: "CHF",
-                                              maximumFractionDigits: 0,
-                                            })}</td>
-                                            <td style="padding: var(--space-sm) var(--space-md);">${(
-                                              year.net_operating_income || 0
-                                            ).toLocaleString("en-US", {
-                                              style: "currency",
-                                              currency: "CHF",
-                                              maximumFractionDigits: 0,
-                                            })}</td>
-                                            <td style="padding: var(--space-sm) var(--space-md);">${(
-                                              year.debt_service || 0
-                                            ).toLocaleString("en-US", {
-                                              style: "currency",
-                                              currency: "CHF",
-                                              maximumFractionDigits: 0,
-                                            })}</td>
-                                            <td style="padding: var(--space-sm) var(--space-md); color: ${
-                                              year.cash_flow_after_debt_service >=
-                                              0
-                                                ? "var(--color-positive)"
-                                                : "var(--color-negative)"
-                                            }">${(
-                                              year.cash_flow_after_debt_service ||
-                                              0
-                                            ).toLocaleString("en-US", {
-                                              style: "currency",
-                                              currency: "CHF",
-                                              maximumFractionDigits: 0,
-                                            })}</td>
-                                            <td style="padding: var(--space-sm) var(--space-md); color: ${
-                                              year.cash_flow_per_owner >= 0
-                                                ? "var(--color-positive)"
-                                                : "var(--color-negative)"
-                                            }">${(
-                                              year.cash_flow_per_owner || 0
-                                            ).toLocaleString("en-US", {
-                                              style: "currency",
-                                              currency: "CHF",
-                                              maximumFractionDigits: 0,
-                                            })}</td>
-                                            <td style="padding: var(--space-sm) var(--space-md);">${(
-                                              year.property_value || 0
-                                            ).toLocaleString("en-US", {
-                                              style: "currency",
-                                              currency: "CHF",
-                                              maximumFractionDigits: 0,
-                                            })}</td>
-                                            <td style="padding: var(--space-sm) var(--space-md);">${(
-                                              year.remaining_loan_balance || 0
-                                            ).toLocaleString("en-US", {
-                                              style: "currency",
-                                              currency: "CHF",
-                                              maximumFractionDigits: 0,
-                                            })}</td>
-                                            <td style="padding: var(--space-sm) var(--space-md);">${equity.toLocaleString(
-                                              "en-US",
-                                              {
-                                                style: "currency",
-                                                currency: "CHF",
-                                                maximumFractionDigits: 0,
-                                              },
-                                            )}</td>
-                                            <td style="padding: var(--space-sm) var(--space-md);">${year.cap_rate_pct.toFixed(
-                                              2,
-                                            )}%</td>
-                                        </tr>
-                                    `;
-                                      })
-                                      .join("")}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                `;
+          const expenseData = [
+            ["Management", results.property_management_cost || 0],
+            ["Cleaning", results.cleaning_cost || 0],
+            ["Tourist Tax", results.tourist_tax || 0],
+            ["Insurance", results.insurance || 0],
+            ["Nubbing", results.nubbing_costs || 0],
+            ["Utilities", results.electricity_internet || 0],
+            ["Maintenance", results.maintenance_reserve || 0],
+          ].filter(([, v]) => v > 0);
+          const expenseLabels = expenseData.map(([label]) => label);
+          const expenseValues = expenseData.map(([, value]) => value);
 
-          content.innerHTML = html;
+          const projectionRows =
+            projection.length > 0
+              ? projection
+                  .map((row, idx) => {
+                    const equity = (row.property_value || 0) - (row.remaining_loan_balance || 0);
+                    const keyYear =
+                      idx === 0 ||
+                      idx === 4 ||
+                      idx === 9 ||
+                      idx === projection.length - 1;
+                    return `
+                      <tr style="${keyYear ? "font-weight: 600; background: #fffef4;" : ""}">
+                        <td>${row.year || idx + 1}</td>
+                        <td>${formatCHF(row.gross_rental_income || 0)}</td>
+                        <td>${formatCHF(row.net_operating_income || 0)}</td>
+                        <td>${formatCHF(row.debt_service || 0)}</td>
+                        <td style="color: ${(row.after_tax_cash_flow_total || row.cash_flow_after_debt_service || 0) >= 0 ? "var(--color-positive)" : "var(--color-negative)"};">${formatCHF(
+                          row.after_tax_cash_flow_total || row.cash_flow_after_debt_service || 0,
+                        )}</td>
+                        <td>${formatCHF(row.property_value || 0)}</td>
+                        <td>${formatCHF(row.remaining_loan_balance || 0)}</td>
+                        <td>${formatCHF(equity)}</td>
+                      </tr>
+                    `;
+                  })
+                  .join("")
+              : '<tr><td colspan="8" style="text-align:center; color: var(--gray-500);">No projection data available</td></tr>';
+
+          const assumptionsHtml = `
+            <div class="metric-list">
+              <div class="metric-block">
+                <h4>Capital Structure</h4>
+                <p>Purchase price: <strong>${formatCHF(purchasePrice)}</strong><br>
+                Loan-to-value: <strong>${formatPct((financing.ltv || 0) * 100, 0)}</strong><br>
+                Interest rate: <strong>${formatPct((financing.interest_rate || 0) * 100, 2)}</strong><br>
+                Amortization: <strong>${formatPct((financing.amortization_rate || 0) * 100, 1)}</strong></p>
+              </div>
+              <div class="metric-block">
+                <h4>Operating Model</h4>
+                <p>Occupancy: <strong>${formatPct(occupancyPct, 0)}</strong><br>
+                Daily rate: <strong>${formatCHF(rental.average_daily_rate || 0)}</strong><br>
+                Rentable nights: <strong>${results.rentable_nights || 0}</strong><br>
+                Rented nights: <strong>${results.rented_nights || 0}</strong></p>
+              </div>
+              <div class="metric-block">
+                <h4>Projection Settings</h4>
+                <p>Inflation: <strong>${formatPct((projectionConfig.inflation_rate || 0) * 100, 1)}</strong><br>
+                Appreciation: <strong>${formatPct((projectionConfig.property_appreciation_rate || 0) * 100, 1)}</strong><br>
+                Sell costs: <strong>${formatPct((projectionConfig.selling_costs_rate || 0.078) * 100, 1)}</strong><br>
+                Discount rate: <strong>${formatPct((projectionConfig.discount_rate || 0.05) * 100, 1)}</strong></p>
+              </div>
+            </div>
+          `;
+
+          const html = `
+            <div class="story-hero">
+              <div class="story-header">
+                <h2><i class="fas fa-compass"></i> Investment Story</h2>
+                <span class="signal-chip ${signalClass}"><i class="fas fa-circle"></i> ${signalLabel} Base Case</span>
+              </div>
+              <p class="story-lead">
+                This page tells the investment story in sequence: entry capital, operating engine,
+                annual owner cash flow, and exit value creation.
+              </p>
+              <div class="story-list">
+                <div class="story-item">
+                  <h4>Entry</h4>
+                  <p>${formatCHF(totalInitialInvestment)} committed, or ${formatCHF(totalInitialInvestmentPerOwner)} per owner.</p>
+                </div>
+                <div class="story-item">
+                  <h4>Operations</h4>
+                  <p>NOI is ${formatCHF(noi)} against debt service of ${formatCHF(debtService)}.</p>
+                </div>
+                <div class="story-item">
+                  <h4>Owner Cash Flow</h4>
+                  <p>After-tax monthly cash flow is <strong>${formatCHF(monthlyAfterTaxPerOwner)}</strong> per owner.</p>
+                </div>
+                <div class="story-item">
+                  <h4>Exit Potential</h4>
+                  <p>Equity IRR is <strong>${formatPct(equityIrr, 2)}</strong> with MOIC <strong>${moic.toFixed(2)}x</strong>.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <h2 class="section-title"><i class="fas fa-tachometer-alt"></i> Executive Snapshot</h2>
+              <div class="kpi-grid">
+                <div class="kpi-card">
+                  <h3>Equity IRR</h3>
+                  <div class="value ${equityIrr >= 0 ? "positive" : "negative"}">${formatPct(equityIrr, 2)}</div>
+                </div>
+                <div class="kpi-card">
+                  <h3>Project IRR</h3>
+                  <div class="value ${projectIrr >= 0 ? "positive" : "negative"}">${formatPct(projectIrr, 2)}</div>
+                </div>
+                <div class="kpi-card">
+                  <h3>Cash-on-Cash</h3>
+                  <div class="value ${cashOnCash >= 0 ? "positive" : "negative"}">${formatPct(cashOnCash, 2)}</div>
+                </div>
+                <div class="kpi-card">
+                  <h3>NPV @ 5%</h3>
+                  <div class="value ${npv >= 0 ? "positive" : "negative"}">${formatCHF(npv)}</div>
+                </div>
+                <div class="kpi-card">
+                  <h3>After-Tax CF (Annual)</h3>
+                  <div class="value ${afterTaxCashFlow >= 0 ? "positive" : "negative"}">${formatCHF(afterTaxCashFlow)}</div>
+                </div>
+                <div class="kpi-card">
+                  <h3>After-Tax CF (Monthly / Owner)</h3>
+                  <div class="value ${monthlyAfterTaxPerOwner >= 0 ? "positive" : "negative"}">${formatCHF(monthlyAfterTaxPerOwner)}</div>
+                </div>
+              </div>
+
+              <div class="insight-grid">
+                <div class="insight-card">
+                  <h4>Break-Even Occupancy</h4>
+                  <div class="insight-value">${breakEvenOccupancy !== null ? formatPct(breakEvenOccupancy, 1) : "n/a"}</div>
+                  <div class="insight-note">Approx. occupancy needed to cover opex + debt net of tax shield.</div>
+                </div>
+                <div class="insight-card">
+                  <h4>Entry Cash Outlay</h4>
+                  <div class="insight-value">${formatCHF(totalInitialInvestmentPerOwner)}</div>
+                  <div class="insight-note">Per-owner initial commitment.</div>
+                </div>
+                <div class="insight-card">
+                  <h4>Payback Period</h4>
+                  <div class="insight-value">${paybackYears ? `${Number(paybackYears).toFixed(1)} yrs` : "n/a"}</div>
+                  <div class="insight-note">Years to recover invested equity from cash flows.</div>
+                </div>
+                <div class="insight-card">
+                  <h4>Operating Cushion</h4>
+                  <div class="insight-value">${formatCHF(noi - debtService)}</div>
+                  <div class="insight-note">NOI minus annual debt service before tax effects.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <h2 class="section-title"><i class="fas fa-chart-area"></i> Visual Storyboard</h2>
+              <div class="chart-grid">
+                <div class="chart-panel">
+                  <h3>Year 1 Cash Flow Bridge</h3>
+                  <p>Revenue to after-tax cash flow, step-by-step.</p>
+                  <div id="baseCashBridgeChart" class="chart-wrapper"></div>
+                </div>
+                <div class="chart-panel">
+                  <h3>${horizonYears}-Year Balance Sheet Trajectory</h3>
+                  <p>Property value, remaining loan, and built equity.</p>
+                  <div id="baseProjectionTrendChart" class="chart-wrapper"></div>
+                </div>
+                <div class="chart-panel">
+                  <h3>NOI vs Debt Service vs Net Cash</h3>
+                  <p>Operating earnings versus financing burden over time.</p>
+                  <div id="baseOpsTrendChart" class="chart-wrapper"></div>
+                </div>
+                <div class="chart-panel">
+                  <h3>Operating Expense Mix</h3>
+                  <p>Where Year 1 operating cost is concentrated.</p>
+                  <div id="baseExpenseMixChart" class="chart-wrapper"></div>
+                </div>
+                <div class="chart-panel">
+                  <h3>Owner Monthly Cash Bridge</h3>
+                  <p>Per-owner monthly path from revenue to after-tax cash flow.</p>
+                  <div id="baseOwnerMonthlyChart" class="chart-wrapper"></div>
+                </div>
+                <div class="chart-panel">
+                  <h3>Return Trajectory</h3>
+                  <p>Cap rate and equity cash yield profile by year.</p>
+                  <div id="baseReturnTrajectoryChart" class="chart-wrapper"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <h2 class="section-title"><i class="fas fa-sliders-h"></i> Key Assumptions</h2>
+              ${assumptionsHtml}
+            </div>
+
+            <div class="section">
+              <h2 class="section-title"><i class="fas fa-table"></i> ${horizonYears}-Year Core Projection</h2>
+              <div class="data-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Year</th>
+                      <th>Revenue</th>
+                      <th>NOI</th>
+                      <th>Debt Service</th>
+                      <th>After-Tax Cash Flow</th>
+                      <th>Property Value</th>
+                      <th>Loan Balance</th>
+                      <th>Equity</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${projectionRows}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          `;
+
+          UIManager.setContent(html);
+
+          const plotConfig = {
+            responsive: true,
+            displayModeBar: false,
+            displaylogo: false,
+          };
+
+          const bridgeTrace = {
+            type: "waterfall",
+            orientation: "v",
+            measure: ["relative", "relative", "relative", "relative", "relative", "total"],
+            x: [
+              "Gross Income",
+              "OTA Fees",
+              "Operating Expenses",
+              "Debt Service",
+              "Tax Savings",
+              "After-Tax Cash Flow",
+            ],
+            y: [
+              grossRentalIncome,
+              -Math.abs(otaFees),
+              -Math.abs(operatingExpenses),
+              -Math.abs(debtService),
+              Math.abs(taxSavings),
+              afterTaxCashFlow,
+            ],
+            connector: { line: { color: "#94a3b8" } },
+            increasing: { marker: { color: "#22c55e" } },
+            decreasing: { marker: { color: "#ef4444" } },
+            totals: { marker: { color: "#667eea" } },
+            hovertemplate: "%{x}: <b>%{y:,.0f} CHF</b><extra></extra>",
+          };
+
+          Plotly.newPlot(
+            "baseCashBridgeChart",
+            [bridgeTrace],
+            {
+              ...unifiedChartConfig,
+              margin: { l: 50, r: 20, t: 20, b: 70 },
+              yaxis: { tickprefix: "CHF ", gridcolor: "#e0e4e7" },
+              showlegend: false,
+            },
+            plotConfig,
+          );
+
+          if (years.length > 0) {
+            Plotly.newPlot(
+              "baseProjectionTrendChart",
+              [
+                {
+                  x: years,
+                  y: propertyValues,
+                  type: "scatter",
+                  mode: "lines",
+                  name: "Property Value",
+                  line: { color: "#6366f1", width: 3 },
+                },
+                {
+                  x: years,
+                  y: loanBalances,
+                  type: "scatter",
+                  mode: "lines",
+                  name: "Loan Balance",
+                  line: { color: "#f97316", width: 3 },
+                },
+                {
+                  x: years,
+                  y: equityCurve,
+                  type: "scatter",
+                  mode: "lines",
+                  name: "Equity",
+                  line: { color: "#16a34a", width: 3 },
+                  fill: "tozeroy",
+                  fillcolor: "rgba(22,163,74,0.08)",
+                },
+              ],
+              {
+                ...unifiedChartConfig,
+                margin: { l: 70, r: 20, t: 20, b: 50 },
+                yaxis: { tickprefix: "CHF ", gridcolor: "#e0e4e7" },
+              },
+              plotConfig,
+            );
+
+            Plotly.newPlot(
+              "baseOpsTrendChart",
+              [
+                {
+                  x: years,
+                  y: noiSeries,
+                  type: "bar",
+                  name: "NOI",
+                  marker: { color: "#0ea5e9" },
+                },
+                {
+                  x: years,
+                  y: debtSeries,
+                  type: "bar",
+                  name: "Debt Service",
+                  marker: { color: "#ef4444" },
+                },
+                {
+                  x: years,
+                  y: cashSeries,
+                  type: "scatter",
+                  mode: "lines+markers",
+                  name: "Net Cash Flow",
+                  line: { color: "#111827", width: 3 },
+                },
+              ],
+              {
+                ...unifiedChartConfig,
+                barmode: "relative",
+                margin: { l: 70, r: 20, t: 20, b: 50 },
+                yaxis: { tickprefix: "CHF ", gridcolor: "#e0e4e7" },
+              },
+              plotConfig,
+            );
+
+            Plotly.newPlot(
+              "baseReturnTrajectoryChart",
+              [
+                {
+                  x: years,
+                  y: capRateSeries,
+                  type: "scatter",
+                  mode: "lines+markers",
+                  name: "Cap Rate",
+                  line: { color: "#0284c7", width: 3 },
+                },
+                {
+                  x: years,
+                  y: equityYieldSeries,
+                  type: "scatter",
+                  mode: "lines+markers",
+                  name: "Equity Cash Yield",
+                  yaxis: "y2",
+                  line: { color: "#7c3aed", width: 3, dash: "dot" },
+                },
+              ],
+              {
+                ...unifiedChartConfig,
+                margin: { l: 70, r: 70, t: 20, b: 50 },
+                yaxis: {
+                  title: { text: "Cap Rate (%)" },
+                  ticksuffix: "%",
+                  gridcolor: "#e0e4e7",
+                },
+                yaxis2: {
+                  title: { text: "Equity Yield (%)" },
+                  overlaying: "y",
+                  side: "right",
+                  ticksuffix: "%",
+                },
+              },
+              plotConfig,
+            );
+          }
+
+          if (expenseValues.length > 0) {
+            Plotly.newPlot(
+              "baseExpenseMixChart",
+              [
+                {
+                  type: "pie",
+                  labels: expenseLabels,
+                  values: expenseValues,
+                  hole: 0.45,
+                  marker: {
+                    colors: [
+                      "#2563eb",
+                      "#16a34a",
+                      "#f59e0b",
+                      "#ef4444",
+                      "#8b5cf6",
+                      "#06b6d4",
+                      "#64748b",
+                    ],
+                  },
+                  textinfo: "label+percent",
+                },
+              ],
+              {
+                ...unifiedChartConfig,
+                margin: { l: 20, r: 20, t: 20, b: 20 },
+                showlegend: false,
+              },
+              plotConfig,
+            );
+          } else {
+            const target = document.getElementById("baseExpenseMixChart");
+            if (target) {
+              target.innerHTML =
+                '<div class="empty-state" style="padding-top: 120px; text-align: center; color: var(--gray-500);">No expense data available.</div>';
+            }
+          }
+
+          const monthlyBridgeTrace = {
+            type: "waterfall",
+            orientation: "v",
+            measure: ["relative", "relative", "relative", "relative", "relative", "total"],
+            x: [
+              "Gross Revenue",
+              "OTA Fees",
+              "Operating Costs",
+              "Debt Service",
+              "Tax Shield",
+              "After-Tax CF",
+            ],
+            y: [
+              grossRentalIncome / 12 / Math.max(numOwners, 1),
+              -Math.abs(otaFees / 12 / Math.max(numOwners, 1)),
+              -Math.abs(operatingExpenses / 12 / Math.max(numOwners, 1)),
+              -Math.abs(debtService / 12 / Math.max(numOwners, 1)),
+              Math.abs(monthlyTaxSavingsPerOwner),
+              monthlyAfterTaxPerOwner,
+            ],
+            connector: { line: { color: "#94a3b8" } },
+            increasing: { marker: { color: "#22c55e" } },
+            decreasing: { marker: { color: "#ef4444" } },
+            totals: { marker: { color: "#667eea" } },
+            hovertemplate: "%{x}: <b>%{y:,.0f} CHF</b><extra></extra>",
+          };
+
+          Plotly.newPlot(
+            "baseOwnerMonthlyChart",
+            [monthlyBridgeTrace],
+            {
+              ...unifiedChartConfig,
+              margin: { l: 50, r: 20, t: 20, b: 70 },
+              yaxis: { tickprefix: "CHF ", gridcolor: "#e0e4e7" },
+              showlegend: false,
+            },
+            plotConfig,
+          );
         },
-
         renderSensitivity(data) {
           const content = document.getElementById("contentArea");
-          const sensitivities = data.sensitivities || [];
-          const baseIRR = data.base_irr || 0;
-          const baseATCF = data.base_atcf || 0; // After-tax cash flow per person (monthly)
+          const resolved = HorizonResolver.resolve(data, "sensitivity");
+          const scopedData = resolved.payload || {};
+          const sensitivities = scopedData.sensitivities || data.sensitivities || [];
+          const baseIRR = scopedData.base_irr ?? data.base_irr ?? 0;
+          const baseATCF = scopedData.base_atcf ?? data.base_atcf ?? 0; // After-tax cash flow per person (monthly)
+          const horizonYears = resolved.horizonApplied ? State.currentHorizon : 15;
 
           // Use unified styling
           const chartColors = unifiedChartConfig.colors;
@@ -1446,94 +1538,94 @@
           // Parameter explanations and rationales
           const parameterInfo = {
             "Property Appreciation Rate": {
-              range: "1.5% to 3.5% (±1%)",
+              range: "1.5% to 3.5% (1%)",
               rationale:
                 "Property appreciation is the dominant driver of long-term returns. Swiss real estate historically appreciates 2-3% annually. This tests downside (1.5%) and upside (3.5%) scenarios.",
-              icon: "📈",
+              icon: "€",
             },
             "Maintenance Reserve Rate": {
-              range: "0.2% to 1.2% (±0.5%)",
+              range: "0.2% to 1.2% (0.5%)",
               rationale:
                 "Maintenance reserve accounts for property upkeep and repairs. 0.7% of property value is balanced, but actual costs can vary. Lower rates assume newer property; higher rates account for aging or unexpected repairs.",
-              icon: "🔧",
+              icon: "€",
             },
             "Property Management Fee": {
-              range: "15% to 25% (±5%)",
+              range: "15% to 25% (5%)",
               rationale:
                 "Management companies charge 15-25% of gross revenue. Lower fees possible with local operators or self-management; higher fees include premium services or peak season surcharges.",
-              icon: "🏢",
+              icon: "",
             },
             "Purchase Price": {
-              range: "CHF 1.17M to 1.43M (±10%)",
+              range: "CHF 1.17M to 1.43M (10%)",
               rationale:
-                "Property prices can vary based on negotiation, market conditions, and property condition. Testing ±10% shows sensitivity to purchase timing and negotiation success.",
-              icon: "💰",
+                "Property prices can vary based on negotiation, market conditions, and property condition. Testing 10% shows sensitivity to purchase timing and negotiation success.",
+              icon: "€™",
             },
             "Occupancy Rate": {
-              range: "56.7% to 69.3% (±10%)",
+              range: "56.7% to 69.3% (10%)",
               rationale:
                 "Occupancy varies with marketing effectiveness, property quality, and market demand. Engelberg averages 63% but can swing based on snow conditions and tourism trends.",
-              icon: "📅",
+              icon: "€€",
             },
             "Average Daily Rate": {
-              range: "CHF 160 to 240 (±20%)",
+              range: "CHF 160 to 240 (20%)",
               rationale:
                 "Nightly rates fluctuate with seasonality and competition. CHF 200 is the average but can range from CHF 150 (off-peak) to CHF 250+ (peak ski season). Tests pricing strategy impact.",
-              icon: "💵",
+              icon: "€™",
             },
             "Interest Rate": {
-              range: "0.3% to 2.3% (±1%)",
+              range: "0.3% to 2.3% (1%)",
               rationale:
-                "Swiss mortgage rates are currently low (~1.3%) but can change with refinancing or market conditions. Testing ±1% covers scenarios from ultra-low to moderate rates.",
-              icon: "📊",
+                "Swiss mortgage rates are currently low (~1.3%) but can change with refinancing or market conditions. Testing 1% covers scenarios from ultra-low to moderate rates.",
+              icon: "€",
             },
             "Loan-to-Value (LTV)": {
-              range: "67.5% to 82.5% (±10%)",
+              range: "67.5% to 82.5% (10%)",
               rationale:
                 "LTV affects leverage and equity requirement. Swiss banks typically offer 60-80% LTV for investment properties. Higher LTV means less equity needed but more debt risk.",
-              icon: "🏦",
+              icon: "",
             },
             "Inflation Rate": {
-              range: "0.5% to 1.5% (±0.5%)",
+              range: "0.5% to 1.5% (0.5%)",
               rationale:
                 "Inflation affects both revenue and expense growth over the 15-year projection. Higher inflation increases future rents but also future costs. Net effect is relatively neutral but compounds over time.",
-              icon: "📊",
+              icon: "€",
             },
             "Amortization Rate": {
               range: "0% (interest-only) to 2%",
               rationale:
                 "Amortization rate determines annual principal paydown. 0% (interest-only) maximizes cash flow but keeps debt high. 2% builds equity faster but reduces annual cash flow. Most Swiss mortgages use 1% amortization.",
-              icon: "💳",
+              icon: "€™",
             },
             "Cleaning Cost per Stay": {
-              range: "CHF 49 to 91 (±30%)",
+              range: "CHF 49 to 91 (30%)",
               rationale:
                 "Professional cleaning cost per turnover. With ~130 turnovers annually, this is a significant expense. Negotiating from CHF 80 to CHF 60 saves CHF 2,600/year = CHF 650 per owner.",
-              icon: "🧹",
+              icon: "",
             },
             "Average Length of Stay": {
-              range: "1.19 to 2.21 nights (±30%)",
+              range: "1.19 to 2.21 nights (30%)",
               rationale:
                 "Average booking length affects cleaning frequency. Longer stays = fewer turnovers = lower cleaning costs = better cash flow. Offering multi-night discounts can encourage longer stays.",
-              icon: "📅",
+              icon: "€€",
             },
             "Insurance Rate": {
               range: "0.3% to 0.5% of property value",
               rationale:
                 "Annual property insurance as % of value. Covers building, liability, and rental interruption. Shopping around can save CHF 1,300-2,600 annually. Rates vary by coverage level and provider.",
-              icon: "🛡️",
+              icon: "€",
             },
             "Winter Season Occupancy": {
-              range: "63.75% to 86.25% (±15%)",
+              range: "63.75% to 86.25% (15%)",
               rationale:
                 "Occupancy specifically during winter ski season (Dec-Mar). This is the premium season with highest rates (CHF 250/night). Targeted winter marketing can significantly boost returns.",
-              icon: "⛷️",
+              icon: "€",
             },
             "Selling Costs Rate": {
-              range: "5.8% to 9.8% (±2%)",
+              range: "5.8% to 9.8% (2%)",
               rationale:
                 "Total transaction costs when selling at Year 15. Includes broker fees (3%, negotiable 2-4%), notary (1.5%), and transfer tax (3.3% in Obwalden, varies by canton 1-3.3%). Lower costs = more net proceeds.",
-              icon: "📝",
+              icon: "€",
             },
           };
 
@@ -1551,14 +1643,58 @@
             (a, b) => b.impact - a.impact,
           );
 
+          const topIrrParam = sensitivitiesForIRR[0]?.parameter || "N/A";
+          const topCashParam = sensitivitiesForATCF[0]?.parameter || "N/A";
+          const avgIrrImpact =
+            sensitivitiesForIRR.reduce((sum, s) => sum + Math.abs(s.impact || 0), 0) /
+            Math.max(sensitivitiesForIRR.length, 1);
+
+          let storySignalLabel = "Balanced sensitivity profile";
+          let storySignalClass = "signal-neutral";
+          if (baseIRR >= 7 && baseATCF >= 0) {
+            storySignalLabel = "Strong base economics";
+            storySignalClass = "signal-good";
+          } else if (baseIRR < 4 || baseATCF < -250) {
+            storySignalLabel = "Fragile under stress";
+            storySignalClass = "signal-risk";
+          }
+
           let html = `
+                    <div class="story-hero">
+                        <div class="story-header">
+                            <h2><i class="fas fa-sliders-h"></i> Sensitivity Story (${horizonYears}-Year Horizon)</h2>
+                            <span class="signal-chip ${storySignalClass}"><i class="fas fa-circle"></i> ${storySignalLabel}</span>
+                        </div>
+                        <p class="story-lead">
+                            This page highlights which assumptions matter most for cash generation and long-run return quality.
+                        </p>
+                        <div class="story-list">
+                            <div class="story-item">
+                                <h4>Base Return</h4>
+                                <p>Equity IRR is <strong>${baseIRR.toFixed(2)}%</strong> over ${horizonYears} years.</p>
+                            </div>
+                            <div class="story-item">
+                                <h4>Base Cash</h4>
+                                <p>Monthly after-tax cash flow per owner is <strong>${formatCHF(baseATCF)}</strong>.</p>
+                            </div>
+                            <div class="story-item">
+                                <h4>Top Return Lever</h4>
+                                <p><strong>${topIrrParam}</strong> has the largest IRR swing.</p>
+                            </div>
+                            <div class="story-item">
+                                <h4>Top Cash Lever</h4>
+                                <p><strong>${topCashParam}</strong> has the largest monthly cash swing.</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="section">
-                        <h2 class="section-title">🎯 Model Sensitivity Analysis</h2>
+                        <h2 class="section-title"><i class="fas fa-bullseye"></i> Model Sensitivity Analysis</h2>
                         
                         <!-- Info Box -->
                         <div style="background: linear-gradient(135deg, var(--accent) 0%, var(--secondary) 100%); color: white; padding: var(--space-md) var(--space-lg); border-radius: var(--radius-lg); margin-bottom: var(--space-lg); box-shadow: var(--shadow-md);">
-                            <p style="margin: 0; font-size: var(--font-size-sm); line-height: 1.6; opacity: 0.98; font-weight: 500;">
-                                💡 <strong>Model Sensitivity Analysis</strong> — How key metrics change with parameter variations. Two views: After-Tax Cash Flow per Person (Monthly impact) and Equity IRR (15-year return). Hover for details.
+                                <p style="margin: 0; font-size: var(--font-size-sm); line-height: 1.6; opacity: 0.98; font-weight: 500;">
+                                €™ <strong>Model Sensitivity Analysis</strong> € How key metrics change with parameter variations. Two views: After-Tax Cash Flow per Person (Monthly impact) and Equity IRR (${horizonYears}-year return). Hover for details.
                             </p>
                         </div>
                         
@@ -1568,10 +1704,10 @@
                                 <h3 style="color: rgba(255,255,255,0.95); font-size: var(--font-size-sm); font-weight: 600;">Base After-Tax Cash Flow (Monthly)</h3>
                                 <div class="value" style="color: white; font-size: var(--font-size-2xl); font-weight: 700;">${formatCHF(baseATCF)}</div>
                                 <div class="unit" style="font-size: var(--font-size-xs); color: rgba(255,255,255,0.8); margin-top: var(--space-xs);">per person/month</div>
-                                <div class="unit" style="font-size: var(--font-size-xs); color: rgba(255,255,255,0.8); margin-top: var(--space-xs);">per person/year</div>
+                                <div class="unit" style="font-size: var(--font-size-xs); color: rgba(255,255,255,0.8); margin-top: var(--space-xs);">avg IRR swing across drivers: ${avgIrrImpact.toFixed(2)}%</div>
                             </div>
                             <div class="kpi-card" style="background: linear-gradient(135deg, var(--accent) 0%, var(--secondary) 100%); border: none; color: white; padding: var(--space-lg); box-shadow: var(--shadow-md);">
-                                <h3 style="color: rgba(255,255,255,0.95); font-size: var(--font-size-sm); font-weight: 600;">Base Equity IRR</h3>
+                                <h3 style="color: rgba(255,255,255,0.95); font-size: var(--font-size-sm); font-weight: 600;">Base Equity IRR (${horizonYears}Y)</h3>
                                 <div class="value" style="color: white; font-size: var(--font-size-2xl); font-weight: 700;">${baseIRR.toFixed(
                                   2,
                                 )}%</div>
@@ -1596,11 +1732,11 @@
                         <!-- FIRST Tornado Chart: After-Tax Cash Flow per Person -->
                         <div class="chart-container" style="padding: var(--space-lg); margin-bottom: var(--space-xl);">
                             <h3 style="margin-bottom: var(--space-md); font-size: var(--font-size-xl); color: var(--primary); font-weight: 700;">
-                                📊 Tornado Chart - Parameter Impact on Monthly After-Tax Cash Flow per Person
+                                € Tornado Chart - Parameter Impact on Monthly After-Tax Cash Flow per Person
                             </h3>
                             <p style="color: var(--gray-500); margin-bottom: var(--space-md); font-size: var(--font-size-sm); line-height: 1.6;">
-                                <span style="color: var(--color-positive); font-weight: 600;">■</span> Green = higher cash flow | 
-                                <span style="color: var(--color-negative); font-weight: 600;">■</span> Red = lower cash flow | 
+                                <span style="color: var(--color-positive); font-weight: 600;">€</span> Green = higher cash flow | 
+                                <span style="color: var(--color-negative); font-weight: 600;">€</span> Red = lower cash flow | 
                                 Hover for details
                             </p>
                             <div class="chart-wrapper" id="tornadoChartATCF" style="min-height: 500px; height: auto; overflow: visible;"></div>
@@ -1609,38 +1745,48 @@
                         <!-- SECOND Tornado Chart: Equity IRR -->
                         <div class="chart-container" style="padding: var(--space-lg); margin-bottom: var(--space-xl);">
                             <h3 style="margin-bottom: var(--space-md); font-size: var(--font-size-xl); color: var(--primary); font-weight: 700;">
-                                📊 Tornado Chart - Parameter Impact on Equity IRR
+                                € Tornado Chart - Parameter Impact on Equity IRR
                             </h3>
                             <p style="color: var(--gray-500); margin-bottom: var(--space-md); font-size: var(--font-size-sm); line-height: 1.6;">
-                                <span style="color: var(--color-positive); font-weight: 600;">■</span> Green = better IRR | 
-                                <span style="color: var(--color-negative); font-weight: 600;">■</span> Red = worse IRR | 
+                                <span style="color: var(--color-positive); font-weight: 600;">€</span> Green = better IRR | 
+                                <span style="color: var(--color-negative); font-weight: 600;">€</span> Red = worse IRR | 
                                 Hover for details
                             </p>
                             <div class="chart-wrapper" id="tornadoChartIRR" style="min-height: 500px; height: auto; overflow: visible;"></div>
                         </div>
+
+                        <div class="chart-container" style="padding: var(--space-lg); margin-bottom: var(--space-xl);">
+                            <h3 style="margin-bottom: var(--space-md); font-size: var(--font-size-xl); color: var(--primary); font-weight: 700;">
+                                Return vs Cash Tradeoff Map
+                            </h3>
+                            <p style="color: var(--gray-500); margin-bottom: var(--space-md); font-size: var(--font-size-sm); line-height: 1.6;">
+                                Top-right points improve both monthly cash flow and long-run IRR.
+                            </p>
+                            <div class="chart-wrapper" id="sensitivityTradeoffChart" style="min-height: 460px; height: auto; overflow: visible;"></div>
+                        </div>
                         
                         <!-- Insights Panel -->
                         <div class="chart-container" style="background: linear-gradient(135deg, var(--gray-50), var(--gray-100)); border-left: 4px solid var(--accent); margin-bottom: var(--space-xl); box-shadow: var(--shadow-sm);">
-                            <h3 style="margin-top: 0; color: var(--primary); font-size: var(--font-size-xl); font-weight: 700; margin-bottom: var(--space-md);">🔍 Key Insights</h3>
+                            <h3 style="margin-top: 0; color: var(--primary); font-size: var(--font-size-xl); font-weight: 700; margin-bottom: var(--space-md);">€ Key Insights</h3>
                             <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
                                 ${sensitivities
                                   .slice(0, 3)
                                   .map((sens, i) => {
                                     const info = parameterInfo[
                                       sens.parameter
-                                    ] || { icon: "📌", range: "N/A" };
+                                    ] || { icon: "€", range: "N/A" };
                                     const isPositiveImpact =
                                       sens.high.irr > sens.low.irr;
                                     return `
                                         <div class="kpi-card" style="${i < 3 ? "border: 2px solid var(--warning); background: #fffbf0;" : ""}">
                                             <div style="font-size: 2em; margin-bottom: var(--space-sm);">${
-                                              info.icon || "📌"
+                                              info.icon || "€"
                                             }</div>
                                             <div style="font-weight: 700; color: var(--secondary); margin-bottom: var(--space-sm); font-size: var(--font-size-base);">${
                                               i + 1
                                             }. ${sens.parameter}</div>
                                             <div style="font-size: var(--font-size-sm); color: var(--gray-700); line-height: 1.6;">
-                                                <strong>Impact:</strong> ±${sens.impact.toFixed(
+                                                <strong>Impact:</strong> ${sens.impact.toFixed(
                                                   2,
                                                 )}%<br>
                                                 <strong>Range:</strong> ${
@@ -1648,8 +1794,8 @@
                                                 }<br>
                                                 ${
                                                   isPositiveImpact
-                                                    ? '<strong style="color: var(--color-positive); font-size: var(--font-size-base);">↑ Higher values improve IRR</strong>'
-                                                    : '<strong style="color: var(--color-negative); font-size: var(--font-size-base);">↓ Higher values reduce IRR</strong>'
+                                                    ? '<strong style="color: var(--color-positive); font-size: var(--font-size-base);">€€ Higher values improve IRR</strong>'
+                                                    : '<strong style="color: var(--color-negative); font-size: var(--font-size-base);">€€ Higher values reduce IRR</strong>'
                                                 }
                                             </div>
                                         </div>
@@ -1662,7 +1808,7 @@
                         <!-- Parameter Details Table -->
                         <div class="data-table" style="margin-top: var(--space-xl); clear: both;">
                             <h3 style="padding: var(--space-md); margin: 0; border-bottom: 3px solid var(--border); background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%); font-size: var(--font-size-xl); font-weight: 700; color: var(--primary);">
-                                📋 Detailed Parameter Analysis
+                                €€ Detailed Parameter Analysis
                             </h3>
                             <table style="font-size: var(--font-size-sm);">
                                 <thead>
@@ -1679,7 +1825,7 @@
                                       .map((sens, index) => {
                                         const info = parameterInfo[
                                           sens.parameter
-                                        ] || { icon: "📌" };
+                                        ] || { icon: "€" };
                                         // DYNAMIC COLOR LOGIC: Green if better, Red if worse
                                         const lowBetter =
                                           sens.low.irr > baseIRR;
@@ -1722,7 +1868,7 @@
                                                   sens.low.value,
                                                   sens.parameter,
                                                 )}</div>
-                                                <div style="color: ${lowTextColor}; font-weight: bold; font-size: var(--font-size-lg); margin-bottom: var(--space-xs);">→ ${sens.low.irr.toFixed(
+                                                <div style="color: ${lowTextColor}; font-weight: bold; font-size: var(--font-size-lg); margin-bottom: var(--space-xs);">€€™ ${sens.low.irr.toFixed(
                                                   2,
                                                 )}%</div>
                                                 <small style="color: var(--gray-500); font-size: var(--font-size-xs);">(${
@@ -1738,7 +1884,7 @@
                                                   sens.high.value,
                                                   sens.parameter,
                                                 )}</div>
-                                                <div style="color: ${highTextColor}; font-weight: bold; font-size: var(--font-size-lg); margin-bottom: var(--space-xs);">→ ${sens.high.irr.toFixed(
+                                                <div style="color: ${highTextColor}; font-weight: bold; font-size: var(--font-size-lg); margin-bottom: var(--space-xs);">€€™ ${sens.high.irr.toFixed(
                                                   2,
                                                 )}%</div>
                                                 <small style="color: var(--gray-500); font-size: var(--font-size-xs);">(${
@@ -1759,7 +1905,7 @@
                                                     ? "white"
                                                     : "var(--gray-700)"
                                                 }; padding: var(--space-sm) var(--space-md); border-radius: 25px; display: inline-block; font-weight: 700; font-size: var(--font-size-base); box-shadow: var(--shadow-sm);">
-                                                    ±${sens.impact.toFixed(2)}%
+                                                    ${sens.impact.toFixed(2)}%
                                                 </div>
                                             </td>
                                         </tr>
@@ -1772,7 +1918,7 @@
                 `;
 
           html += "</div>";
-          content.innerHTML = html;
+          UIManager.setContent(html);
 
           // ============================================================
           // FIRST TORNADO CHART: After-Tax Cash Flow per Person
@@ -1855,14 +2001,14 @@
               hovertemplate:
                 "<b>%{customdata.param}</b><br>" +
                 "<br>" +
-                "<b style='color:#ff6b6b;'>📉 Low Value Scenario</b><br>" +
+                "<b style='color:#ff6b6b;'>€€ Low Value Scenario</b><br>" +
                 "  Parameter: <b>%{customdata.lowValue}</b><br>" +
                 "  Resulting ATCF (monthly): <b>%{customdata.lowATCFFormatted}</b><br>" +
                 "  Change from Base: <b>%{x:+,.0f} CHF/month</b><br>" +
                 "<br>" +
-                "<b>📊 Tested Range:</b> %{customdata.range}<br>" +
+                "<b>€ Tested Range:</b> %{customdata.range}<br>" +
                 "<br>" +
-                "<b>💡 Why this matters:</b><br>" +
+                "<b>€™ Why this matters:</b><br>" +
                 "%{customdata.rationale}<br>" +
                 "<extra></extra>",
               hoverlabel: {
@@ -1900,14 +2046,14 @@
               hovertemplate:
                 "<b>%{customdata.param}</b><br>" +
                 "<br>" +
-                "<b style='color:#51cf66;'>📈 High Value Scenario</b><br>" +
+                "<b style='color:#51cf66;'>€ High Value Scenario</b><br>" +
                 "  Parameter: <b>%{customdata.highValue}</b><br>" +
                 "  Resulting ATCF (monthly): <b>%{customdata.highATCFFormatted}</b><br>" +
                 "  Change from Base: <b>%{x:+,.0f} CHF/month</b><br>" +
                 "<br>" +
-                "<b>📊 Tested Range:</b> %{customdata.range}<br>" +
+                "<b>€ Tested Range:</b> %{customdata.range}<br>" +
                 "<br>" +
-                "<b>💡 Why this matters:</b><br>" +
+                "<b>€™ Why this matters:</b><br>" +
                 "%{customdata.rationale}<br>" +
                 "<extra></extra>",
               hoverlabel: {
@@ -2101,8 +2247,8 @@
             const lowColors = lowValues.map((delta, i) => {
               const lowIRR = customData[i].lowIRR;
               const highIRR = customData[i].highIRR;
-              // Low value produces lower IRR → red (worse)
-              // Low value produces higher IRR → green (better, counterintuitive)
+              // Low value produces lower IRR €€™ red (worse)
+              // Low value produces higher IRR €€™ green (better, counterintuitive)
               return lowIRR < baseIRR
                 ? chartColors.negative
                 : lowIRR > baseIRR
@@ -2113,8 +2259,8 @@
             const highColors = highValues.map((delta, i) => {
               const lowIRR = customData[i].lowIRR;
               const highIRR = customData[i].highIRR;
-              // High value produces higher IRR → green (better)
-              // High value produces lower IRR → red (worse, counterintuitive)
+              // High value produces higher IRR €€™ green (better)
+              // High value produces lower IRR €€™ red (worse, counterintuitive)
               return highIRR > baseIRR
                 ? chartColors.positive
                 : highIRR < baseIRR
@@ -2146,14 +2292,14 @@
               hovertemplate:
                 "<b>%{customdata.param}</b><br>" +
                 "<br>" +
-                "<b style='color:#ff6b6b;'>📉 Low Value Scenario</b><br>" +
+                "<b style='color:#ff6b6b;'>€€ Low Value Scenario</b><br>" +
                 "  Parameter: <b>%{customdata.lowValue}</b><br>" +
                 "  Resulting IRR: <b>%{customdata.lowIRR:.2f}%</b><br>" +
                 "  Change from Base: <b>%{x:+.2f}%</b><br>" +
                 "<br>" +
-                "<b>📊 Tested Range:</b> %{customdata.range}<br>" +
+                "<b>€ Tested Range:</b> %{customdata.range}<br>" +
                 "<br>" +
-                "<b>💡 Why this matters:</b><br>" +
+                "<b>€™ Why this matters:</b><br>" +
                 "%{customdata.rationale}<br>" +
                 "<extra></extra>",
               hoverlabel: {
@@ -2191,14 +2337,14 @@
               hovertemplate:
                 "<b>%{customdata.param}</b><br>" +
                 "<br>" +
-                "<b style='color:#51cf66;'>📈 High Value Scenario</b><br>" +
+                "<b style='color:#51cf66;'>€ High Value Scenario</b><br>" +
                 "  Parameter: <b>%{customdata.highValue}</b><br>" +
                 "  Resulting IRR: <b>%{customdata.highIRR:.2f}%</b><br>" +
                 "  Change from Base: <b>%{x:+.2f}%</b><br>" +
                 "<br>" +
-                "<b>📊 Tested Range:</b> %{customdata.range}<br>" +
+                "<b>€ Tested Range:</b> %{customdata.range}<br>" +
                 "<br>" +
-                "<b>💡 Why this matters:</b><br>" +
+                "<b>€™ Why this matters:</b><br>" +
                 "%{customdata.rationale}<br>" +
                 "<extra></extra>",
               hoverlabel: {
@@ -2348,6 +2494,64 @@
               }
             });
           }
+
+          if (sensitivities.length > 0) {
+            const tradeoffData = sensitivities.map((s) => ({
+              parameter: s.parameter,
+              cashSwing: s.impact_atcf || 0,
+              irrSwing: s.impact || 0,
+            }));
+
+            Plotly.newPlot(
+              "sensitivityTradeoffChart",
+              [
+                {
+                  x: tradeoffData.map((d) => d.cashSwing),
+                  y: tradeoffData.map((d) => d.irrSwing),
+                  text: tradeoffData.map((d) => d.parameter),
+                  type: "scatter",
+                  mode: "markers+text",
+                  textposition: "top center",
+                  marker: {
+                    size: tradeoffData.map((d) => 11 + Math.min(20, Math.abs(d.irrSwing) * 2.5)),
+                    color: tradeoffData.map((d) =>
+                      d.cashSwing >= 0 && d.irrSwing >= 0
+                        ? "#16a34a"
+                        : d.cashSwing < 0 && d.irrSwing < 0
+                          ? "#dc2626"
+                          : "#2563eb",
+                    ),
+                    opacity: 0.82,
+                    line: { color: "#0f172a", width: 1 },
+                  },
+                  hovertemplate:
+                    "<b>%{text}</b><br>Cash swing: <b>CHF %{x:+,.0f}</b>/month<br>IRR swing: <b>%{y:+.2f}%</b><extra></extra>",
+                },
+              ],
+              {
+                ...unifiedChartConfig,
+                margin: { l: 80, r: 20, t: 20, b: 65 },
+                xaxis: {
+                  title: { text: "Monthly ATCF swing (CHF/month)" },
+                  zeroline: true,
+                  zerolinecolor: "#1f2937",
+                  gridcolor: "#e5e7eb",
+                },
+                yaxis: {
+                  title: { text: "Equity IRR swing (%)" },
+                  zeroline: true,
+                  zerolinecolor: "#1f2937",
+                  gridcolor: "#e5e7eb",
+                },
+                showlegend: false,
+              },
+              {
+                responsive: true,
+                displayModeBar: false,
+                displaylogo: false,
+              },
+            );
+          }
         },
 
         // Helper function to format values based on parameter type
@@ -2392,102 +2596,102 @@
           // Parameter explanations
           const parameterInfo = {
             "Interest Rate": {
-              range: "0.3% to 2.3% (±1%)",
+              range: "0.3% to 2.3% (1%)",
               rationale:
                 "Interest rate has HUGE impact on cash flow. Lower rates = better cash-on-cash. With leverage, even 0.5% difference matters significantly for Year 1 cash yield.",
-              icon: "📊",
+              icon: "€",
             },
             "Amortization Rate": {
               range: "0% (interest-only) to 2%",
               rationale:
                 "Amortization directly reduces cash flow. Interest-only (0%) maximizes Year 1 cash but keeps debt higher. 2% amortization improves equity but hurts cash flow by CHF 6,000/year.",
-              icon: "💰",
+              icon: "€™",
             },
             "Average Daily Rate": {
-              range: "CHF 160 to 240 (±20%)",
+              range: "CHF 160 to 240 (20%)",
               rationale:
                 "Pricing strategy directly impacts revenue and thus cash flow. 20% rate increase can turn negative CoC into positive. Dynamic pricing is crucial.",
-              icon: "💵",
+              icon: "€™",
             },
             "Maintenance Reserve Rate": {
               range: "0% to 1% of property value",
               rationale:
                 "Maintenance reserve is a large annual expense. Going from 0.3% to 0% saves CHF 3,900/year = CHF 975 per owner. But may defer needed work.",
-              icon: "🔧",
+              icon: "€",
             },
             "Loan-to-Value (LTV)": {
-              range: "67.5% to 82.5% (±10%)",
+              range: "67.5% to 82.5% (10%)",
               rationale:
                 "Higher LTV = less equity needed BUT more debt service. This creates a trade-off: higher LTV hurts cash-on-cash but requires less upfront capital.",
-              icon: "🏦",
+              icon: "",
             },
             "Average Length of Stay": {
-              range: "1.19 to 2.21 nights (±30%)",
+              range: "1.19 to 2.21 nights (30%)",
               rationale:
                 "Longer stays = fewer turnovers = lower cleaning costs = better cash flow. Encouraging 3+ night stays can meaningfully improve CoC.",
-              icon: "📅",
+              icon: "€€",
             },
             "Cleaning Cost per Stay": {
-              range: "CHF 49 to 91 (±30%)",
+              range: "CHF 49 to 91 (30%)",
               rationale:
                 "With ~130 turnovers/year, cleaning is a major expense. Negotiating from CHF 80 to CHF 60 saves CHF 2,600/year.",
-              icon: "🧹",
+              icon: "",
             },
             "Occupancy Rate": {
-              range: "56.7% to 69.3% (±10%)",
+              range: "56.7% to 69.3% (10%)",
               rationale:
                 "Higher occupancy = more revenue = better cash flow. Every 1% occupancy increase adds ~CHF 700 revenue.",
-              icon: "📈",
+              icon: "€",
             },
             "Property Management Fee": {
-              range: "15% to 25% (±5%)",
+              range: "15% to 25% (5%)",
               rationale:
                 "Management fees are % of revenue. Lower fees = better cash flow.",
-              icon: "🏢",
+              icon: "",
             },
             "Winter Season Occupancy": {
-              range: "63.75% to 86.25% (±15%)",
+              range: "63.75% to 86.25% (15%)",
               rationale:
                 "Premium ski season. Higher winter occupancy = more high-rate revenue.",
-              icon: "⛷️",
+              icon: "€",
             },
             "Purchase Price": {
-              range: "CHF 1.17M to 1.43M (±10%)",
+              range: "CHF 1.17M to 1.43M (10%)",
               rationale: "Higher price = more equity needed = worse CoC yield.",
-              icon: "🏠",
+              icon: "",
             },
             "Insurance Rate": {
               range: "0.3% to 0.5% of property value",
               rationale:
                 "Annual insurance costs. Lower rates = better cash flow.",
-              icon: "🛡️",
+              icon: "€",
             },
             "Property Appreciation Rate": {
               range: "1.5% to 3.5%",
               rationale: "Doesn't affect Year 1 cash flow. Zero impact on CoC.",
-              icon: "📈",
+              icon: "€",
             },
             "Inflation Rate": {
               range: "0.5% to 1.5%",
               rationale: "Doesn't affect Year 1 cash flow. Zero impact on CoC.",
-              icon: "📊",
+              icon: "€",
             },
             "Selling Costs Rate": {
-              range: "5.8% to 9.8% (±2%)",
+              range: "5.8% to 9.8% (2%)",
               rationale:
                 "Transaction costs at property sale (Year 15). Doesn't affect Year 1 cash flow - only matters for long-term returns when property is eventually sold. Includes broker, notary, and transfer tax.",
-              icon: "📝",
+              icon: "€",
             },
           };
 
           let html = `
             <div class="section">
-              <h2 class="section-title">💰 Model Sensitivity - Cash-on-Cash Analysis</h2>
+              <h2 class="section-title">€™ Model Sensitivity - Cash-on-Cash Analysis</h2>
               
               <!-- Info Box -->
               <div style="background: linear-gradient(135deg, var(--accent) 0%, var(--secondary) 100%); color: white; padding: var(--space-md) var(--space-lg); border-radius: var(--radius-lg); margin-bottom: var(--space-lg); box-shadow: var(--shadow-md);">
                 <p style="margin: 0; font-size: var(--font-size-sm); line-height: 1.6; opacity: 0.98; font-weight: 500;">
-                  💡 <strong>Cash-on-Cash = Year 1 Cash / Equity</strong> — First year cash yield like a bond. Ignores appreciation. Hover for details.
+                  €™ <strong>Cash-on-Cash = Year 1 Cash / Equity</strong> € First year cash yield like a bond. Ignores appreciation. Hover for details.
                 </p>
               </div>
               
@@ -2507,7 +2711,7 @@
                 </div>
                 <div class="kpi-card">
                   <h3>Top Impact</h3>
-                  <div class="value" style="color: var(--color-warning);">±${(
+                  <div class="value" style="color: var(--color-warning);">${(
                     sensitivities[0]?.impact || 0
                   ).toFixed(2)}%</div>
                   <div class="unit" style="font-size: var(--font-size-xs); color: var(--gray-500); margin-top: var(--space-xs);">${
@@ -2530,10 +2734,10 @@
               
               <!-- Tornado Chart -->
               <div class="chart-container">
-                <h3>📊 Tornado Chart - Impact on Year 1 Cash Yield</h3>
+                <h3>€ Tornado Chart - Impact on Year 1 Cash Yield</h3>
                 <p style="color: var(--gray-500); margin-bottom: var(--space-md); font-size: var(--font-size-sm); line-height: 1.6;">
-                  <span style="color: var(--color-positive); font-weight: 600;">■</span> Green = better CoC | 
-                  <span style="color: var(--color-negative); font-weight: 600;">■</span> Red = worse CoC | 
+                  <span style="color: var(--color-positive); font-weight: 600;">€</span> Green = better CoC | 
+                  <span style="color: var(--color-negative); font-weight: 600;">€</span> Red = worse CoC | 
                   Hover for details
                 </p>
                 <div class="chart-wrapper" id="tornadoChartCoC" style="min-height: 500px; height: auto; overflow: visible;"></div>
@@ -2544,26 +2748,26 @@
               
               <!-- Insights Panel -->
               <div class="chart-container" style="background: linear-gradient(135deg, var(--gray-50), var(--gray-100)); border-left: 4px solid var(--accent);">
-                <h3 style="margin-top: 0; color: var(--primary); font-size: var(--font-size-xl); font-weight: 700; margin-bottom: var(--space-md);">🔍 Key Cash Flow Insights</h3>
+                <h3 style="margin-top: 0; color: var(--primary); font-size: var(--font-size-xl); font-weight: 700; margin-bottom: var(--space-md);">€ Key Cash Flow Insights</h3>
                 <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
                   ${sensitivities
                     .filter((s) => s.impact > 0)
                     .slice(0, 3)
                     .map((sens, i) => {
                       const info = parameterInfo[sens.parameter] || {
-                        icon: "📌",
+                        icon: "€",
                         range: "N/A",
                       };
                       return `
                       <div class="kpi-card" style="${i < 3 ? "border: 2px solid var(--warning); background: #fffbf0;" : ""}">
                         <div style="font-size: 2em; margin-bottom: var(--space-sm);">${
-                          info.icon || "📌"
+                          info.icon || "€"
                         }</div>
                         <div style="font-weight: 700; color: var(--secondary); margin-bottom: var(--space-sm); font-size: var(--font-size-base);">${
                           i + 1
                         }. ${sens.parameter}</div>
                         <div style="font-size: var(--font-size-sm); color: var(--gray-700); line-height: 1.6;">
-                          <strong>Impact:</strong> ±${sens.impact.toFixed(
+                          <strong>Impact:</strong> ${sens.impact.toFixed(
                             2,
                           )}%<br>
                           <strong>Range:</strong> ${info.range}<br>
@@ -2574,8 +2778,8 @@
                           }; font-size: var(--font-size-base);">
                             ${
                               sens.high.irr > sens.low.irr
-                                ? "↑ Higher values improve CoC"
-                                : "↓ Higher values reduce CoC"
+                                ? "€€ Higher values improve CoC"
+                                : "€€ Higher values reduce CoC"
                             }
                           </strong>
                         </div>
@@ -2589,7 +2793,7 @@
               <!-- Parameter Details Table -->
               <div class="data-table" style="margin-top: var(--space-xl); clear: both;">
                 <h3 style="padding: var(--space-md); margin: 0; border-bottom: 3px solid var(--border); background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%); font-size: var(--font-size-xl); font-weight: 700; color: var(--primary);">
-                  📋 Detailed Cash-on-Cash Analysis
+                  €€ Detailed Cash-on-Cash Analysis
                 </h3>
                 <table style="font-size: var(--font-size-sm);">
                   <thead>
@@ -2605,7 +2809,7 @@
                     ${sensitivities
                       .map((sens, index) => {
                         const info = parameterInfo[sens.parameter] || {
-                          icon: "📌",
+                          icon: "€",
                         };
                         const hasImpact = sens.impact > 0.01;
                         // DYNAMIC COLOR LOGIC: Green if better, Red if worse
@@ -2643,7 +2847,7 @@
                             sens.low.value,
                             sens.parameter,
                           )}</div>
-                          <div style="color: ${lowTextColor}; font-weight: bold; font-size: var(--font-size-lg); margin-bottom: var(--space-xs);">→ ${sens.low.irr.toFixed(
+                          <div style="color: ${lowTextColor}; font-weight: bold; font-size: var(--font-size-lg); margin-bottom: var(--space-xs);">€€™ ${sens.low.irr.toFixed(
                             2,
                           )}%</div>
                           <small style="color: var(--gray-500); font-size: var(--font-size-xs);">(${
@@ -2655,7 +2859,7 @@
                             sens.high.value,
                             sens.parameter,
                           )}</div>
-                          <div style="color: ${highTextColor}; font-weight: bold; font-size: var(--font-size-lg); margin-bottom: var(--space-xs);">→ ${sens.high.irr.toFixed(
+                          <div style="color: ${highTextColor}; font-weight: bold; font-size: var(--font-size-lg); margin-bottom: var(--space-xs);">€€™ ${sens.high.irr.toFixed(
                             2,
                           )}%</div>
                           <small style="color: var(--gray-500); font-size: var(--font-size-xs);">(${
@@ -2668,7 +2872,7 @@
                           }; color: ${
                             index < 3 ? "white" : "var(--gray-700)"
                           }; padding: var(--space-sm) var(--space-md); border-radius: 25px; display: inline-block; font-weight: 700; font-size: var(--font-size-base); box-shadow: var(--shadow-sm);">
-                            ±${sens.impact.toFixed(2)}%
+                            ${sens.impact.toFixed(2)}%
                           </div>
                         </td>
                       </tr>
@@ -2681,7 +2885,7 @@
           `;
 
           html += "</div>";
-          content.innerHTML = html;
+          UIManager.setContent(html);
 
           // Render tornado chart (filter out zero-impact parameters)
           const meaningfulSensitivities = sensitivities.filter(
@@ -2749,14 +2953,14 @@
               hovertemplate:
                 "<b>%{customdata.param}</b><br>" +
                 "<br>" +
-                "<b style='color:#ff6b6b;'>📉 Pessimistic Scenario</b><br>" +
+                "<b style='color:#ff6b6b;'>€€ Pessimistic Scenario</b><br>" +
                 "  Parameter Value: <b>%{customdata.lowValue}</b><br>" +
                 "  Resulting Cash-on-Cash: <b>%{customdata.lowCoC:.2f}%</b><br>" +
                 "  Change from Base: <b>%{x:+.2f}%</b><br>" +
                 "<br>" +
-                "<b>📊 Sensitivity Range:</b> %{customdata.range}<br>" +
+                "<b>€ Sensitivity Range:</b> %{customdata.range}<br>" +
                 "<br>" +
-                "<b>💡 Why This Matters:</b><br>" +
+                "<b>€™ Why This Matters:</b><br>" +
                 "%{customdata.rationale}<br>" +
                 "<extra></extra>",
               hoverlabel: {
@@ -2784,14 +2988,14 @@
               hovertemplate:
                 "<b>%{customdata.param}</b><br>" +
                 "<br>" +
-                "<b style='color:#51cf66;'>📈 Optimistic Scenario</b><br>" +
+                "<b style='color:#51cf66;'>€ Optimistic Scenario</b><br>" +
                 "  Parameter Value: <b>%{customdata.highValue}</b><br>" +
                 "  Resulting Cash-on-Cash: <b>%{customdata.highCoC:.2f}%</b><br>" +
                 "  Change from Base: <b>%{x:+.2f}%</b><br>" +
                 "<br>" +
-                "<b>📊 Sensitivity Range:</b> %{customdata.range}<br>" +
+                "<b>€ Sensitivity Range:</b> %{customdata.range}<br>" +
                 "<br>" +
-                "<b>💡 Why This Matters:</b><br>" +
+                "<b>€™ Why This Matters:</b><br>" +
                 "%{customdata.rationale}<br>" +
                 "<extra></extra>",
               hoverlabel: {
@@ -2878,94 +3082,94 @@
           // Parameter info for NCF sensitivity
           const parameterInfo = {
             "Purchase Price": {
-              range: "CHF 1.275M to 1.725M (±15%)",
+              range: "CHF 1.275M to 1.725M (15%)",
               rationale:
                 "Higher purchase price means more debt and higher mortgage payments, directly reducing monthly cash flow. Negotiating down CHF 50k = CHF 8/month savings per owner.",
-              icon: "🏠",
+              icon: "",
             },
             "Interest Rate": {
-              range: "0.3% to 2.3% (±1%)",
+              range: "0.3% to 2.3% (1%)",
               rationale:
                 "Interest rate directly impacts monthly mortgage cost. Each 0.5% change = ~CHF 150/month per owner difference. Critical for cash flow planning.",
-              icon: "📈",
+              icon: "€",
             },
             "Average Daily Rate": {
-              range: "CHF 129.5 to 175.5 (±15%)",
+              range: "CHF 129.5 to 175.5 (15%)",
               rationale:
                 "Higher daily rates increase gross revenue proportionally. A CHF 20/night increase generates ~CHF 2,900 extra annually = ~CHF 60/month per owner.",
-              icon: "💰",
+              icon: "€™",
             },
             "Occupancy Rate": {
-              range: "52.7% to 71.3% (Winter avg ±15%)",
+              range: "52.7% to 71.3% (Winter avg 15%)",
               rationale:
                 "Higher occupancy means more rental nights. 5% higher occupancy = ~CHF 3,650 more revenue = ~CHF 76/month per owner after expenses.",
-              icon: "🛏️",
+              icon: "€",
             },
             "Maintenance Reserve Rate": {
               range: "0.25% to 0.75% of property value",
               rationale:
                 "Maintenance reserve affects monthly cash flow directly. At 0.3%, this is ~CHF 325/month total = CHF 81/month per owner set aside.",
-              icon: "🔧",
+              icon: "€",
             },
             "Management Fee Rate": {
               range: "18% to 22% of rental income",
               rationale:
                 "Management fees are a percentage of gross rental income. At 20%, this is ~CHF 10k/year = CHF 208/month per owner.",
-              icon: "👔",
+              icon: "€€",
             },
             "Loan-to-Value (LTV)": {
-              range: "67.5% to 82.5% (±10%)",
+              range: "67.5% to 82.5% (10%)",
               rationale:
                 "Higher LTV = more debt = higher monthly payments but less equity needed upfront. 75% LTV means ~CHF 937k mortgage = ~CHF 1,171/month per owner.",
-              icon: "🏦",
+              icon: "",
             },
             "Amortization Rate": {
               range: "0% to 2% annually",
               rationale:
                 "Amortization is principal paydown, directly reducing cash flow. 1% = CHF 937/month total = CHF 234/month per owner building equity.",
-              icon: "💳",
+              icon: "€™",
             },
             "Cleaning Cost per Stay": {
-              range: "CHF 49 to 91 (±30%)",
+              range: "CHF 49 to 91 (30%)",
               rationale:
                 "With ~130 turnovers/year, cleaning costs add up. CHF 70/turnover = CHF 9,100/year = CHF 190/month per owner.",
-              icon: "🧹",
+              icon: "",
             },
             "Average Length of Stay": {
-              range: "1.19 to 2.21 nights (±30%)",
+              range: "1.19 to 2.21 nights (30%)",
               rationale:
                 "Longer stays = fewer turnovers = less cleaning costs. 2 nights avg instead of 1.7 saves ~CHF 25/month per owner.",
-              icon: "📅",
+              icon: "€€",
             },
             "Insurance Rate": {
               range: "0.3% to 0.5% of property value",
               rationale:
                 "Annual insurance as % of value. 0.4% = CHF 5k/year = CHF 104/month per owner. Shopping around can save CHF 20-40/month.",
-              icon: "🛡️",
+              icon: "€",
             },
             "Winter Season Occupancy": {
-              range: "63.75% to 86.25% (±15%)",
+              range: "63.75% to 86.25% (15%)",
               rationale:
                 "Winter is premium season (Dec-Mar) with highest rates. High winter occupancy is crucial for positive monthly cash flow.",
-              icon: "⛷️",
+              icon: "€",
             },
             "Inflation Rate": {
-              range: "0.5% to 1.5% (±0.5%)",
+              range: "0.5% to 1.5% (0.5%)",
               rationale:
                 "Inflation affects Year 1 minimally but compounds over time. Higher inflation means higher future rents AND costs.",
-              icon: "📊",
+              icon: "€",
             },
             "Property Appreciation Rate": {
-              range: "1.5% to 3.5% (±1%)",
+              range: "1.5% to 3.5% (1%)",
               rationale:
                 "Property appreciation doesn't affect monthly cash flow directly - only affects equity value at sale.",
-              icon: "📈",
+              icon: "€",
             },
             "Selling Costs Rate": {
-              range: "5.8% to 9.8% (±2%)",
+              range: "5.8% to 9.8% (2%)",
               rationale:
                 "Selling costs don't affect monthly cash flow - only apply when property is sold at Year 15.",
-              icon: "📝",
+              icon: "€",
             },
           };
 
@@ -2983,7 +3187,7 @@
               <!-- Info Box -->
               <div style="background: linear-gradient(135deg, var(--accent) 0%, var(--secondary) 100%); color: white; padding: var(--space-md) var(--space-lg); border-radius: var(--radius-lg); margin-bottom: var(--space-lg); box-shadow: var(--shadow-md);">
                 <p style="margin: 0; font-size: var(--font-size-sm); line-height: 1.6; opacity: 0.98; font-weight: 500;">
-                  💡 <strong>Monthly NCF = Annual Cash / 12 / Owners</strong> — Actual CHF hitting your bank each month after all costs.
+                  €™ <strong>Monthly NCF = Annual Cash / 12 / Owners</strong> € Actual CHF hitting your bank each month after all costs.
                 </p>
               </div>
               
@@ -3003,7 +3207,7 @@
                 </div>
                 <div class="kpi-card">
                   <h3>Top Impact</h3>
-                  <div class="value" style="color: var(--color-warning);">±CHF ${(
+                  <div class="value" style="color: var(--color-warning);">CHF ${(
                     sensitivities[0]?.impact || 0
                   ).toFixed(0)}</div>
                   <div class="unit" style="font-size: var(--font-size-xs); color: var(--gray-500); margin-top: var(--space-xs);">${
@@ -3027,11 +3231,11 @@
               <!-- Tornado Chart -->
               <div class="chart-container" style="padding: 30px; margin-bottom: 40px;">
                 <h3 style="margin-bottom: 16px; font-size: 1.3em; color: #16a085; font-weight: 700;">
-                  📊 Tornado Chart - Impact on Monthly Cash Flow
+                  € Tornado Chart - Impact on Monthly Cash Flow
                 </h3>
                 <p style="color: #7f8c8d; margin-bottom: 18px; font-size: 0.95em; line-height: 1.6;">
-                  <span style="color: #2ecc71; font-weight: 600;">■</span> Green = higher cash | 
-                  <span style="color: #e74c3c; font-weight: 600;">■</span> Red = lower cash | 
+                  <span style="color: #2ecc71; font-weight: 600;">€</span> Green = higher cash | 
+                  <span style="color: #e74c3c; font-weight: 600;">€</span> Red = lower cash | 
                   Hover for details
                 </p>
                 <div class="chart-wrapper" id="tornadoChartNCF" style="min-height: 500px; height: auto; overflow: visible;"></div>
@@ -3040,7 +3244,7 @@
               <!-- Data Table -->
               <div class="data-table" style="margin-top: var(--space-xl); clear: both;">
                 <h3 style="padding: var(--space-md); margin: 0; border-bottom: 3px solid var(--border); background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%); font-size: var(--font-size-xl); font-weight: 700; color: var(--primary);">
-                  📋 Detailed Parameter Analysis
+                  €€ Detailed Parameter Analysis
                 </h3>
                 <table style="font-size: var(--font-size-sm);">
                   <thead>
@@ -3056,7 +3260,7 @@
                     ${sensitivities
                       .map((sens, index) => {
                         const info = parameterInfo[sens.parameter] || {
-                          icon: "📌",
+                          icon: "€",
                         };
                         const hasImpact = sens.impact > 0.5;
                         // DYNAMIC COLOR LOGIC: Green if higher NCF, Red if lower
@@ -3094,7 +3298,7 @@
                             sens.low.value,
                             sens.parameter,
                           )}</div>
-                          <div style="color: ${lowTextColor}; font-weight: bold; font-size: var(--font-size-lg); margin-bottom: var(--space-xs);">→ CHF ${sens.low.irr.toFixed(
+                          <div style="color: ${lowTextColor}; font-weight: bold; font-size: var(--font-size-lg); margin-bottom: var(--space-xs);">€€™ CHF ${sens.low.irr.toFixed(
                             0,
                           )}</div>
                           <small style="color: var(--gray-500); font-size: var(--font-size-xs);">(${
@@ -3106,7 +3310,7 @@
                             sens.high.value,
                             sens.parameter,
                           )}</div>
-                          <div style="color: ${highTextColor}; font-weight: bold; font-size: var(--font-size-lg); margin-bottom: var(--space-xs);">→ CHF ${sens.high.irr.toFixed(
+                          <div style="color: ${highTextColor}; font-weight: bold; font-size: var(--font-size-lg); margin-bottom: var(--space-xs);">€€™ CHF ${sens.high.irr.toFixed(
                             0,
                           )}</div>
                           <small style="color: var(--gray-500); font-size: var(--font-size-xs);">(${
@@ -3119,7 +3323,7 @@
                           }; color: ${
                             index < 3 ? "white" : "var(--gray-700)"
                           }; padding: var(--space-sm) var(--space-md); border-radius: 25px; display: inline-block; font-weight: 700; font-size: var(--font-size-base); box-shadow: var(--shadow-sm);">
-                            ±CHF ${sens.impact.toFixed(0)}
+                            CHF ${sens.impact.toFixed(0)}
                           </div>
                         </td>
                       </tr>
@@ -3133,11 +3337,11 @@
               <!-- Insights Panel -->
               <div class="chart-container" style="padding: var(--space-lg); background: linear-gradient(135deg, var(--gray-50), var(--gray-100)); border-left: 4px solid var(--accent); margin-bottom: var(--space-xl); box-shadow: var(--shadow-sm);">
                 <h3 style="margin-bottom: var(--space-md); color: var(--primary); font-size: var(--font-size-xl); font-weight: 700;">
-                  💡 Monthly Cash Flow Insights
+                  €™ Monthly Cash Flow Insights
                 </h3>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
                   <div>
-                    <h4 style="color: var(--secondary); margin-bottom: var(--space-sm); font-size: var(--font-size-lg); font-weight: 700;">📉 Biggest Cash Drains</h4>
+                    <h4 style="color: var(--secondary); margin-bottom: var(--space-sm); font-size: var(--font-size-lg); font-weight: 700;">€€ Biggest Cash Drains</h4>
                     <ul style="color: var(--gray-700); line-height: 1.8; padding-left: var(--space-lg); font-size: var(--font-size-sm);">
                       <li><strong>Mortgage interest</strong> - largest monthly expense</li>
                       <li><strong>Amortization</strong> - builds equity but reduces cash</li>
@@ -3145,7 +3349,7 @@
                     </ul>
                   </div>
                   <div>
-                    <h4 style="color: var(--secondary); margin-bottom: var(--space-sm); font-size: var(--font-size-lg); font-weight: 700;">📈 How to Improve Cash Flow</h4>
+                    <h4 style="color: var(--secondary); margin-bottom: var(--space-sm); font-size: var(--font-size-lg); font-weight: 700;">€ How to Improve Cash Flow</h4>
                     <ul style="color: var(--gray-700); line-height: 1.8; padding-left: var(--space-lg); font-size: var(--font-size-sm);">
                       <li><strong>Negotiate lower interest rate</strong> - biggest lever</li>
                       <li><strong>Increase daily rates</strong> - premium pricing in peak</li>
@@ -3153,7 +3357,7 @@
                     </ul>
                   </div>
                   <div>
-                    <h4 style="color: var(--secondary); margin-bottom: var(--space-sm); font-size: var(--font-size-lg); font-weight: 700;">⚖️ No Monthly Impact</h4>
+                    <h4 style="color: var(--secondary); margin-bottom: var(--space-sm); font-size: var(--font-size-lg); font-weight: 700;">€ No Monthly Impact</h4>
                     <ul style="color: var(--gray-700); line-height: 1.8; padding-left: var(--space-lg); font-size: var(--font-size-sm);">
                       <li><strong>Property appreciation</strong> - affects equity only</li>
                       <li><strong>Selling costs</strong> - only at exit (Year 15)</li>
@@ -3165,7 +3369,7 @@
             </div>
           `;
 
-          content.innerHTML = html;
+          UIManager.setContent(html);
 
           // Render tornado chart for NCF
           if (meaningfulSensitivities.length > 0) {
@@ -3221,14 +3425,14 @@
               hovertemplate:
                 "<b>%{customdata.param}</b><br>" +
                 "<br>" +
-                "<b style='color:#ff6b6b;'>📉 Low Value Scenario</b><br>" +
+                "<b style='color:#ff6b6b;'>€€ Low Value Scenario</b><br>" +
                 "  Parameter Value: <b>%{customdata.lowValue}</b><br>" +
                 "  Resulting NCF: <b>CHF %{customdata.lowNCF:.0f}/month</b><br>" +
                 "  Change from Base: <b>%{x:+.0f} CHF</b><br>" +
                 "<br>" +
-                "<b>📊 Tested Range:</b> %{customdata.range}<br>" +
+                "<b>€ Tested Range:</b> %{customdata.range}<br>" +
                 "<br>" +
-                "<b>💡 Why this matters:</b><br>" +
+                "<b>€™ Why this matters:</b><br>" +
                 "%{customdata.rationale}<br>" +
                 "<extra></extra>",
               hoverlabel: {
@@ -3256,14 +3460,14 @@
               hovertemplate:
                 "<b>%{customdata.param}</b><br>" +
                 "<br>" +
-                "<b style='color:#51cf66;'>📈 High Value Scenario</b><br>" +
+                "<b style='color:#51cf66;'>€ High Value Scenario</b><br>" +
                 "  Parameter Value: <b>%{customdata.highValue}</b><br>" +
                 "  Resulting NCF: <b>CHF %{customdata.highNCF:.0f}/month</b><br>" +
                 "  Change from Base: <b>%{x:+.0f} CHF</b><br>" +
                 "<br>" +
-                "<b>📊 Tested Range:</b> %{customdata.range}<br>" +
+                "<b>€ Tested Range:</b> %{customdata.range}<br>" +
                 "<br>" +
-                "<b>💡 Why this matters:</b><br>" +
+                "<b>€™ Why this matters:</b><br>" +
                 "%{customdata.rationale}<br>" +
                 "<extra></extra>",
               hoverlabel: {
@@ -3342,20 +3546,62 @@
         renderMonteCarlo(data) {
           const content = document.getElementById("contentArea");
           const stats = data.statistics || {};
+          const baseProbPct = (stats.npv?.positive_prob || 0) * 100;
+          const downsideNPV = stats.npv?.p5 || 0;
+          const expectedNPV = stats.npv?.mean || 0;
+          const medianIRR = stats.irr_with_sale?.median || 0;
+
+          let mcSignalLabel = "Balanced probabilistic profile";
+          let mcSignalClass = "signal-neutral";
+          if (baseProbPct >= 65 && downsideNPV >= 0) {
+            mcSignalLabel = "Defensive probability profile";
+            mcSignalClass = "signal-good";
+          } else if (baseProbPct < 50 || downsideNPV < -100000) {
+            mcSignalLabel = "Elevated downside volatility";
+            mcSignalClass = "signal-risk";
+          }
 
           let html = `
+                    <div class="story-hero">
+                        <div class="story-header">
+                            <h2><i class="fas fa-dice"></i> Monte Carlo Story</h2>
+                            <span class="signal-chip ${mcSignalClass}"><i class="fas fa-circle"></i> ${mcSignalLabel}</span>
+                        </div>
+                        <p class="story-lead">
+                            Monte Carlo simulates many plausible paths. Use this view to understand expected value, downside envelope, and recovery upside before making allocation decisions.
+                        </p>
+                        <div class="story-list">
+                            <div class="story-item">
+                                <h4>Base Success Odds</h4>
+                                <p>Probability of positive NPV is <strong>${baseProbPct.toFixed(1)}%</strong>.</p>
+                            </div>
+                            <div class="story-item">
+                                <h4>Expected Value</h4>
+                                <p>Mean NPV is <strong>${expectedNPV.toLocaleString("en-US", { style: "currency", currency: "CHF", maximumFractionDigits: 0 })}</strong>.</p>
+                            </div>
+                            <div class="story-item">
+                                <h4>Downside Envelope</h4>
+                                <p>5th percentile NPV is <strong>${downsideNPV.toLocaleString("en-US", { style: "currency", currency: "CHF", maximumFractionDigits: 0 })}</strong>.</p>
+                            </div>
+                            <div class="story-item">
+                                <h4>Median Return</h4>
+                                <p>Median equity IRR is <strong>${medianIRR.toFixed(2)}%</strong>.</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="section">
-                        <h2 class="section-title">🎲 Monte Carlo Simulation</h2>
+                        <h2 class="section-title"><i class="fas fa-dice"></i> Monte Carlo Simulation</h2>
                         
                         <div style="background: linear-gradient(135deg, var(--accent) 0%, var(--secondary) 100%); color: white; padding: var(--space-md) var(--space-lg); border-radius: var(--radius-lg); margin-bottom: var(--space-lg); box-shadow: var(--shadow-md);">
                           <p style="margin: 0; font-size: var(--font-size-sm); line-height: 1.6; opacity: 0.98; font-weight: 500;">
-                            💡 <strong>Monte Carlo Simulation</strong> — 1,000 probabilistic scenarios testing uncertainty in key parameters. Shows range of possible outcomes.
+                            €™ <strong>Monte Carlo Simulation</strong> € 1,000 probabilistic scenarios testing uncertainty in key parameters. Shows range of possible outcomes.
                           </p>
                         </div>
                         
                         <!-- Key Investment Metrics -->
                         <h3 class="section-subtitle" style="margin-top: 0; margin-bottom: var(--space-md); font-size: var(--font-size-xl); color: var(--primary); font-weight: 700;">
-                            📊 Key Investment Metrics
+                            <i class="fas fa-chart-bar"></i> Key Investment Metrics
                         </h3>
                         <div class="kpi-grid" style="margin-bottom: var(--space-xl);">
                             <div class="kpi-card" style="border: 2px solid var(--accent); background: linear-gradient(135deg, #f8f9ff 0%, #e8ecff 100%);">
@@ -3396,7 +3642,7 @@
 
                         <!-- Monthly - Per Person -->
                         <h3 class="section-subtitle" style="margin-top: var(--space-lg); margin-bottom: var(--space-md); font-size: var(--font-size-xl); color: var(--primary); font-weight: 700;">
-                            💰 Monthly Cash Flow - Per Person
+                            €™ Monthly Cash Flow - Per Person
                         </h3>
                         <div class="kpi-grid" style="margin-bottom: var(--space-xl);">
                             <div class="kpi-card" style="border: 2px solid var(--accent); background: linear-gradient(135deg, #f8f9ff 0%, #e8ecff 100%);">
@@ -3456,7 +3702,7 @@
 
                         <!-- Monthly - Total -->
                         <h3 class="section-subtitle" style="margin-top: var(--space-lg); margin-bottom: var(--space-md); font-size: var(--font-size-xl); color: var(--primary); font-weight: 700;">
-                            💼 Monthly Cash Flow - Total
+                            €™ Monthly Cash Flow - Total
                         </h3>
                         <div class="kpi-grid" style="margin-bottom: var(--space-xl);">
                             <div class="kpi-card" style="border: 2px solid var(--accent); background: linear-gradient(135deg, #f8f9ff 0%, #e8ecff 100%);">
@@ -3513,7 +3759,7 @@
 
                         <!-- Yearly - Per Person -->
                         <h3 class="section-subtitle" style="margin-top: var(--space-lg); margin-bottom: var(--space-md); font-size: var(--font-size-xl); color: var(--primary); font-weight: 700;">
-                            📅 Annual Cash Flow - Per Person
+                            €€ Annual Cash Flow - Per Person
                         </h3>
                         <div class="kpi-grid" style="margin-bottom: var(--space-xl);">
                             <div class="kpi-card" style="border: 2px solid var(--accent); background: linear-gradient(135deg, #f8f9ff 0%, #e8ecff 100%);">
@@ -3573,7 +3819,7 @@
 
                         <!-- Yearly - Total -->
                         <h3 class="section-subtitle" style="margin-top: var(--space-lg); margin-bottom: var(--space-md); font-size: var(--font-size-xl); color: var(--primary); font-weight: 700;">
-                            🏢 Annual Cash Flow - Total
+                             Annual Cash Flow - Total
                         </h3>
                         <div class="kpi-grid" style="margin-bottom: var(--space-xl);">
                             <div class="kpi-card" style="border: 2px solid var(--accent); background: linear-gradient(135deg, #f8f9ff 0%, #e8ecff 100%);">
@@ -3653,7 +3899,7 @@
                         <!-- Distribution Charts -->
                         <div class="chart-container" style="padding: var(--space-lg); margin-bottom: var(--space-xl); background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
                             <h3 style="margin-bottom: var(--space-md); font-size: var(--font-size-xl); color: var(--primary); font-weight: 700;">
-                                📊 NPV Distribution
+                                € NPV Distribution
                             </h3>
                             <p style="color: var(--gray-500); margin-bottom: var(--space-md); font-size: var(--font-size-sm); line-height: 1.6;">
                                 Distribution of Net Present Value across 1,000 simulations. Shows probability of different outcomes.
@@ -3663,7 +3909,7 @@
 
                         <div class="chart-container" style="padding: var(--space-lg); margin-bottom: var(--space-xl); background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
                             <h3 style="margin-bottom: var(--space-md); font-size: var(--font-size-xl); color: var(--primary); font-weight: 700;">
-                                📈 Equity IRR Distribution
+                                € Equity IRR Distribution
                             </h3>
                             <p style="color: var(--gray-500); margin-bottom: var(--space-md); font-size: var(--font-size-sm); line-height: 1.6;">
                                 Distribution of Equity Internal Rate of Return (15-year) across all simulations.
@@ -3671,10 +3917,20 @@
                             <div class="chart-wrapper" id="irrChart" style="min-height: 400px;"></div>
                         </div>
 
+                        <div class="chart-container" style="padding: var(--space-lg); margin-bottom: var(--space-xl); background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
+                            <h3 style="margin-bottom: var(--space-md); font-size: var(--font-size-xl); color: var(--primary); font-weight: 700;">
+                                NPV vs Equity IRR Outcome Map
+                            </h3>
+                            <p style="color: var(--gray-500); margin-bottom: var(--space-md); font-size: var(--font-size-sm); line-height: 1.6;">
+                                Each point is one simulation path. Green points are positive NPV outcomes.
+                            </p>
+                            <div class="chart-wrapper" id="npvIrrScatterChart" style="min-height: 420px;"></div>
+                        </div>
+
                         <!-- Cumulative Probability Chart -->
                         <div class="chart-container" style="padding: var(--space-lg); margin-bottom: var(--space-xl); background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
                             <h3 style="margin-bottom: var(--space-md); font-size: var(--font-size-xl); color: var(--primary); font-weight: 700;">
-                                📉 Cumulative Probability (CDF) - NPV
+                                €€ Cumulative Probability (CDF) - NPV
                             </h3>
                             <p style="color: var(--gray-500); margin-bottom: var(--space-md); font-size: var(--font-size-sm); line-height: 1.6;">
                                 Cumulative distribution function showing probability that NPV will be below a given value. Useful for risk assessment.
@@ -3685,7 +3941,7 @@
                         <!-- Box Plot for Key Metrics -->
                         <div class="chart-container" style="padding: var(--space-lg); margin-bottom: var(--space-xl); background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
                             <h3 style="margin-bottom: var(--space-md); font-size: var(--font-size-xl); color: var(--primary); font-weight: 700;">
-                                📦 Box Plot - Key Metrics
+                                € Box Plot - Key Metrics
                             </h3>
                             <p style="color: var(--gray-500); margin-bottom: var(--space-md); font-size: var(--font-size-sm); line-height: 1.6;">
                                 Box plots showing quartiles (25th, 50th, 75th percentiles) and outliers for key financial metrics.
@@ -3696,7 +3952,7 @@
                         <!-- Risk Metrics -->
                         <div class="chart-container" style="padding: var(--space-lg); background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
                             <h3 style="margin-bottom: var(--space-md); font-size: var(--font-size-xl); color: var(--primary); font-weight: 700;">
-                                ⚠️ Risk Metrics & Percentiles
+                                 Risk Metrics & Percentiles
                             </h3>
                             <div class="kpi-grid" style="margin-bottom: var(--space-md);">
                                 <div class="kpi-card" style="border: 2px solid var(--color-negative); background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);">
@@ -3775,7 +4031,7 @@
                     </div>
                 `;
 
-          content.innerHTML = html;
+          UIManager.setContent(html);
 
           // Render charts if sample data available
           if (data.sample_data && data.sample_data.length > 0) {
@@ -3963,6 +4219,66 @@
                 modeBarButtonsToRemove: ["lasso2d", "select2d"],
                 displaylogo: false,
               });
+            }
+
+            // 3. Outcome map: NPV vs IRR
+            if (npvValues.length > 0 && irrValues.length > 0) {
+              const scatterPoints = data.sample_data
+                .map((d) => ({
+                  npv: d.npv,
+                  irr: (d.irr_with_sale || 0) * 100,
+                }))
+                .filter((d) => Number.isFinite(d.npv) && Number.isFinite(d.irr));
+
+              Plotly.newPlot(
+                "npvIrrScatterChart",
+                [
+                  {
+                    x: scatterPoints.map((d) => d.npv),
+                    y: scatterPoints.map((d) => d.irr),
+                    type: "scatter",
+                    mode: "markers",
+                    marker: {
+                      size: 8,
+                      color: scatterPoints.map((d) => (d.npv >= 0 ? "#16a34a" : "#dc2626")),
+                      opacity: 0.6,
+                      line: { color: "#0f172a", width: 0.5 },
+                    },
+                    hovertemplate:
+                      "NPV: <b>%{x:,.0f} CHF</b><br>Equity IRR: <b>%{y:.2f}%</b><extra></extra>",
+                  },
+                ],
+                {
+                  ...unifiedChartConfig,
+                  title: "",
+                  xaxis: {
+                    title: {
+                      text: "NPV (CHF)",
+                      font: { size: 14, color: "#2c3e50" },
+                    },
+                    gridcolor: "#e0e4e7",
+                    zeroline: true,
+                    zerolinecolor: "#dc2626",
+                  },
+                  yaxis: {
+                    title: {
+                      text: "Equity IRR (%)",
+                      font: { size: 14, color: "#2c3e50" },
+                    },
+                    gridcolor: "#e0e4e7",
+                    zeroline: true,
+                    zerolinecolor: "#64748b",
+                  },
+                  hovermode: "closest",
+                  showlegend: false,
+                },
+                {
+                  responsive: true,
+                  displayModeBar: true,
+                  modeBarButtonsToRemove: ["lasso2d", "select2d"],
+                  displaylogo: false,
+                },
+              );
             }
 
             // 3. Cumulative Probability (CDF) Chart
@@ -4165,14 +4481,64 @@
           const content = document.getElementById("contentArea");
           const baseProb = (data.base_npv_probability || 0) * 100;
           const sensitivities = data.sensitivities || [];
+          const sortedByImpact = [...sensitivities].sort(
+            (a, b) => (b.impact || 0) - (a.impact || 0),
+          );
+          const topLever = sortedByImpact[0]?.parameter || "N/A";
+          const maxProb = Math.max(
+            ...sensitivities.map((s) => (s.max_probability || 0) * 100),
+            baseProb,
+          );
+          const minProb = Math.min(
+            ...sensitivities.map((s) => (s.min_probability || 0) * 100),
+            baseProb,
+          );
+
+          let mcSensSignalLabel = "Moderate leverage map";
+          let mcSensSignalClass = "signal-neutral";
+          if (baseProb >= 60 && minProb >= 45) {
+            mcSensSignalLabel = "Resilient probability profile";
+            mcSensSignalClass = "signal-good";
+          } else if (baseProb < 50 || minProb < 35) {
+            mcSensSignalLabel = "High downside sensitivity";
+            mcSensSignalClass = "signal-risk";
+          }
 
           let html = `
+                    <div class="story-hero">
+                        <div class="story-header">
+                            <h2><i class="fas fa-microscope"></i> Monte Carlo Sensitivity Story</h2>
+                            <span class="signal-chip ${mcSensSignalClass}"><i class="fas fa-circle"></i> ${mcSensSignalLabel}</span>
+                        </div>
+                        <p class="story-lead">
+                            This view isolates each driver and shows how probability of positive NPV shifts while uncertainty remains in the rest of the model.
+                        </p>
+                        <div class="story-list">
+                            <div class="story-item">
+                                <h4>Base Odds</h4>
+                                <p>Base probability of positive NPV is <strong>${baseProb.toFixed(1)}%</strong>.</p>
+                            </div>
+                            <div class="story-item">
+                                <h4>Largest Lever</h4>
+                                <p><strong>${topLever}</strong> has the largest impact range.</p>
+                            </div>
+                            <div class="story-item">
+                                <h4>Downside Floor</h4>
+                                <p>Worst stress reaches <strong>${minProb.toFixed(1)}%</strong> success probability.</p>
+                            </div>
+                            <div class="story-item">
+                                <h4>Upside Ceiling</h4>
+                                <p>Best stress reaches <strong>${maxProb.toFixed(1)}%</strong> success probability.</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="section">
-                        <h2 class="section-title">📊 MC Sensitivity Analysis</h2>
+                        <h2 class="section-title"><i class="fas fa-wave-square"></i> Monte Carlo Sensitivity Analysis</h2>
                         
                         <div style="background: linear-gradient(135deg, var(--accent) 0%, var(--secondary) 100%); color: white; padding: var(--space-md) var(--space-lg); border-radius: var(--radius-lg); margin-bottom: var(--space-lg); box-shadow: var(--shadow-md);">
                           <p style="margin: 0; font-size: var(--font-size-sm); line-height: 1.6; opacity: 0.98; font-weight: 500;">
-                            💡 <strong>MC Sensitivity Analysis</strong> — Shows how NPV > 0 probability changes when key parameters vary. Each parameter is tested with 10 values, running 1,000 Monte Carlo simulations per value (with LHS) to assess risk-adjusted impacts.
+                            €™ <strong>Monte Carlo Sensitivity Analysis</strong> € Shows how NPV > 0 probability changes when key parameters vary. Each parameter is tested with 10 values, running 1,000 Monte Carlo simulations per value (with LHS) to assess risk-adjusted impacts.
                           </p>
                         </div>
 
@@ -4236,6 +4602,13 @@
                                 </h4>
                                 <div id="mcSensitivityImpactChart" class="chart-wrapper" style="height: 400px;"></div>
                             </div>
+
+                            <div class="chart-container" style="padding: var(--space-lg); margin-bottom: var(--space-xl); background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
+                                <h4 style="margin-bottom: var(--space-md); color: var(--primary); font-weight: 600;">
+                                    Upside vs Downside Priority Matrix
+                                </h4>
+                                <div id="mcSensitivityPriorityMatrix" class="chart-wrapper" style="height: 440px;"></div>
+                            </div>
                             
                             <!-- Individual Parameter Subplots -->
                             <div class="chart-container" style="padding: var(--space-lg); margin-bottom: var(--space-xl); background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
@@ -4255,12 +4628,12 @@
                                 <table id="mcSensitivityTable" style="cursor: pointer;">
                                     <thead>
                                         <tr>
-                                            <th onclick="sortTable('mcSensitivityTable', 0)">Parameter ↕</th>
-                                            <th onclick="sortTable('mcSensitivityTable', 1)">Base Value ↕</th>
-                                            <th onclick="sortTable('mcSensitivityTable', 2)">Min Probability ↕</th>
-                                            <th onclick="sortTable('mcSensitivityTable', 3)">Max Probability ↕</th>
-                                            <th onclick="sortTable('mcSensitivityTable', 4)">Impact Range ↕</th>
-                                            <th onclick="sortTable('mcSensitivityTable', 5)">Sensitivity Score ↕</th>
+                                            <th onclick="sortTable('mcSensitivityTable', 0)">Parameter</th>
+                                            <th onclick="sortTable('mcSensitivityTable', 1)">Base Value</th>
+                                            <th onclick="sortTable('mcSensitivityTable', 2)">Min Probability</th>
+                                            <th onclick="sortTable('mcSensitivityTable', 3)">Max Probability</th>
+                                            <th onclick="sortTable('mcSensitivityTable', 4)">Impact Range</th>
+                                            <th onclick="sortTable('mcSensitivityTable', 5)">Sensitivity Score</th>
                                             <th>Trend</th>
                                             <th>Base Position</th>
                                             <th>Critical Range</th>
@@ -4298,7 +4671,7 @@
             const lastProb =
               sens.values[sens.values.length - 1].npv_probability;
             const trend =
-              lastProb > firstProb ? "↑" : lastProb < firstProb ? "↓" : "→";
+              lastProb > firstProb ? "€€" : lastProb < firstProb ? "€€" : "€€™";
             const trendColor =
               lastProb > firstProb
                 ? "#28a745"
@@ -4401,7 +4774,7 @@
                     </div>
           `;
 
-          content.innerHTML = html;
+          UIManager.setContent(html);
 
           // Render sensitivity chart
           if (sensitivities.length > 0) {
@@ -4537,7 +4910,7 @@
               },
               annotations: [
                 {
-                  text: "💡 Use zoom/pan tools or click parameter labels to toggle visibility",
+                  text: "€™ Use zoom/pan tools or click parameter labels to toggle visibility",
                   showarrow: false,
                   xref: "paper",
                   yref: "paper",
@@ -4715,6 +5088,70 @@
               },
             );
 
+            const matrixRows = sensitivities.map((sens) => {
+              const minProb = (sens.min_probability || 0) * 100;
+              const maxProb = (sens.max_probability || 0) * 100;
+              return {
+                parameter: sens.parameter,
+                downside: Math.max(0, baseProb - minProb),
+                upside: Math.max(0, maxProb - baseProb),
+                impact: (sens.impact || 0) * 100,
+              };
+            });
+
+            Plotly.newPlot(
+              "mcSensitivityPriorityMatrix",
+              [
+                {
+                  x: matrixRows.map((r) => r.downside),
+                  y: matrixRows.map((r) => r.upside),
+                  text: matrixRows.map((r) => r.parameter),
+                  type: "scatter",
+                  mode: "markers+text",
+                  textposition: "top center",
+                  marker: {
+                    size: matrixRows.map((r) => 12 + Math.min(22, r.impact)),
+                    color: matrixRows.map((r) =>
+                      r.upside >= r.downside ? "#16a34a" : "#dc2626",
+                    ),
+                    opacity: 0.8,
+                    line: { color: "#0f172a", width: 1 },
+                  },
+                  hovertemplate:
+                    "<b>%{text}</b><br>Downside from base: <b>%{x:.1f}%</b><br>Upside from base: <b>%{y:.1f}%</b><extra></extra>",
+                },
+              ],
+              {
+                ...unifiedChartConfig,
+                title: {
+                  text: "Priority Matrix",
+                  font: { size: 16, color: "#2c3e50", weight: "bold" },
+                  x: 0.5,
+                  xanchor: "center",
+                },
+                xaxis: {
+                  title: { text: "Downside vs base probability (pp)" },
+                  zeroline: true,
+                  zerolinecolor: "#334155",
+                  gridcolor: "#e0e4e7",
+                },
+                yaxis: {
+                  title: { text: "Upside vs base probability (pp)" },
+                  zeroline: true,
+                  zerolinecolor: "#334155",
+                  gridcolor: "#e0e4e7",
+                },
+                showlegend: false,
+                margin: { l: 80, r: 20, t: 60, b: 60 },
+              },
+              {
+                responsive: true,
+                displayModeBar: true,
+                modeBarButtonsToRemove: ["lasso2d", "select2d"],
+                displaylogo: false,
+              },
+            );
+
             // Render subplot grid for individual parameters
             const subplotRows = Math.ceil(sensitivities.length / 2);
             const subplotCols = 2;
@@ -4858,12 +5295,12 @@
 
         async renderScenarioComparison() {
           const content = document.getElementById("contentArea");
-          content.innerHTML = `
+          UIManager.setContent(`
             <div class="loading">
               <i class="fas fa-spinner"></i>
               <p>Loading scenario comparison...</p>
             </div>
-          `;
+          `);
 
           try {
             // Load all case data
@@ -4982,22 +5419,22 @@
 
             let html = `
               <div class="section">
-                <h2 class="section-title">📊 Scenario Comparison</h2>
+                <h2 class="section-title">€ Scenario Comparison</h2>
                 
                 <div style="background: linear-gradient(135deg, var(--accent) 0%, var(--secondary) 100%); color: white; padding: var(--space-md) var(--space-lg); border-radius: var(--radius-lg); margin-bottom: var(--space-lg); box-shadow: var(--shadow-md);">
                   <p style="margin: 0; font-size: var(--font-size-sm); line-height: 1.6; opacity: 0.98; font-weight: 500;">
-                    💡 <strong>Compare All Scenarios</strong> — Side-by-side comparison of key financial metrics across all investment scenarios. Focus on <strong>After-Tax Cash Flow per Person</strong> as the primary decision metric.
+                    €™ <strong>Compare All Scenarios</strong> € Side-by-side comparison of key financial metrics across all investment scenarios. Focus on <strong>After-Tax Cash Flow per Person</strong> as the primary decision metric.
                   </p>
                 </div>
 
                 <!-- Key Metrics Chart -->
                 <div class="chart-container" style="padding: var(--space-lg); margin-bottom: var(--space-xl); background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
                   <h3 style="margin-bottom: var(--space-md); font-size: var(--font-size-xl); color: var(--primary); font-weight: 700;">
-                    💰 After-Tax Cash Flow per Person (Year 1)
+                    €™ After-Tax Cash Flow per Person (Year 1)
                   </h3>
                   <p style="color: var(--gray-500); margin-bottom: var(--space-md); font-size: var(--font-size-sm); line-height: 1.6;">
-                    <span style="color: var(--color-positive); font-weight: 600;">■</span> Positive cash flow | 
-                    <span style="color: var(--color-negative); font-weight: 600;">■</span> Negative cash flow | 
+                    <span style="color: var(--color-positive); font-weight: 600;">€</span> Positive cash flow | 
+                    <span style="color: var(--color-negative); font-weight: 600;">€</span> Negative cash flow | 
                     Hover for details
                   </p>
                   <div class="chart-wrapper" id="comparisonChart" style="min-height: 500px; height: auto; overflow: visible;"></div>
@@ -5006,7 +5443,7 @@
                 <!-- Comprehensive Comparison Table -->
                 <div class="chart-container" style="padding: var(--space-lg); background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); overflow-x: auto;">
                   <h3 style="margin-bottom: var(--space-md); font-size: var(--font-size-xl); color: var(--primary); font-weight: 700;">
-                    📋 Detailed Comparison Table
+                    €€ Detailed Comparison Table
                   </h3>
                   <table style="width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); box-shadow: var(--shadow-sm);">
                     <thead>
@@ -5068,7 +5505,7 @@
               </div>
             `;
 
-            content.innerHTML = html;
+            UIManager.setContent(html);
 
             // Render comparison chart
             const trace = {
@@ -5099,7 +5536,7 @@
               xaxis: {
                 title: {
                   text: "After-Tax Cash Flow per Person (CHF)",
-                  font: { size: 15, color: "#2c3e50", family: "Segoe UI" },
+                  font: { size: 15, color: "#2c3e50", family: "Space Grotesk, Segoe UI, Arial, sans-serif" },
                   standoff: 12,
                 },
                 zeroline: true,
@@ -5114,7 +5551,7 @@
               yaxis: {
                 title: "",
                 autorange: "reversed",
-                tickfont: { size: 13, color: "#2c3e50", family: "Segoe UI" },
+                tickfont: { size: 13, color: "#2c3e50", family: "Space Grotesk, Segoe UI, Arial, sans-serif" },
               },
               height: Math.max(500, 300 + scenarioNames.length * 50),
               margin: { l: 200, r: 50, t: 20, b: 60 },
@@ -5155,6 +5592,8 @@
           // Load cases index
           await DataManager.loadCasesIndex();
           UIManager.populateCaseSelector();
+          UIManager.populateHorizonSelector();
+          UIManager.updateHorizonVisibility(State.currentAnalysis, null);
 
           // Set up event listeners
           document
@@ -5162,6 +5601,16 @@
             .addEventListener("change", (e) => {
               State.currentCase = e.target.value;
               Controller.loadAnalysis();
+            });
+
+          document
+            .getElementById("horizonSelect")
+            .addEventListener("change", (e) => {
+              State.currentHorizon = Number(e.target.value) || 15;
+
+              if (HorizonResolver.isEligibleAnalysis(State.currentAnalysis)) {
+                Controller.loadAnalysis();
+              }
             });
 
           document.querySelectorAll(".sidebar-menu-item").forEach((item) => {
@@ -5189,10 +5638,12 @@
           }
 
           UIManager.showLoading();
+          UIManager.updateHorizonVisibility(State.currentAnalysis, null);
 
           try {
             // Scenario comparison loads all cases, so skip single case loading
             if (State.currentAnalysis === "scenario_comparison") {
+              UIManager.updateHorizonVisibility(State.currentAnalysis, null);
               ChartRenderer.renderScenarioComparison();
               return;
             }
@@ -5201,6 +5652,7 @@
               State.currentCase,
               State.currentAnalysis,
             );
+            UIManager.updateHorizonVisibility(State.currentAnalysis, data);
 
             if (State.currentAnalysis === "base_case") {
               ChartRenderer.renderBaseCase(data);
@@ -5222,10 +5674,11 @@
                         <p>${errorMsg}</p>
                         <p style="margin-top: 15px; font-size: 0.9em; color: #666;">
                             <strong>To fix this:</strong><br>
-                            1. Run <code>python analysis_base_case.py</code> to generate base case data<br>
-                            2. Run <code>python analysis_sensitivity.py</code> to generate sensitivity data<br>
-                            3. Run <code>python analysis_monte_carlo.py</code> to generate Monte Carlo data<br>
-                            4. Or run <code>python generate_all_data.py</code> to generate all data at once
+                            1. Run <code>python scripts/analyze.py --analysis base</code> for base-case data<br>
+                            2. Run <code>python scripts/analyze.py --analysis sensitivity</code> for sensitivity data<br>
+                            3. Run <code>python scripts/analyze.py --analysis monte_carlo</code> for Monte Carlo data<br>
+                            4. Run <code>python scripts/analyze_monte_carlo_sensitivity.py</code> for MC sensitivity data<br>
+                            5. Or run <code>python scripts/generate_all_data.py</code> to generate all dashboard data
                         </p>
                     `);
           }
@@ -5239,3 +5692,4 @@
     </script>
   </body>
 </html>
+

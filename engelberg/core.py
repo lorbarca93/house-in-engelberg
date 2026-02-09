@@ -3,12 +3,20 @@ Real Estate Investment Simulation for Engelberg Property
 Refined version with comprehensive financial modeling
 """
 
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from typing import Dict, List, Optional, Any, Tuple
 import pandas as pd
 from datetime import datetime
 import json
 import os
+
+
+# -----------------------------
+# Constants
+# -----------------------------
+
+# Supported time horizons (years) for projections. Used by base case and sensitivity; Monte Carlo stays at 15.
+HORIZONS = [5, 10, 15, 20, 25, 30, 35, 40]
 
 
 # -----------------------------
@@ -55,6 +63,13 @@ class FinancingParams:
     interest_rate: float   # annual interest rate, for example 0.019
     amortization_rate: float  # annual amortization rate as percent of initial loan
     num_owners: int
+    # Acquisition cost components (configurable from assumptions)
+    notary_fee_rate: float = 0.0075       # buyer's share of notary (e.g. 0.75% if 1.5% split 50/50)
+    legal_doc_fee_rate: float = 0.003   # legal documentation fees
+    agency_fee_rate_buyer: float = 0.0   # buyer's share of agency fee (e.g. 1.5% if 3% split 50/50)
+    inspection_chf: float = 0.0         # technical expert / inspection
+    interior_designer_chf: float = 0.0  # interior designer
+    furniture_chf: float = 0.0          # furniture
 
     @property
     def loan_amount(self) -> float:
@@ -70,11 +85,9 @@ class FinancingParams:
 
     @property
     def acquisition_costs_total(self) -> float:
-        """Total acquisition costs: 0.75% notary (50% split) + 0.3% legal documentation = 1.05%"""
-        notary_fee_rate = 0.0075  # 0.75% (half of 1.5% split with seller)
-        legal_doc_fee_rate = 0.003  # 0.3% legal documentation fees
-        acquisition_costs_rate = notary_fee_rate + legal_doc_fee_rate  # 1.05% total
-        return self.purchase_price * acquisition_costs_rate
+        """Total acquisition costs: rate-based (notary + legal + agency) on purchase price + fixed CHF (inspection, interior designer, furniture)."""
+        rate_total = self.notary_fee_rate + self.legal_doc_fee_rate + self.agency_fee_rate_buyer
+        return self.purchase_price * rate_total + self.inspection_chf + self.interior_designer_chf + self.furniture_chf
 
     @property
     def acquisition_costs_per_owner(self) -> float:
@@ -189,6 +202,7 @@ class ExpenseParams:
     electricity_internet_annual: float  # CHF, electricity and internet
     maintenance_rate: float             # percent of property value per year, 0.25% (can vary)
     property_value: float               # CHF
+    vat_rate_on_gross_rental: float = 0.0  # VAT on gross short-term rental revenue (e.g. 0.083 for 8.3%)
 
     def property_management_cost(self, revenue_after_platform_and_cleaning: float) -> float:
         """
@@ -198,7 +212,7 @@ class ExpenseParams:
             revenue_after_platform_and_cleaning: Revenue after deducting OTA platform fees and cleaning fees
         
         Returns:
-            Property management cost (fee_rate × revenue_after_platform_and_cleaning)
+            Property management cost (fee_rate x revenue_after_platform_and_cleaning)
         """
         return revenue_after_platform_and_cleaning * self.property_management_fee_rate
 
@@ -216,10 +230,23 @@ class ExpenseParams:
 
 
 @dataclass
+class ProjectionParams:
+    """Parameters for multi-year projections and modeling."""
+    start_year: int = 2026
+    projection_years: int = 15
+    inflation_rate: float = 0.01
+    property_appreciation_rate: float = 0.025
+    discount_rate: float = 0.05
+    ramp_up_months: int = 7  # Pre-operational period before starting rentals
+    selling_costs_rate: float = 0.078
+
+
+@dataclass
 class BaseCaseConfig:
     financing: FinancingParams
     rental: RentalParams
     expenses: ExpenseParams
+    projection: ProjectionParams = None  # Optional projection parameters
 
 
 # -----------------------------
@@ -416,6 +443,7 @@ def get_projection_defaults(json_path: str = "assumptions.json") -> Dict[str, fl
         'start_year': int(projection.get('start_year', 2026)),
         'projection_years': int(projection.get('projection_years', 15)),
         'discount_rate': float(projection.get('discount_rate', 0.05)),
+        'ramp_up_months': int(projection.get('ramp_up_months', 0)),  # NEW: Default 0 for backward compatibility
         'selling_costs_rate': float(selling_costs.get('total_rate', 0.078)),
         'broker_fee_rate': float(selling_costs.get('broker_fee_rate', 0.03)),
         'notary_fee_rate': float(selling_costs.get('notary_fee_rate', 0.015)),
@@ -431,7 +459,7 @@ def create_base_case_config(json_path: str = "assumptions.json") -> BaseCaseConf
     """
     Create the base case configuration with seasonal parameters for Engelberg.
     
-    ⚠️ SINGLE SOURCE OF TRUTH ⚠️
+    ! SINGLE SOURCE OF TRUTH !
     This function defines the base case scenario. ALL other analyses
     (sensitivity, Monte Carlo, etc.) MUST reference this base case to ensure
     consistency across the entire codebase.
@@ -552,13 +580,26 @@ def create_base_case_config(json_path: str = "assumptions.json") -> BaseCaseConf
         nights_in_season=rentable_offpeak
     )
     
-    # Create financing parameters
+    # Create financing parameters (including acquisition cost breakdown from assumptions)
+    acq = financing_data.get('acquisition_costs', {})
+    notary_fee_rate = float(acq.get('notary_fee_rate', 0.0075))
+    legal_doc_fee_rate = float(acq.get('legal_documentation_fee_rate', acq.get('legal_doc_fee_rate', 0.003)))
+    agency_fee_rate_buyer = float(acq.get('agency_fee_rate_buyer', 0.0))
+    inspection_chf = float(acq.get('inspection_chf', 0.0))
+    interior_designer_chf = float(acq.get('interior_designer_chf', 0.0))
+    furniture_chf = float(acq.get('furniture_chf', 0.0))
     financing = FinancingParams(
         purchase_price=purchase_price,
         ltv=float(financing_data.get('ltv', 0.75)),
         interest_rate=float(financing_data.get('interest_rate', 0.013)),
         amortization_rate=float(financing_data.get('amortization_rate', 0.01)),
-        num_owners=num_owners
+        num_owners=num_owners,
+        notary_fee_rate=notary_fee_rate,
+        legal_doc_fee_rate=legal_doc_fee_rate,
+        agency_fee_rate_buyer=agency_fee_rate_buyer,
+        inspection_chf=inspection_chf,
+        interior_designer_chf=interior_designer_chf,
+        furniture_chf=furniture_chf
     )
 
     # Create rental parameters
@@ -583,7 +624,8 @@ def create_base_case_config(json_path: str = "assumptions.json") -> BaseCaseConf
         nubbing_costs_annual=float(expenses_data.get('nubbing_costs_annual', 2000.0)),
         electricity_internet_annual=float(expenses_data.get('electricity_internet_annual', 1000.0)),
         maintenance_rate=float(expenses_data.get('maintenance_rate', 0.01)),
-        property_value=purchase_price
+        property_value=purchase_price,
+        vat_rate_on_gross_rental=float(expenses_data.get('vat_rate_on_gross_rental', 0.0))
     )
 
     return BaseCaseConfig(
@@ -598,6 +640,7 @@ def create_base_case_config(json_path: str = "assumptions.json") -> BaseCaseConf
 # -----------------------------
 
 def compute_annual_cash_flows(config: BaseCaseConfig,
+                               operational_months: int = 12,
                                ota_booking_percentage: Optional[float] = None,
                                ota_fee_rate: Optional[float] = None,
                                average_length_of_stay: Optional[float] = None,
@@ -609,6 +652,8 @@ def compute_annual_cash_flows(config: BaseCaseConfig,
     
     Args:
         config: Base case configuration
+        operational_months: Number of months the property is operational (default: 12)
+                           Used for ramp-up period modeling (e.g., 5 months if 7-month ramp-up)
         ota_booking_percentage: Optional OTA booking percentage (default: 0.5)
         ota_fee_rate: Optional OTA fee rate (default: 0.3)
         average_length_of_stay: Optional average length of stay (default: from config)
@@ -621,13 +666,18 @@ def compute_annual_cash_flows(config: BaseCaseConfig,
     f = config.financing
     r = config.rental
     e = config.expenses
+    
+    # Calculate operational months fraction for revenue proration
+    operational_fraction = operational_months / 12.0
+    ramp_up_months = 12 - operational_months
+    ramp_up_fraction = ramp_up_months / 12.0
 
-    # Revenue
-    gross_rental_income = r.gross_rental_income
-    rented_nights = r.rented_nights
+    # Revenue (prorated by operational months)
+    gross_rental_income = r.gross_rental_income * operational_fraction
+    rented_nights = r.rented_nights * operational_fraction
 
     # OTA Platform Fees (deducted from gross revenue)
-    # Effective fee = ota_booking_percentage × ota_fee_rate
+    # Effective fee = ota_booking_percentage x ota_fee_rate
     # Use provided values or defaults (50% bookings through OTAs at 30% fee = 15% effective rate)
     ota_booking_percentage = ota_booking_percentage if ota_booking_percentage is not None else 0.5
     ota_fee_rate = ota_fee_rate if ota_fee_rate is not None else 0.3
@@ -654,17 +704,26 @@ def compute_annual_cash_flows(config: BaseCaseConfig,
     revenue_after_platform_and_cleaning = net_rental_income - cleaning_cost
     property_management_cost = e.property_management_cost(revenue_after_platform_and_cleaning)
     
-    # Tourist tax using provided or config values
+    # Tourist tax using provided or config values (only during operational period)
     tourist_tax = rented_nights * avg_guests * e.tourist_tax_per_person_per_night
+    # VAT on gross short-term rental revenue (only during operational period)
+    vat_cost = gross_rental_income * e.vat_rate_on_gross_rental
+    
+    # Fixed costs paid for full year regardless of ramp-up
     insurance = e.insurance_annual
     nubbing_costs = e.nubbing_costs_annual
-    electricity_internet = e.electricity_internet_annual
     maintenance_reserve = e.maintenance_reserve
+    
+    # Utilities: minimal (25%) during ramp-up, full (100%) during operational period
+    # Formula: (ramp_up_months / 12) x annual x 0.25 + (operational_months / 12) x annual
+    electricity_internet = (ramp_up_fraction * e.electricity_internet_annual * 0.25 + 
+                           operational_fraction * e.electricity_internet_annual)
 
     total_operating_expenses = (
         property_management_cost
         + cleaning_cost  # Separate cleaning cost (80 CHF per stay, can vary 60-130)
         + tourist_tax
+        + vat_cost  # VAT on gross rental revenue
         + insurance
         + nubbing_costs  # Shared expenses (water, heating)
         + electricity_internet  # Electricity and internet
@@ -704,6 +763,10 @@ def compute_annual_cash_flows(config: BaseCaseConfig,
     operating_expense_ratio = (total_operating_expenses / net_rental_income * 100) if net_rental_income > 0 else 0
 
     result = {
+        # Operational Period Info
+        "operational_months": operational_months,
+        "ramp_up_months": ramp_up_months,
+        
         # Revenue (detailed)
         "gross_rental_income": gross_rental_income,
         "ota_fees_total": ota_fees_total,
@@ -717,6 +780,8 @@ def compute_annual_cash_flows(config: BaseCaseConfig,
         "property_management_cost": property_management_cost,
         "cleaning_cost": cleaning_cost,
         "tourist_tax": tourist_tax,
+        "vat_on_rental": vat_cost,
+        "vat_rate_on_gross_rental": e.vat_rate_on_gross_rental,
         "insurance": insurance,
         "nubbing_costs": nubbing_costs,
         "electricity_internet": electricity_internet,
@@ -774,6 +839,8 @@ def compute_annual_cash_flows(config: BaseCaseConfig,
 
 def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026, 
                                inflation_rate: float = 0.02, property_appreciation_rate: float = 0.025,
+                               projection_years: int = 15,
+                               ramp_up_months: int = 0,
                                ota_booking_percentage: Optional[float] = None,
                                ota_fee_rate: Optional[float] = None,
                                average_length_of_stay: Optional[float] = None,
@@ -786,14 +853,20 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
                                market_shocks: Optional[Dict[int, Dict[str, float]]] = None,
                                refinancing_events: Optional[Dict[int, Dict[str, float]]] = None) -> List[Dict[str, any]]:
     """
-    Compute 15-year projection of cash flows and financial metrics.
+    Compute multi-year projection of cash flows and financial metrics.
     
     Assumptions:
     - Purchase in January of start_year
+    - Ramp-up period (default 0 months): Pre-operational period with no revenue
+      During ramp-up: pay debt service, insurance, Nebenkosten, minimal utilities (25%)
+      No revenue, property management, cleaning, tourist tax, or VAT during ramp-up
     - Loan amount decreases each year due to amortization
     - Interest is calculated on remaining loan balance
     - Inflation applied to revenue and variable expenses (default 2%)
     - Property appreciation applied annually (default 2.5% - realistic for Swiss real estate)
+    
+    Args:
+        ramp_up_months: Pre-operational period in months (default 0 for backward compatibility)
     
     Returns a list of dictionaries, one for each year.
     """
@@ -810,9 +883,11 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
     cleaning_cost_val = cleaning_cost_per_stay if cleaning_cost_per_stay is not None else config.expenses.cleaning_cost_per_stay
     tax_rate = marginal_tax_rate if marginal_tax_rate is not None else 0.30
     
-    # Base year results (no inflation) - use provided parameters
+    # Base year results (no inflation, no ramp-up) - use provided parameters
+    # This gives us the "full year" baseline to scale from
     base_result = compute_annual_cash_flows(
         config,
+        operational_months=12,  # Full year for baseline
         ota_booking_percentage=ota_booking_pct,
         ota_fee_rate=ota_fee,
         average_length_of_stay=avg_stay,
@@ -836,28 +911,28 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
     effective_ota_fee_rate = ota_booking_pct * ota_fee
     
     # Handle time-varying inflation and appreciation
-    # If series provided, use them; otherwise use constant rates
+    #     If series provided, use them; otherwise use constant rates
     # Factor indexing: year_num starts at 1, so inflation_factors[year_num - 1] gives:
     #   Year 1: factors[0] = 1.0 (no inflation in base year)
-    #   Year 2: factors[1] = 1.0 × (1 + inflation_series[0]) or (1 + rate)^1
+    #   Year 2: factors[1] = 1.0 x (1 + inflation_series[0]) or (1 + rate)^1
     #   Year N: factors[N-1] = cumulative inflation from year 1 to year N
-    if inflation_series is not None and len(inflation_series) >= 15:
+    if inflation_series is not None and len(inflation_series) >= projection_years:
         inflation_factors = [1.0]  # Year 1: no inflation
-        for i in range(14):  # Years 2-15: apply inflation from previous year
+        for i in range(projection_years - 1):
             inflation_factors.append(inflation_factors[-1] * (1 + inflation_series[i]))
     else:
         # Pre-calculate inflation factors for efficiency (constant rate)
         # Year N factor = (1 + rate)^(N-1), so Year 1 = 1.0, Year 2 = (1+rate), Year 3 = (1+rate)^2, etc.
-        inflation_factors = [(1 + inflation_rate) ** (year_num - 1) for year_num in range(1, 16)]
+        inflation_factors = [(1 + inflation_rate) ** (year_num - 1) for year_num in range(1, projection_years + 1)]
     
-    if appreciation_series is not None and len(appreciation_series) >= 15:
+    if appreciation_series is not None and len(appreciation_series) >= projection_years:
         appreciation_factors = [1.0]  # Year 1: no appreciation
-        for i in range(14):  # Years 2-15: apply appreciation from previous year
+        for i in range(projection_years - 1):
             appreciation_factors.append(appreciation_factors[-1] * (1 + appreciation_series[i]))
     else:
         # Pre-calculate appreciation factors for efficiency (constant rate)
         # Year N factor = (1 + rate)^(N-1), so Year 1 = 1.0, Year 2 = (1+rate), Year 3 = (1+rate)^2, etc.
-        appreciation_factors = [(1 + property_appreciation_rate) ** (year_num - 1) for year_num in range(1, 16)]
+        appreciation_factors = [(1 + property_appreciation_rate) ** (year_num - 1) for year_num in range(1, projection_years + 1)]
     
     # Track cumulative cash flow per owner
     cumulative_cash_flow_per_owner = 0.0
@@ -869,10 +944,25 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
     # Initialize refinancing tracking
     current_interest_rate = config.financing.interest_rate
     
-    for year_num in range(1, 16):  # Years 1-15
+    for year_num in range(1, projection_years + 1):
         # Apply inflation and appreciation (using pre-calculated factors)
         inflation_factor = inflation_factors[year_num - 1]
         appreciation_factor = appreciation_factors[year_num - 1]
+        
+        # Calculate operational months for this year based on ramp-up period
+        # Handles multi-year ramp-up (e.g., 14-month ramp-up spans Year 1 and Year 2)
+        months_into_ownership = (year_num - 1) * 12 + 12  # End of this year
+        months_at_start_of_year = (year_num - 1) * 12      # Start of this year
+        
+        if months_into_ownership <= ramp_up_months:
+            # Still in ramp-up period (entire year is pre-operational)
+            operational_months_this_year = 0
+        elif months_at_start_of_year < ramp_up_months:
+            # Partial year: ramp-up ends during this year
+            operational_months_this_year = months_into_ownership - ramp_up_months
+        else:
+            # Full operation (ramp-up already completed)
+            operational_months_this_year = 12
         
         # Check for market shock in this year
         shock_multiplier_occ = 1.0
@@ -906,22 +996,27 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
                 # Apply refinancing cost as one-time expense
                 # Note: This will be added to operating expenses below
         
-        # Calculate rented_nights for this year (accounts for occupancy changes from market shocks)
-        # Rented nights change with occupancy multiplier (market shocks affect bookings)
-        rented_nights = base_rented_nights * inflation_factor * shock_multiplier_occ
+        # Apply operational months fraction for ramp-up handling
+        operational_fraction_year = operational_months_this_year / 12.0
+        ramp_up_fraction_year = (12 - operational_months_this_year) / 12.0
         
-        # Inflated revenue (apply market shock multipliers if active)
-        # Revenue = base_revenue × inflation × occupancy_multiplier × rate_multiplier
-        # Example: If occupancy drops 30% (multiplier 0.7) and rates drop 20% (multiplier 0.8),
-        # revenue = base × 0.7 × 0.8 = base × 0.56 (44% drop) - this is correct
-        gross_rental_income = base_gross_income * inflation_factor * shock_multiplier_occ * shock_multiplier_rate
+        # Calculate rented_nights for this year (accounts for occupancy changes from market shocks AND ramp-up)
+        # Rented nights change with occupancy multiplier (market shocks affect bookings)
+        # AND prorated by operational months (ramp-up period has zero guests)
+        rented_nights = base_rented_nights * inflation_factor * shock_multiplier_occ * operational_fraction_year
+        
+        # Inflated revenue (apply market shock multipliers if active AND operational months fraction)
+        # Revenue = base_revenue x inflation x occupancy_multiplier x rate_multiplier x operational_fraction
+        # During ramp-up months: no revenue
+        # During operational months: full revenue (inflated and shock-adjusted)
+        gross_rental_income = base_gross_income * inflation_factor * shock_multiplier_occ * shock_multiplier_rate * operational_fraction_year
         # OTA fees (inflate with revenue, use effective rate)
         ota_fees_total = gross_rental_income * effective_ota_fee_rate
         net_rental_income = gross_rental_income - ota_fees_total
         
         # Cleaning cost: recalculate based on actual rented_nights and avg_stay for this year
         # Number of stays = rented_nights / average_length_of_stay
-        # Cleaning cost = number_of_stays × cleaning_cost_per_stay
+        # Cleaning cost = number_of_stays x cleaning_cost_per_stay
         if cleaning_cost_val > 0:
             num_stays = rented_nights / avg_stay
             cleaning_cost = num_stays * cleaning_cost_val
@@ -933,13 +1028,21 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
         property_management_cost = revenue_after_platform_and_cleaning * config.expenses.property_management_fee_rate
         
         # Tourist tax: recalculate based on actual rented_nights and avg_guests for this year
-        # Tourist tax = rented_nights × avg_guests_per_night × tourist_tax_per_person_per_night
+        # Tourist tax = rented_nights x avg_guests_per_night x tourist_tax_per_person_per_night
         tourist_tax = rented_nights * avg_guests * config.expenses.tourist_tax_per_person_per_night
         
-        # Fixed expenses (insurance, nubbing costs, electricity/internet) also inflate
+        # VAT on gross short-term rental revenue
+        vat_cost = gross_rental_income * config.expenses.vat_rate_on_gross_rental
+        
+        # Fixed expenses (insurance, nubbing costs) inflate and paid for full year (even during ramp-up)
         insurance = base_insurance * inflation_factor
         nubbing_costs = base_nubbing_costs * inflation_factor
-        electricity_internet = base_electricity_internet * inflation_factor
+        
+        # Utilities: minimal (25%) during ramp-up, full during operational period
+        # Formula: (ramp_up_months / 12) x annual x 0.25 + (operational_months / 12) x annual
+        # Then apply inflation factor
+        electricity_internet = (ramp_up_fraction_year * base_electricity_internet * 0.25 + 
+                               operational_fraction_year * base_electricity_internet) * inflation_factor
         
         # Maintenance reserve based on appreciated property value (1% of current property value)
         # Apply market shock to property value
@@ -964,6 +1067,7 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
             property_management_cost +
             cleaning_cost +  # Separate cleaning cost (variable CHF per stay)
             tourist_tax +
+            vat_cost +  # VAT on gross rental revenue
             insurance +
             nubbing_costs +  # Shared expenses (water, heating)
             electricity_internet +  # Electricity and internet
@@ -1008,10 +1112,12 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
         annual_results = {
             'year': year,
             'year_number': year_num,
+            'operational_months': operational_months_this_year,
+            'ramp_up_months': 12 - operational_months_this_year,
             'inflation_factor': inflation_factor,
             'appreciation_factor': appreciation_factor,
             'property_value': current_property_value,
-            'rented_nights': rented_nights,  # Rented nights for this year (accounts for market shocks)
+            'rented_nights': rented_nights,  # Rented nights for this year (accounts for market shocks and ramp-up)
             'gross_rental_income': gross_rental_income,
             'ota_fees_total': ota_fees_total,
             'net_rental_income': net_rental_income,
@@ -1063,7 +1169,8 @@ def calculate_irr(cash_flows: List[float], initial_investment: float, sale_proce
             # Pre-calculate discount factors for efficiency
             discount_factors = [(1 + rate) ** i for i in range(len(cf_array))]
             return sum(cf / df for cf, df in zip(cf_array, discount_factors))
-        except:
+        except (ZeroDivisionError, OverflowError, ValueError):
+            # Handle mathematical errors (e.g., division by zero, overflow)
             return float('inf')
     
     # Check if we have a sign change (required for IRR)
@@ -1261,6 +1368,7 @@ def compute_detailed_expenses(config: BaseCaseConfig,
         "Property Management": property_management_cost,  # 20% (can vary 15-30%) of revenue after platform and cleaning fees
         "Cleaning": cleaning_cost,  # Variable CHF per stay (can vary 60-130)
         "Tourist Tax": rented_nights * avg_guests * e.tourist_tax_per_person_per_night,
+        "VAT (on gross rental)": gross_rental_income * e.vat_rate_on_gross_rental,
         "Insurance": e.insurance_annual,  # 0.4% of property value
         "Nubbing Costs (Water, Heating)": e.nubbing_costs_annual,
         "Electricity & Internet": e.electricity_internet_annual,
@@ -1320,12 +1428,19 @@ def apply_sensitivity(
     Returns:
         Modified BaseCaseConfig with specified parameters changed
     """
+    f = base_config.financing
     new_financing = FinancingParams(
-        purchase_price=purchase_price if purchase_price is not None else base_config.financing.purchase_price,
-        ltv=ltv if ltv is not None else base_config.financing.ltv,
-        interest_rate=interest_rate if interest_rate is not None else base_config.financing.interest_rate,
-        amortization_rate=amortization_rate if amortization_rate is not None else base_config.financing.amortization_rate,
-        num_owners=base_config.financing.num_owners
+        purchase_price=purchase_price if purchase_price is not None else f.purchase_price,
+        ltv=ltv if ltv is not None else f.ltv,
+        interest_rate=interest_rate if interest_rate is not None else f.interest_rate,
+        amortization_rate=amortization_rate if amortization_rate is not None else f.amortization_rate,
+        num_owners=f.num_owners,
+        notary_fee_rate=f.notary_fee_rate,
+        legal_doc_fee_rate=f.legal_doc_fee_rate,
+        agency_fee_rate_buyer=f.agency_fee_rate_buyer,
+        inspection_chf=f.inspection_chf,
+        interior_designer_chf=f.interior_designer_chf,
+        furniture_chf=f.furniture_chf
     )
 
     # Handle seasonal model - preserve seasons if they exist
@@ -1391,7 +1506,8 @@ def apply_sensitivity(
         nubbing_costs_annual=base_config.expenses.nubbing_costs_annual,
         electricity_internet_annual=base_config.expenses.electricity_internet_annual,
         maintenance_rate=maintenance_rate if maintenance_rate is not None else base_config.expenses.maintenance_rate,
-        property_value=new_property_value
+        property_value=new_property_value,
+        vat_rate_on_gross_rental=base_config.expenses.vat_rate_on_gross_rental
     )
 
     return BaseCaseConfig(
@@ -1406,15 +1522,17 @@ def apply_sensitivity(
 # -----------------------------
 
 def export_base_case_to_json(config: BaseCaseConfig, results: Dict[str, float], 
-                             projection: List[Dict], irr_results: Dict[str, float]) -> Dict[str, Any]:
+                             projection: List[Dict], irr_results: Dict[str, float],
+                             by_horizon: Optional[Dict[str, Dict[str, Any]]] = None) -> Dict[str, Any]:
     """
     Export base case analysis results to a structured dictionary ready for JSON serialization.
     
     Args:
         config: Base case configuration
         results: Annual cash flow results from compute_annual_cash_flows
-        projection: 15-year projection from compute_15_year_projection
+        projection: Projection from compute_15_year_projection (typically 15-year for top-level)
         irr_results: IRR calculation results from calculate_irrs_from_projection
+        by_horizon: Optional dict keyed by horizon string ("5", "10", ... "40") with projection, irr_results, kpis per horizon
     
     Returns:
         Dictionary with all base case data structured for JSON export
@@ -1432,6 +1550,12 @@ def export_base_case_to_json(config: BaseCaseConfig, results: Dict[str, float],
             'equity_per_owner': config.financing.equity_per_owner,
             'acquisition_costs_total': config.financing.acquisition_costs_total,
             'acquisition_costs_per_owner': config.financing.acquisition_costs_per_owner,
+            'acquisition_notary': config.financing.purchase_price * config.financing.notary_fee_rate,
+            'acquisition_legal': config.financing.purchase_price * config.financing.legal_doc_fee_rate,
+            'acquisition_agency': config.financing.purchase_price * config.financing.agency_fee_rate_buyer,
+            'acquisition_inspection': config.financing.inspection_chf,
+            'acquisition_interior_designer': config.financing.interior_designer_chf,
+            'acquisition_furniture': config.financing.furniture_chf,
             'total_initial_investment': config.financing.total_initial_investment,
             'total_initial_investment_per_owner': config.financing.total_initial_investment_per_owner
         },
@@ -1453,7 +1577,7 @@ def export_base_case_to_json(config: BaseCaseConfig, results: Dict[str, float],
                     'rented_nights': s.rented_nights,
                     'season_income': s.season_income
                 }
-                for s in config.rental.seasons
+                for s in (config.rental.seasons or [])
             ]
         },
         'expenses': {
@@ -1466,12 +1590,18 @@ def export_base_case_to_json(config: BaseCaseConfig, results: Dict[str, float],
             'nubbing_costs_annual': config.expenses.nubbing_costs_annual,
             'electricity_internet_annual': config.expenses.electricity_internet_annual,
             'maintenance_rate': config.expenses.maintenance_rate,
-            'property_value': config.expenses.property_value
+            'property_value': config.expenses.property_value,
+            'vat_rate_on_gross_rental': config.expenses.vat_rate_on_gross_rental
         }
     }
     
     # Structure annual results
     annual_results = {
+        # Operational period metadata
+        'operational_months': results.get('operational_months', 12),
+        'ramp_up_months': results.get('ramp_up_months', 0),
+        
+        # Financial overview
         'purchase_price': results.get('purchase_price', config.financing.purchase_price),
         'loan_amount': results.get('loan_amount', config.financing.loan_amount),
         'equity_total': results.get('equity_total', config.financing.equity_total),
@@ -1490,6 +1620,7 @@ def export_base_case_to_json(config: BaseCaseConfig, results: Dict[str, float],
         'property_management_cost': results.get('property_management_cost', 0),
         'cleaning_cost': results.get('cleaning_cost', 0),
         'tourist_tax': results.get('tourist_tax', 0),
+        'vat_on_rental': results.get('vat_on_rental', 0),
         'insurance': results.get('insurance', 0),
         'nubbing_costs': results.get('nubbing_costs', 0),
         'electricity_internet': results.get('electricity_internet', 0),
@@ -1545,7 +1676,7 @@ def export_base_case_to_json(config: BaseCaseConfig, results: Dict[str, float],
         'selling_costs_rate_pct': irr_results.get('selling_costs_rate_pct', 0)
     }
     
-    return {
+    out = {
         'config': config_dict,
         'annual_results': annual_results,
         'projection_15yr': projection,
@@ -1553,6 +1684,9 @@ def export_base_case_to_json(config: BaseCaseConfig, results: Dict[str, float],
         'kpis': kpis,
         'timestamp': datetime.now().isoformat()
     }
+    if by_horizon is not None:
+        out['by_horizon'] = by_horizon
+    return out
 
 
 def export_sensitivity_to_json(sensitivities_dict: Dict[str, Dict]) -> Dict[str, Any]:
@@ -1678,4 +1812,3 @@ def export_monte_carlo_sensitivity_to_json(case_name: str, base_npv_probability:
         'metric': 'NPV > 0 Probability',
         'timestamp': datetime.now().isoformat()
     }
-

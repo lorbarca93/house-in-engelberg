@@ -5,12 +5,13 @@ This module defines parameter ranges for Monte Carlo-based sensitivity analysis.
 MC Sensitivity tests how NPV > 0 probability changes with different parameter values
 by running Monte Carlo simulations for each parameter value.
 
-PARAMETERS (5):
+PARAMETERS (6):
 - amortization_rate: 0% to 2x base (clamped to 0-2%)
 - interest_rate: 0.5x to 2x base (clamped to 0.5%-5%)
 - purchase_price: ±20% of base
 - occupancy: ±20% of base (clamped to 0-100%)
 - daily_rate: ±30% of base
+- ramp_up_months: 4-10 months (triangular with mode at 7)
 
 Each parameter is tested with 10 evenly spaced values across its range.
 """
@@ -59,6 +60,15 @@ MC_SENSITIVITY_PARAMETER_CONFIG = {
         'max_factor': 1.3,
         'clamp_min': None,
         'clamp_max': None,
+        'num_points': 10
+    },
+    'ramp_up_months': {
+        'parameter_name': 'Ramp-Up Period',
+        'get_base_value': lambda cfg: 7,  # Default 7 months
+        'min_factor': 0.57,   # 4 months (7 × 0.57 ≈ 4)
+        'max_factor': 1.43,   # 10 months (7 × 1.43 ≈ 10)
+        'clamp_min': 3,
+        'clamp_max': 12,
         'num_points': 10
     },
 }

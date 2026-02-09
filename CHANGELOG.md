@@ -2,6 +2,292 @@
 
 All notable changes to the Engelberg Property Investment Simulation will be documented in this file.
 
+## [2026-02-09] - Documentation Refresh and Workflow Clarification
+
+### Documentation updates
+
+- Rewrote `README.md` as a clean, current source of truth for:
+  - 12-scenario setup
+  - 8 dashboard analysis views
+  - horizon selector behavior by analysis type
+  - fast vs full batch data generation workflow
+  - dedicated Monte Carlo sensitivity runner usage
+- Rewrote `QUICK_START.md` with aligned commands, expected validation/test outputs, and current base-case snapshot values.
+- Updated supporting docs to remove stale counts and align with current system status:
+  - `docs/ARCHITECTURE.md`
+  - `docs/DEVELOPMENT.md`
+  - `docs/SENSITIVITY_CALCULATIONS.md`
+
+### Workflow clarifications
+
+- Documented that `scripts/generate_all_data.py` skips MC sensitivity regeneration by default for speed.
+- Documented `scripts/analyze_monte_carlo_sensitivity.py` as the preferred path to regenerate MC sensitivity independently.
+- Clarified horizon policy:
+  - Horizon-aware: Base Case, Equity IRR sensitivity
+  - Horizon hidden: Cash-on-Cash, Monthly NCF, Monte Carlo, MC Sensitivity, Scenario Comparison
+
+## [2026-02-02] - Ramp-Up Period, Waterfall Charts, Bug Fixes, and Time Horizon Improvements
+
+### Ramp-Up Period Feature
+
+Implemented pre-operational ramp-up period to model the realistic scenario where property acquisition precedes rental operations by several months.
+
+#### Overview
+
+When acquiring a property for short-term rentals, there's a preparation period for:
+
+- Forming the co-ownership society and signing agreements
+- Signing property management contracts
+- Furnishing the apartment for vacation rental
+- Creating listings on Airbnb and Booking.com
+- Marketing and acquiring first clients
+
+**Default**: 7 months ramp-up (configurable 0-18 months)
+
+#### During Ramp-Up Period
+
+**Costs Paid (full 12 months)**:
+
+- Debt service (interest + principal) - full year
+- Insurance - full year
+- Nebenkosten (building fees/shared expenses) - full year
+- Maintenance reserve - full year
+- Utilities - minimal (~25% of operational level)
+
+**No Revenue Generated**:
+
+- Zero gross rental income
+- Zero property management fees (no revenue to manage)
+- Zero cleaning costs (no guests)
+- Zero tourist tax (no guests)
+- Zero VAT (no revenue)
+
+#### Financial Impact
+
+**Base Case with 7-month ramp-up**:
+
+- Year 1 operational months: 5 (instead of 12)
+- Year 1 revenue: ~CHF 20,300 (vs CHF 48,800 full year) - 58% reduction
+- Year 1 cash flow per owner: ~CHF -12,800/year (vs -CHF 1,000 full year) - much more negative
+- Equity IRR: ~6.0-6.5% (vs 7.92%) - 1-2% lower due to delayed revenue
+- Cash-on-Cash: More negative (Year 1 includes ramp-up period)
+- Years 2+: Full 12-month operation
+
+#### Implementation Details
+
+**Core Engine (`engelberg/core.py`)**:
+
+- Added `ProjectionParams` dataclass with `ramp_up_months` field (default 7)
+- Updated `get_projection_defaults()` to read `ramp_up_months` from JSON
+- Modified `compute_annual_cash_flows()`:
+  - Added `operational_months` parameter (default 12)
+  - Revenue prorated by `operational_months / 12`
+  - Fixed costs paid for full year
+  - Utilities: 25% during ramp-up, 100% during operational period
+  - Added `operational_months` and `ramp_up_months` to result dict
+- Modified `compute_15_year_projection()`:
+  - Added `ramp_up_months` parameter (default 0 for backward compatibility)
+  - Multi-year ramp-up support (handles 14+ month ramp-up spanning multiple years)
+  - Year 1: Partial operation based on ramp-up duration
+  - Years 2+: Full 12-month operation
+  - Each year's results include `operational_months` and `ramp_up_months`
+
+**Model Sensitivity (`engelberg/model_sensitivity.py`, `model_sensitivity_ranges.py`)**:
+
+- Added ramp-up as **16th parameter** (now 13 config + 3 special = 16 total)
+- Parameter range: Low 3 months, Base 7 months, High 12 months
+- Added `modify_ramp_up_months()` function
+- Updated `calculate_equity_irr()` and `calculate_after_tax_cash_flow_per_person()` to accept `ramp_up_months` parameter
+- Special handling in sensitivity loop (projection parameter, not config parameter)
+- Shows impact on both Equity IRR and monthly cash flow
+
+**Monte Carlo (`engelberg/monte_carlo.py`)**:
+
+- Added ramp-up distribution: Triangular (min=4, mode=7, max=10 months)
+- Updated correlation matrix to n=24 parameters
+- Updated `run_single_simulation()` to sample and use `ramp_up_months`
+- Passed to `compute_15_year_projection()` for each simulation
+- Results include sampled `ramp_up_months` value
+
+**MC Sensitivity (`engelberg/mc_sensitivity_ranges.py`)**:
+
+- Added ramp-up as **6th parameter** (now 6 total)
+- Tests 10 values: 4-10 months
+- Shows how NPV > 0 probability changes with ramp-up duration
+
+**Assumptions (`assumptions/assumptions.json`)**:
+
+- Added `ramp_up_months: 7` to `projection` section
+- Detailed explanation of what happens during ramp-up
+- All 11 scenario files inherit this parameter (can override if needed)
+
+**Testing**:
+
+- Added 10 comprehensive unit tests in `test_core_calculations.py`:
+  - Revenue reduction with ramp-up
+  - Debt service unchanged (full year)
+  - Minimal utilities during ramp-up
+  - No management fees during ramp-up
+  - Fixed costs paid for full year
+  - Metadata in results
+  - Multi-year ramp-up spanning
+  - Backward compatibility (ramp_up=0)
+- Updated integration tests to verify ramp-up in JSON output
+- Updated validation system with ramp-up checks
+- **All 154 tests passing**
+
+#### Edge Cases Handled
+
+1. **Ramp-up = 0**: Full Year 1 operation (backward compatible)
+2. **Ramp-up < 12**: Partial Year 1, full Years 2+
+3. **Ramp-up = 12**: Zero Year 1 revenue, full Years 2+
+4. **Ramp-up > 12** (e.g., 14 months): Zero Year 1, partial Year 2, full Years 3+
+
+#### Benefits
+
+- **Realistic modeling**: Accounts for actual acquisition-to-operation timeline
+- **Better decision making**: Shows true Year 1 cash requirements
+- **Sensitivity testing**: Understand impact of faster/slower ramp-up
+- **Risk analysis**: Monte Carlo captures ramp-up uncertainty (4-10 month range)
+
+### Waterfall Charts, Bug Fixes, and Time Horizon Improvements
+
+### Waterfall Chart Visualization
+
+Added a new **Waterfall (Revenue vs Expenses)** view to visualize the cash flow bridge from gross rental income to after-tax cash flow.
+
+#### Features
+
+- **Two waterfall charts**:
+  - **Yearly**: Shows annual revenue and expense components
+  - **Monthly**: Shows monthly breakdown (annual ÷ 12) for practical budgeting
+- **Cash flow bridge**: Visualizes the journey through key stages:
+  - Gross Rental Income
+  - → Net Rental Income (after OTA fees)
+  - → Net Operating Income (after operating expenses)
+  - → Pre-Tax Cash Flow (after debt service)
+  - → After-Tax Cash Flow (after adding tax savings)
+- **Color-coded bars**:
+  - Green: Revenue items and positive adjustments
+  - Red: Expenses and negative adjustments
+  - Blue: Cumulative totals at each stage
+- **Value labels**: All bars show formatted CHF values for quick reference
+- **Robust error handling**: Displays user-friendly message if data is missing
+
+#### Implementation
+
+**Frontend (`website/index.html`)**:
+
+- Added sidebar menu item "Waterfall (Revenue vs Expenses)"
+- Created `ChartRenderer.renderWaterfall()` function (lines 5415-5533)
+- Uses Plotly.js waterfall chart type with proper measure types ("relative", "total")
+- Loads data from base case analysis JSON files
+- Added data validation and error handling
+
+**Backend**:
+
+- No backend changes needed (uses existing base_case_analysis.json data)
+- Data comes from `annual_results` and `projection[0]` sections
+
+**Validation (`scripts/validate_system.py`)**:
+
+- Added `renderWaterfall` to dashboard component checks (line 924)
+
+### Time Horizon Management Improvements
+
+Fixed issues with time horizon selector behavior and improved UX for Year-1 metrics.
+
+#### Changes
+
+1. **Dynamic Horizon Dropdown Population**:
+
+   - Dropdown now restricted to horizons available in loaded data
+   - Implemented `UIManager.syncHorizonOptions()` to rebuild dropdown from `by_horizon` keys
+   - Auto-fallback to 15Y or first available horizon if selected horizon not in data
+   - Prevents confusing "select 25Y but see 15Y data" issue
+
+2. **Year-1 Metric UX Improvements**:
+
+   - Cash-on-Cash and Monthly NCF are Year-1 metrics that don't vary by horizon
+   - Time horizon dropdown now **hidden** when viewing CoC or NCF sensitivity
+   - Added explanatory note: "This metric is Year 1 only and does not vary by time horizon"
+   - Implemented `UIManager.showHorizonBar()` and `hideHorizonBar()` functions
+
+3. **Backend Documentation**:
+   - Added comments in `engelberg/model_sensitivity.py` documenting CoC/NCF as Year-1 metrics
+   - Clarified that `by_horizon` data is duplicated for these metrics by design
+
+#### Implementation
+
+**Frontend (`website/index.html`)**:
+
+- Added `id="horizonContainer"` wrapper for horizon selector (line 460)
+- Added `UIManager.syncHorizonOptions()` function (lines 705-733)
+- Added `UIManager.showHorizonBar()` / `hideHorizonBar()` functions (lines 735, 739)
+- Updated `rerenderCurrent()` and `loadAnalysis()` to manage horizon bar visibility
+- Added Year-1 notes to CoC and NCF info boxes (lines 2899, 3428)
+
+**Backend (`engelberg/model_sensitivity.py`)**:
+
+- Added documentation comments for CoC and NCF Year-1 behavior (lines 847, 891)
+
+### Bug Fixes
+
+Fixed critical code quality issues found during comprehensive repository audit.
+
+#### 1. Bare Exception Handler (Critical)
+
+**Issue**: `engelberg/core.py:1104` - Bare `except:` clause could catch system exits and keyboard interrupts.
+
+**Fix**: Changed to specific exceptions:
+
+```python
+except (ZeroDivisionError, OverflowError, ValueError):
+    # Handle mathematical errors (e.g., division by zero, overflow)
+    return float('inf')
+```
+
+#### 2. Broad Exception Handler (Medium)
+
+**Issue**: `engelberg/model_sensitivity.py:505` - `except Exception:` was too broad with no error feedback.
+
+**Fix**: Specified exception types and added logging:
+
+```python
+except (ValueError, KeyError, TypeError) as e:
+    print(f"Warning: ATCF calculation failed for {param_config['parameter_name']}: {e}")
+    low_atcf_val = base_atcf
+    high_atcf_val = base_atcf
+```
+
+#### 3. Missing File Encoding (Low)
+
+**Issue**: `scripts/validate_system.py` - 10 file operations without explicit UTF-8 encoding could cause issues on Windows with non-ASCII characters.
+
+**Fix**: Added `encoding='utf-8'` to all `open()` calls:
+
+```python
+with open(file_path, 'r', encoding='utf-8') as f:
+    data = json.load(f)
+```
+
+### Testing and Validation
+
+- **Unit Tests**: ✅ 142 tests passing
+- **System Validation**: ✅ 367 checks passing (increased from 352)
+- **Browser Testing**: Verified all scenarios and time horizons switch correctly
+- **No linter errors**: Clean code quality
+
+### Files Modified
+
+- `website/index.html` - Waterfall charts, horizon management, removed debug console.log statements
+- `engelberg/core.py` - Fixed bare exception handler
+- `engelberg/model_sensitivity.py` - Fixed broad exception handler, added documentation
+- `scripts/validate_system.py` - Added waterfall validation, fixed file encoding issues
+- `README.md` - Updated feature list and validation count
+- `QUICK_START.md` - Updated validation count and analysis types
+- `BUG_FIX_SUMMARY.md` - Created comprehensive bug fix documentation
+
 ## [2026-01-28] - Calculation Rigor, Monte Carlo Enhancements, and Documentation
 
 ### Fee and Expense Logic (Consistent Across All Models)
@@ -45,6 +331,7 @@ Separated Model Sensitivity and MC Sensitivity analyses into dedicated modules f
 #### New Module Structure
 
 - **`engelberg/model_sensitivity.py`**: Contains all Model Sensitivity analysis functions
+
   - `run_sensitivity_analysis()` - Equity IRR + After-Tax Cash Flow sensitivity
   - `run_cash_on_cash_sensitivity_analysis()` - Cash-on-Cash sensitivity
   - `run_monthly_ncf_sensitivity_analysis()` - Monthly NCF sensitivity
@@ -54,10 +341,12 @@ Separated Model Sensitivity and MC Sensitivity analyses into dedicated modules f
   - Modifier functions: `modify_maintenance_rate()`, `modify_cleaning_cost()`, etc.
 
 - **`engelberg/model_sensitivity_ranges.py`**: Configuration for Model Sensitivity parameter ranges
+
   - `MODEL_SENSITIVITY_PARAMETER_CONFIG` - 12 config parameters with ranges, clamps, and modifiers
   - `MODEL_SENSITIVITY_SPECIAL_FACTORS` - 3 projection parameters (appreciation, inflation, selling costs)
 
 - **`engelberg/mc_sensitivity.py`**: Contains MC Sensitivity analysis function
+
   - `run_monte_carlo_sensitivity_analysis()` - NPV > 0 probability sensitivity
   - Helper function: `generate_parameter_range()`
 
@@ -67,6 +356,7 @@ Separated Model Sensitivity and MC Sensitivity analyses into dedicated modules f
 #### Updated Files
 
 - **`engelberg/analysis.py`**: Now imports and re-exports functions from new modules
+
   - Removed all Model Sensitivity and MC Sensitivity implementation code
   - Maintains backward compatibility by re-exporting functions
   - Keeps base case analysis and Monte Carlo analysis functions
@@ -384,6 +674,7 @@ After-Tax Cash Flow = Pre-Tax Cash Flow + Tax Savings
 **Core Engine (`engelberg/core.py`)**:
 
 - Added tax calculations to `compute_annual_cash_flows()`:
+
   - `taxable_income`: NOI - interest payment
   - `tax_liability`: max(0, taxable_income) × 30%
   - `tax_savings_total`: interest × 30%
@@ -462,6 +753,7 @@ Comprehensive verification of file interconnections, removal of redundancies, cl
 #### Documentation Updates
 
 - **Updated README.md**:
+
   - Repository structure diagram now shows `engelberg/` package and `scripts/` directory
   - Updated file counts: 10 cases (not 5), 50 data files (10 cases × 5 analyses)
   - Updated cases table to include all 10 scenarios with correct file paths
@@ -502,6 +794,7 @@ Reorganized the codebase into a proper Python package structure for better maint
 #### New Package Structure
 
 - **Created `engelberg/` package**:
+
   - `engelberg/__init__.py` - Package initialization with convenient exports
   - `engelberg/core.py` - Core financial calculations (moved from `core_engine.py`)
   - `engelberg/analysis.py` - Analysis orchestration (moved from `analyze.py`)
@@ -541,6 +834,7 @@ Reorganized the codebase into a proper Python package structure for better maint
 ### Breaking Changes
 
 - **Script paths changed**: All scripts now in `scripts/` directory
+
   - Old: `python analyze.py`
   - New: `python scripts/analyze.py`
 
@@ -565,11 +859,13 @@ If you have existing scripts or tests that import from the old modules:
 All three sensitivity tornado charts now have consistent, compact styling:
 
 - **Reduced Chart Size**:
+
   - Height: `Math.max(420, 300 + params * 40)` (was 550-600)
   - Margins: `{ l: 200, r: 30, t: 50, b: 60 }` (was l: 240-250, r: 50)
   - Min-height: 400px (was 650px)
 
 - **Unified Visual Elements**:
+
   - Zero line width: 2px (was 3-4px)
   - Font sizes: 11-13px (was 13-15px)
   - Consistent `hovermode: "closest"` on all charts
@@ -577,6 +873,7 @@ All three sensitivity tornado charts now have consistent, compact styling:
   - Same background colors (`#fafbfc`)
 
 - **Compact Info Boxes**:
+
   - Padding: 14px 18px (was 20px)
   - Border radius: 8px (was 12px)
   - Single-line concise descriptions
@@ -1268,6 +1565,7 @@ The user requested better, more sophisticated charts in the HTML report. The pre
 #### 3. Visual Enhancements
 
 - **CSS Updates**:
+
   - Enhanced chart container styling with hover effects
   - Better shadows and transitions
   - Improved spacing and padding

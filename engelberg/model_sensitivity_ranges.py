@@ -5,10 +5,10 @@ This module defines all parameter ranges, clamps, and modifiers for Model Sensit
 Model Sensitivity tests how deterministic metrics (Equity IRR, Cash-on-Cash, Monthly NCF)
 change when parameters vary.
 
-CONFIG PARAMETERS (12):
+CONFIG PARAMETERS (13):
 - maintenance_rate, management_fee, purchase_price, occupancy, average_daily_rate
 - interest_rate, ltv, amortization, cleaning_cost, length_of_stay
-- insurance_rate, winter_occupancy
+- insurance_rate, winter_occupancy, ramp_up_months
 
 SPECIAL PARAMETERS (3):
 - property_appreciation: Projection parameter (affects IRR only)
@@ -169,6 +169,19 @@ MODEL_SENSITIVITY_PARAMETER_CONFIG = {
         'affects_year1': True,
         'affects_exit': False,
         'range_pct': 30
+    },
+    'ramp_up_months': {
+        'parameter_name': 'Ramp-Up Period',
+        'get_base_value': lambda cfg: 7,  # Default 7 months, will be read from projection defaults
+        'low_factor': 0.43,   # 3 months (7 × 0.43 ≈ 3)
+        'high_factor': 1.71,  # 12 months (7 × 1.71 ≈ 12)
+        'clamp_min': 0,
+        'clamp_max': 18,
+        'modifier': 'modify_ramp_up_months',  # Special handling in sensitivity loop
+        'affects_year1': True,
+        'affects_exit': False,
+        'range_pct': 171,
+        'requires_json_path': True  # Special flag: modifier needs json_path parameter
     },
 }
 

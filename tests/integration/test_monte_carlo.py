@@ -4,11 +4,14 @@ Integration tests for Monte Carlo simulation workflows
 
 import pytest
 import numpy as np
+from engelberg.core import create_base_case_config
 from engelberg.monte_carlo import (
     run_monte_carlo_simulation,
+    calculate_statistics,
     DistributionConfig,
     sample_correlated_variables
 )
+from engelberg.analysis import run_monte_carlo_analysis
 from tests.conftest import sample_assumptions_path
 
 
@@ -16,23 +19,22 @@ class TestMonteCarloSimulation:
     """Tests for run_monte_carlo_simulation()."""
     
     def test_simulation_count_default(self, sample_assumptions_path):
-        """Test default simulation count (1000)."""
-        results = run_monte_carlo_simulation(sample_assumptions_path, 'test_case', num_simulations=100, verbose=False)
+        """Test default simulation count (100)."""
+        config = create_base_case_config(sample_assumptions_path)
+        df = run_monte_carlo_simulation(config, num_simulations=100)
         
-        assert 'simulations' in results or 'statistics' in results
-        
-        # Should have run simulations
-        if 'statistics' in results:
-            assert 'mean' in results['statistics']
-            assert 'median' in results['statistics']
+        assert df is not None
+        assert len(df) == 100
+        assert 'npv' in df.columns
+        assert 'irr_with_sale' in df.columns
     
     def test_simulation_count_custom(self, sample_assumptions_path):
         """Test custom simulation count."""
-        results = run_monte_carlo_simulation(sample_assumptions_path, 'test_case', num_simulations=500, verbose=False)
+        config = create_base_case_config(sample_assumptions_path)
+        df = run_monte_carlo_simulation(config, num_simulations=500)
         
-        # Should complete without error
-        assert results is not None
-        assert isinstance(results, dict)
+        assert df is not None
+        assert len(df) == 500
     
     def test_distribution_sampling_uniform(self):
         """Test uniform distribution sampling."""
@@ -134,31 +136,27 @@ class TestMonteCarloSimulation:
     
     def test_statistical_outputs(self, sample_assumptions_path):
         """Test statistical outputs (mean, median, std dev, percentiles)."""
-        results = run_monte_carlo_simulation(sample_assumptions_path, 'test_case', num_simulations=100, verbose=False)
+        config = create_base_case_config(sample_assumptions_path)
+        df = run_monte_carlo_simulation(config, num_simulations=100)
+        stats = calculate_statistics(df)
         
-        if 'statistics' in results:
-            stats = results['statistics']
-            
-            # Should have basic statistics
-            assert 'mean' in stats or 'median' in stats
-            
-            # Statistics should be numeric
-            for key, value in stats.items():
-                if isinstance(value, (int, float)):
-                    assert not np.isnan(value)
-                    assert not np.isinf(value)
+        assert 'npv' in stats
+        assert 'mean' in stats['npv'] or 'median' in stats['npv']
+        assert 'irr_with_sale' in stats
+        
+        for key, value in stats.get('npv', {}).items():
+            if isinstance(value, (int, float)):
+                assert not np.isnan(value)
+                assert not np.isinf(value)
     
     def test_results_within_expected_ranges(self, sample_assumptions_path):
         """Test that results are within expected ranges."""
-        results = run_monte_carlo_simulation(sample_assumptions_path, 'test_case', num_simulations=100, verbose=False)
+        config = create_base_case_config(sample_assumptions_path)
+        df = run_monte_carlo_simulation(config, num_simulations=100)
+        stats = calculate_statistics(df)
         
-        if 'statistics' in results:
-            stats = results['statistics']
-            
-            # IRR should be in reasonable range
-            if 'mean' in stats and 'irr' in str(stats).lower():
-                mean_irr = stats.get('mean', 0)
-                assert -50.0 < mean_irr < 50.0  # Reasonable IRR range
+        mean_irr = stats.get('irr_with_sale', {}).get('mean', 0)
+        assert -50.0 < mean_irr < 50.0  # Reasonable IRR range
 
 
 class TestSampleCorrelatedVariables:
@@ -231,19 +229,21 @@ class TestSampleCorrelatedVariables:
 
 
 class TestMonteCarloOutput:
-    """Tests for Monte Carlo output structure."""
+    """Tests for Monte Carlo output structure (run_monte_carlo_analysis JSON export)."""
     
     def test_json_export_structure(self, sample_assumptions_path):
         """Test JSON export structure."""
-        results = run_monte_carlo_simulation(sample_assumptions_path, 'test_case', num_simulations=100, verbose=False)
+        results = run_monte_carlo_analysis(sample_assumptions_path, 'test_case', n_simulations=100, verbose=False)
         
         assert isinstance(results, dict)
-        assert 'case_name' in results or 'statistics' in results or 'simulations' in results
+        assert 'statistics' in results
+        assert 'timestamp' in results
+        assert 'total_simulations' in results
     
     def test_timestamp_present(self, sample_assumptions_path):
         """Test that timestamp is present."""
-        results = run_monte_carlo_simulation(sample_assumptions_path, 'test_case', num_simulations=100, verbose=False)
+        results = run_monte_carlo_analysis(sample_assumptions_path, 'test_case', n_simulations=100, verbose=False)
         
-        if 'timestamp' in results:
-            assert isinstance(results['timestamp'], str)
-            assert len(results['timestamp']) > 0
+        assert 'timestamp' in results
+        assert isinstance(results['timestamp'], str)
+        assert len(results['timestamp']) > 0

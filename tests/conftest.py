@@ -85,7 +85,8 @@ def minimal_config():
         nubbing_costs_annual=2000.0,
         electricity_internet_annual=1000.0,
         maintenance_rate=0.005,
-        property_value=1000000.0
+        property_value=1000000.0,
+        vat_rate_on_gross_rental=0.0
     )
     
     return BaseCaseConfig(

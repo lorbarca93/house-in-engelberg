@@ -6,7 +6,7 @@ import pytest
 import json
 import os
 from engelberg.analysis import run_base_case_analysis
-from engelberg.core import create_base_case_config
+from engelberg.core import create_base_case_config, get_projection_defaults
 from tests.conftest import sample_assumptions_path
 
 
@@ -134,55 +134,70 @@ class TestBaseCaseAnalysisWorkflow:
         assert json_data is not None
         assert isinstance(json_data, dict)
         
-        # Verify required top-level keys
+        # Verify required top-level keys (actual export structure)
         required_keys = [
-            'case_name',
+            'config',
+            'annual_results',
+            'projection_15yr',
+            'irr_results',
+            'kpis',
             'timestamp',
-            'assumptions',
-            'year_1_results',
-            'projection',
-            'irr_metrics'
+            'by_horizon'
         ]
         
         for key in required_keys:
             assert key in json_data, f"Missing key: {key}"
+        
+        # by_horizon: keys "5".."40", each with projection, irr_results, kpis
+        by_horizon = json_data['by_horizon']
+        for h in ['5', '10', '15', '20', '25', '30', '35', '40']:
+            assert h in by_horizon, f"Missing by_horizon[{h}]"
+            assert 'projection' in by_horizon[h]
+            assert 'irr_results' in by_horizon[h]
+            assert 'kpis' in by_horizon[h]
+            assert len(by_horizon[h]['projection']) == int(h)
     
     def test_json_export_structure(self, sample_assumptions_path):
         """Test JSON export structure and completeness."""
         json_data = run_base_case_analysis(sample_assumptions_path, 'test_case', verbose=False)
         
-        # Verify assumptions section
-        assert 'assumptions' in json_data
-        assumptions = json_data['assumptions']
-        assert 'financing' in assumptions
-        assert 'rental' in assumptions
-        assert 'expenses' in assumptions
+        # Verify config section
+        assert 'config' in json_data
+        config = json_data['config']
+        assert 'financing' in config
+        assert 'rental' in config
+        assert 'expenses' in config
         
-        # Verify year_1_results section
-        assert 'year_1_results' in json_data
-        year_1 = json_data['year_1_results']
-        assert 'gross_rental_income' in year_1
-        assert 'net_operating_income' in year_1
-        assert 'cash_flow_per_owner' in year_1
+        # Verify annual_results section
+        assert 'annual_results' in json_data
+        annual = json_data['annual_results']
+        assert 'gross_rental_income' in annual
+        assert 'net_operating_income' in annual
+        assert 'cash_flow_per_owner' in annual
         
-        # Verify projection section
-        assert 'projection' in json_data
-        projection = json_data['projection']
+        # Verify projection_15yr (top-level 15-year projection)
+        assert 'projection_15yr' in json_data
+        projection = json_data['projection_15yr']
         assert isinstance(projection, list)
         assert len(projection) == 15
         
-        # Verify IRR metrics section
-        assert 'irr_metrics' in json_data
-        irr_metrics = json_data['irr_metrics']
-        assert 'equity_irr_with_sale_pct' in irr_metrics
-        assert 'moic' in irr_metrics
+        # Verify irr_results section
+        assert 'irr_results' in json_data
+        irr_results = json_data['irr_results']
+        assert 'equity_irr_with_sale_pct' in irr_results
+        assert 'moic' in irr_results
+        
+        # Verify by_horizon has correct projection lengths
+        assert 'by_horizon' in json_data
+        for h in ['5', '15', '40']:
+            assert len(json_data['by_horizon'][h]['projection']) == int(h)
     
     def test_all_required_kpis_present(self, sample_assumptions_path):
         """Test that all required KPIs are present in results."""
         json_data = run_base_case_analysis(sample_assumptions_path, 'test_case', verbose=False)
         
-        # Check year_1_results KPIs
-        year_1 = json_data['year_1_results']
+        # Check annual_results KPIs
+        annual = json_data['annual_results']
         kpi_keys = [
             'gross_rental_income',
             'net_operating_income',
@@ -192,10 +207,10 @@ class TestBaseCaseAnalysisWorkflow:
         ]
         
         for key in kpi_keys:
-            assert key in year_1, f"Missing KPI: {key}"
+            assert key in annual, f"Missing KPI: {key}"
         
-        # Check IRR metrics
-        irr_metrics = json_data['irr_metrics']
+        # Check irr_results
+        irr_results = json_data['irr_results']
         irr_keys = [
             'equity_irr_with_sale_pct',
             'project_irr_with_sale_pct',
@@ -204,21 +219,22 @@ class TestBaseCaseAnalysisWorkflow:
         ]
         
         for key in irr_keys:
-            assert key in irr_metrics, f"Missing IRR metric: {key}"
+            assert key in irr_results, f"Missing IRR metric: {key}"
     
     def test_json_serializable(self, sample_assumptions_path):
         """Test that JSON data is serializable."""
         json_data = run_base_case_analysis(sample_assumptions_path, 'test_case', verbose=False)
         
         # Should be able to serialize to JSON
-        json_string = json.dumps(json_data)
+        json_string = json.dumps(json_data, default=str)
         assert isinstance(json_string, str)
         assert len(json_string) > 0
         
         # Should be able to deserialize
         parsed = json.loads(json_string)
         assert parsed is not None
-        assert parsed['case_name'] == 'test_case'
+        assert 'config' in parsed
+        assert 'by_horizon' in parsed
     
     def test_timestamp_present(self, sample_assumptions_path):
         """Test that timestamp is present in JSON export."""
@@ -228,3 +244,46 @@ class TestBaseCaseAnalysisWorkflow:
         timestamp = json_data['timestamp']
         assert isinstance(timestamp, str)
         assert len(timestamp) > 0
+    
+    def test_rampup_in_json_output(self, sample_assumptions_path):
+        """Test that ramp-up metadata is included in JSON export."""
+        json_data = run_base_case_analysis(sample_assumptions_path, "test_case", verbose=False)
+        
+        # Verify ramp-up metadata in annual_results
+        annual_results = json_data['annual_results']
+        assert 'ramp_up_months' in annual_results, "Ramp-up months should be in annual_results"
+        assert 'operational_months' in annual_results, "Operational months should be in annual_results"
+        
+        # Verify they add up to 12
+        ramp_up = annual_results['ramp_up_months']
+        operational = annual_results['operational_months']
+        assert ramp_up + operational == 12, f"Months should add to 12 (got {ramp_up} + {operational})"
+        
+        # Verify projection also includes ramp-up info for each horizon
+        by_horizon = json_data['by_horizon']
+        for horizon_key in ['5', '10', '15', '20']:
+            horizon_data = by_horizon[horizon_key]
+            projection = horizon_data['projection']
+            year1 = projection[0]
+            assert 'operational_months' in year1, f"Horizon {horizon_key} Year 1 should have operational_months"
+            assert 'ramp_up_months' in year1, f"Horizon {horizon_key} Year 1 should have ramp_up_months"
+            
+            # Year 2+ should have full operation
+            if len(projection) > 1:
+                year2 = projection[1]
+                assert year2['operational_months'] == 12, f"Horizon {horizon_key} Year 2 should be fully operational"
+                assert year2['ramp_up_months'] == 0, f"Horizon {horizon_key} Year 2 should have no ramp-up"
+    
+    def test_rampup_reduces_year1_revenue(self, sample_assumptions_path):
+        """Test that ramp-up period reduces Year 1 revenue proportionally."""
+        proj_defaults = get_projection_defaults(sample_assumptions_path)
+        ramp_up = proj_defaults.get('ramp_up_months', 0)
+        
+        if ramp_up > 0:
+            json_data = run_base_case_analysis(sample_assumptions_path, "test_case", verbose=False)
+            
+            annual_results = json_data['annual_results']
+            operational_months = annual_results['operational_months']
+            
+            # Operational months should match ramp-up calculation
+            assert operational_months == 12 - ramp_up, f"Operational months should be 12 - {ramp_up} = {12-ramp_up}, got {operational_months}"

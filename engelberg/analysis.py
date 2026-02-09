@@ -1,7 +1,7 @@
 """
-═══════════════════════════════════════════════════════════════════════════════
+===============================================================================
 ENGELBERG PROPERTY INVESTMENT - UNIFIED ANALYSIS SCRIPT
-═══════════════════════════════════════════════════════════════════════════════
+===============================================================================
 
 OVERVIEW:
     This is the MAIN script for running all financial analyses. It combines
@@ -47,29 +47,30 @@ OUTPUT:
     - Console: Key metrics and results
     - Dashboard: Visualizations at website/index.html
 
-═══════════════════════════════════════════════════════════════════════════════
+===============================================================================
 """
 
 import os
 import sys
 import json
 import argparse
-from typing import Dict, List, Callable, Tuple
-from dataclasses import replace
+from typing import Dict
 
-# ═══════════════════════════════════════════════════════════════════════════
+# ===========================================================================
 # SECTION 1: IMPORTS
 # Import all necessary functions from the core simulation engine
-# ═══════════════════════════════════════════════════════════════════════════
+# ===========================================================================
 
 from engelberg.core import (
+    # Constants
+    HORIZONS,                        # Supported time horizons [5, 10, 15, ..., 40]
     # Configuration loaders
     create_base_case_config,        # Loads and validates assumptions from JSON
     get_projection_defaults,        # Gets inflation, appreciation, selling costs, etc.
     
     # Calculation functions
     compute_annual_cash_flows,      # Calculates Year 1 revenue, expenses, cash flow
-    compute_15_year_projection,     # Projects 15 years with inflation/appreciation
+    compute_15_year_projection,     # Projects N years with inflation/appreciation
     calculate_irrs_from_projection, # Calculates IRR, NPV, MOIC, payback period
     
     # Export functions
@@ -99,19 +100,19 @@ from engelberg.monte_carlo import (
 )
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# ===========================================================================
 # SECTION 2: HELPER FUNCTIONS
 # Utility functions used across multiple analyses
-# ═══════════════════════════════════════════════════════════════════════════
+# ===========================================================================
 
 def extract_case_name(json_path: str) -> str:
     """
     Extract case name from assumptions file path.
     
     Examples:
-        assumptions.json → base_case
-        assumptions_migros.json → migros
-        assumptions_3_owners.json → 3_owners
+        assumptions.json -> base_case
+        assumptions_migros.json -> migros
+        assumptions_3_owners.json -> 3_owners
     
     Args:
         json_path: Path to assumptions JSON file
@@ -153,10 +154,10 @@ def save_json(data: Dict, case_name: str, analysis_type: str) -> str:
     return f"website/data/{case_name}_{analysis_type}.json"
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# ===========================================================================
 # SECTION 3: BASE CASE ANALYSIS
 # Calculates the core financial metrics for Year 1 and 15-year projection
-# ═══════════════════════════════════════════════════════════════════════════
+# ===========================================================================
 
 def run_base_case_analysis(json_path: str, case_name: str, verbose: bool = True) -> Dict:
     """
@@ -170,7 +171,7 @@ def run_base_case_analysis(json_path: str, case_name: str, verbose: bool = True)
         5. Exports results to JSON for dashboard
     
     KEY CALCULATIONS:
-        - Gross Rental Income = Occupancy × Daily Rate × Available Nights
+        - Gross Rental Income = Occupancy x Daily Rate x Available Nights
         - Net Operating Income = Revenue - Operating Expenses
         - Cash Flow = NOI - Debt Service (interest + amortization)
         - IRR = Discount rate where NPV of all cash flows = 0
@@ -192,36 +193,77 @@ def run_base_case_analysis(json_path: str, case_name: str, verbose: bool = True)
     config = create_base_case_config(json_path)
     proj_defaults = get_projection_defaults(json_path)
     
-    # Step 2: Calculate Year 1 annual cash flows
+    # Step 2: Calculate Year 1 annual cash flows (account for ramp-up period)
     # This computes revenue, all expenses, NOI, debt service, and final cash flow
-    results = compute_annual_cash_flows(config)
+    ramp_up_months = proj_defaults.get('ramp_up_months', 0)
+    operational_months_year1 = 12 - ramp_up_months
+    results = compute_annual_cash_flows(config, operational_months=operational_months_year1)
     
-    # Step 3: Project 15 years forward
-    # Applies inflation to revenue/expenses and appreciation to property value
-    projection = compute_15_year_projection(
-        config,
-        start_year=proj_defaults['start_year'],
-        inflation_rate=proj_defaults['inflation_rate'],
-        property_appreciation_rate=proj_defaults['property_appreciation_rate']
-    )
+    # Year-1 KPIs (same for all horizons)
+    kpis_year1 = {
+        'cap_rate_pct': results.get('cap_rate_pct', 0),
+        'cash_on_cash_return_pct': results.get('cash_on_cash_return_pct', 0),
+        'debt_coverage_ratio': results.get('debt_coverage_ratio', 0),
+        'operating_expense_ratio_pct': results.get('operating_expense_ratio_pct', 0)
+    }
     
-    # Step 4: Calculate return metrics
-    # IRR, NPV, MOIC, payback period - includes selling costs at year 15
-    final_property_value = projection[-1]['property_value']
-    final_loan_balance = projection[-1]['remaining_loan_balance']
+    def _irr_to_export(irr_results):
+        """Build irr_results dict in same shape as export (for by_horizon)."""
+        return {
+            'equity_irr_with_sale_pct': irr_results.get('equity_irr_with_sale_pct', irr_results.get('irr_with_sale_pct', 0)),
+            'equity_irr_without_sale_pct': irr_results.get('equity_irr_without_sale_pct', irr_results.get('irr_without_sale_pct', 0)),
+            'project_irr_with_sale_pct': irr_results.get('project_irr_with_sale_pct', 0),
+            'project_irr_without_sale_pct': irr_results.get('project_irr_without_sale_pct', 0),
+            'sale_proceeds_per_owner': irr_results.get('sale_proceeds_per_owner', 0),
+            'final_property_value': irr_results.get('final_property_value', 0),
+            'final_loan_balance': irr_results.get('final_loan_balance', 0),
+            'npv_at_5pct': irr_results.get('npv_at_5pct', 0),
+            'moic': irr_results.get('moic', 0),
+            'payback_period_years': irr_results.get('payback_period_years'),
+            'gross_sale_price': irr_results.get('gross_sale_price', 0),
+            'selling_costs': irr_results.get('selling_costs', 0),
+            'net_sale_price': irr_results.get('net_sale_price', 0),
+            'selling_costs_rate_pct': irr_results.get('selling_costs_rate_pct', 0)
+        }
     
-    irr_results = calculate_irrs_from_projection(
-        projection,
-        config.financing.total_initial_investment_per_owner,  # Includes acquisition costs
-        final_property_value,
-        final_loan_balance,
-        config.financing.num_owners,
-        config.financing.purchase_price,
-        proj_defaults['selling_costs_rate'],
-        proj_defaults['discount_rate']
-    )
+    # Step 3: Build by_horizon (projection + IRR + KPIs for each horizon)
+    by_horizon = {}
+    projection_15y = None
+    irr_15y = None
+    for horizon in HORIZONS:
+        proj = compute_15_year_projection(
+            config,
+            start_year=proj_defaults['start_year'],
+            inflation_rate=proj_defaults['inflation_rate'],
+            property_appreciation_rate=proj_defaults['property_appreciation_rate'],
+            projection_years=horizon,
+            ramp_up_months=ramp_up_months
+        )
+        final_pv = proj[-1]['property_value']
+        final_loan = proj[-1]['remaining_loan_balance']
+        irr_out = calculate_irrs_from_projection(
+            proj,
+            config.financing.total_initial_investment_per_owner,
+            final_pv,
+            final_loan,
+            config.financing.num_owners,
+            config.financing.purchase_price,
+            proj_defaults['selling_costs_rate'],
+            proj_defaults['discount_rate']
+        )
+        by_horizon[str(horizon)] = {
+            'projection': proj,
+            'irr_results': _irr_to_export(irr_out),
+            'kpis': kpis_year1
+        }
+        if horizon == 15:
+            projection_15y = proj
+            irr_15y = irr_out
     
-    # Step 5: Display key results
+    projection = projection_15y
+    irr_results = irr_15y
+    
+    # Step 4: Display key results (15-year)
     if verbose:
         print(f"\n{'KEY METRICS':-^70}")
         print(f"  Cash Flow per Owner:         CHF {results['cash_flow_per_owner']:>15,.0f}")
@@ -230,8 +272,8 @@ def run_base_case_analysis(json_path: str, case_name: str, verbose: bool = True)
         print(f"  NPV @ 5%:                    CHF {irr_results['npv_at_5pct']:>15,.0f}")
         print(f"  MOIC:                        {irr_results['moic']:>19.2f}x")
     
-    # Step 6: Export to JSON
-    json_data = export_base_case_to_json(config, results, projection, irr_results)
+    # Step 5: Export to JSON (top-level = 15-year; by_horizon = all horizons)
+    json_data = export_base_case_to_json(config, results, projection, irr_results, by_horizon=by_horizon)
     output_path = save_json(json_data, case_name, 'base_case_analysis')
     
     if verbose:
@@ -240,11 +282,11 @@ def run_base_case_analysis(json_path: str, case_name: str, verbose: bool = True)
     return json_data
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# ===========================================================================
 # SECTION 4: MODEL SENSITIVITY ANALYSIS
 # Model Sensitivity functions have been moved to engelberg.model_sensitivity
 # Import them here for backward compatibility
-# ═══════════════════════════════════════════════════════════════════════════
+# ===========================================================================
 
 from engelberg.model_sensitivity import (
     run_sensitivity_analysis,
@@ -256,10 +298,10 @@ from engelberg.mc_sensitivity import (
     run_monte_carlo_sensitivity_analysis,
 )
 
-# ═══════════════════════════════════════════════════════════════════════════
+# ===========================================================================
 # SECTION 5: MONTE CARLO SIMULATION
 # Runs probabilistic simulations to assess risk and uncertainty
-# ═══════════════════════════════════════════════════════════════════════════
+# ===========================================================================
 
 def run_monte_carlo_analysis(json_path: str, case_name: str,
                              n_simulations: int = 1000, verbose: bool = True) -> Dict:
@@ -325,10 +367,10 @@ def run_monte_carlo_analysis(json_path: str, case_name: str,
     return json_data
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# ===========================================================================
 # SECTION 6: MAIN PROGRAM
 # Command-line interface and orchestration
-# ═══════════════════════════════════════════════════════════════════════════
+# ===========================================================================
 
 def main():
     """
@@ -346,9 +388,9 @@ def main():
         3. Run requested analyses
         4. Display summary
     """
-    # ───────────────────────────────────────────────────────────────────────
+    # -----------------------------------------------------------------------
     # Parse Command-Line Arguments
-    # ───────────────────────────────────────────────────────────────────────
+    # -----------------------------------------------------------------------
     
     parser = argparse.ArgumentParser(
         description='Run Engelberg property investment analyses',
@@ -394,9 +436,9 @@ Examples:
     
     args = parser.parse_args()
     
-    # ───────────────────────────────────────────────────────────────────────
+    # -----------------------------------------------------------------------
     # Setup and Validation
-    # ───────────────────────────────────────────────────────────────────────
+    # -----------------------------------------------------------------------
     
     # Resolve assumptions file path
     json_path = args.assumptions_file
@@ -441,9 +483,9 @@ Examples:
     case_name = extract_case_name(json_path)
     verbose = not args.quiet
     
-    # ───────────────────────────────────────────────────────────────────────
+    # -----------------------------------------------------------------------
     # Display Header
-    # ───────────────────────────────────────────────────────────────────────
+    # -----------------------------------------------------------------------
     
     if verbose:
         print("=" * 70)
@@ -454,9 +496,9 @@ Examples:
         print(f"Analysis Type: {args.analysis}")
         print()
     
-    # ───────────────────────────────────────────────────────────────────────
+    # -----------------------------------------------------------------------
     # Run Requested Analyses
-    # ───────────────────────────────────────────────────────────────────────
+    # -----------------------------------------------------------------------
     
     try:
         results = {}
@@ -482,15 +524,15 @@ Examples:
         # Monte Carlo Sensitivity Analysis
         if args.analysis in ['all', 'monte_carlo_sensitivity']:
             # Use 1000 simulations per value with LHS (equivalent accuracy to 2000 with random sampling)
-            # Total will be 5 params × 10 values × 1000 sims = 50,000 simulations
+            # Total will be 5 params x 10 values x 1000 sims = 50,000 simulations
             sensitivity_sims = 1000
             results['monte_carlo_sensitivity'] = run_monte_carlo_sensitivity_analysis(
                 json_path, case_name, sensitivity_sims, verbose
             )
         
-        # ───────────────────────────────────────────────────────────────────
+        # -------------------------------------------------------------------
         # Display Summary
-        # ───────────────────────────────────────────────────────────────────
+        # -------------------------------------------------------------------
         
         if verbose:
             print("\n" + "=" * 70)
@@ -504,8 +546,8 @@ Examples:
                     filename = f"{case_name}_base_case_analysis.json"
                 elif analysis_type == 'monte_carlo_sensitivity':
                     filename = f"{case_name}_monte_carlo_sensitivity.json"
-                print(f"  • {filename}")
-            print(f"\n📊 View results: website/index.html")
+                print(f"  * {filename}")
+            print(f"\nChart View results: website/index.html")
             print()
         
         return results
@@ -517,9 +559,9 @@ Examples:
         sys.exit(1)
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# ===========================================================================
 # SCRIPT ENTRY POINT
-# ═══════════════════════════════════════════════════════════════════════════
+# ===========================================================================
 
 if __name__ == "__main__":
     """

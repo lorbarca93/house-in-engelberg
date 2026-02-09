@@ -91,7 +91,8 @@ def create_test_expense_params(
     nubbing_costs_annual=2000.0,
     electricity_internet_annual=1000.0,
     maintenance_rate=0.005,
-    property_value=1000000.0
+    property_value=1000000.0,
+    vat_rate_on_gross_rental=0.0
 ):
     """Create ExpenseParams with test defaults."""
     return ExpenseParams(
@@ -104,7 +105,8 @@ def create_test_expense_params(
         nubbing_costs_annual=nubbing_costs_annual,
         electricity_internet_annual=electricity_internet_annual,
         maintenance_rate=maintenance_rate,
-        property_value=property_value
+        property_value=property_value,
+        vat_rate_on_gross_rental=vat_rate_on_gross_rental
     )
 
 

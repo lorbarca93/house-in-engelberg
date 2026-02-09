@@ -1,378 +1,3749 @@
 {
-  "base_irr": 5.332956652622666,
+  "base_irr": 3.9586362135596542,
   "sensitivities": [
     {
       "parameter": "Property Appreciation Rate",
+      "parameter_name": "Property Appreciation Rate",
       "base_value": 0.025,
-      "base_irr": 5.332956652622666,
+      "base_irr": 3.9586362135596542,
       "low": {
         "value": 0.015,
-        "irr": 3.2338770688511396,
-        "delta_irr": -2.099079583771527,
-        "delta_pct": -39.360522136238096,
-        "atcf": -114.58088235294115,
+        "irr": 1.8899076771922374,
+        "delta_irr": -2.068728536367417,
+        "delta_pct": -52.258616977264275,
+        "atcf": -582.4642565359476,
         "delta_atcf": 0.0
       },
       "high": {
         "value": 0.034999999999999996,
-        "irr": 7.174888558220113,
-        "delta_irr": 1.8419319055974466,
-        "delta_pct": 34.53866261394817,
-        "atcf": -114.58088235294115,
+        "irr": 5.774680686648932,
+        "delta_irr": 1.8160444730892782,
+        "delta_pct": 45.87550800623502,
+        "atcf": -582.4642565359476,
         "delta_atcf": 0.0
       },
       "range_pct": 40,
-      "impact": 3.9410114893689734,
-      "base_atcf": -114.58088235294115,
+      "impact": 3.884773009456695,
+      "base_atcf": -582.4642565359476,
       "impact_atcf": 0.0
     },
     {
       "parameter": "Average Daily Rate",
+      "parameter_name": "Average Daily Rate",
       "base_value": 200.0,
-      "base_irr": 5.332956652622666,
+      "base_irr": 3.9586362135596542,
       "low": {
         "value": 160.0,
-        "irr": 3.4747195146046552,
-        "delta_irr": -1.8582371380180112,
-        "delta_pct": -34.844407315858426,
-        "atcf": -415.2400490196078,
-        "delta_atcf": -300.65916666666664
+        "irr": 2.3671887754462624,
+        "delta_irr": -1.5914474381133918,
+        "delta_pct": -40.20191177613522,
+        "atcf": -707.7389093137255,
+        "delta_atcf": -125.27465277777787
       },
       "high": {
         "value": 240.0,
-        "irr": 6.730930671561505,
-        "delta_irr": 1.3979740189388385,
-        "delta_pct": 26.213864278295535,
-        "atcf": 104.61995098039218,
-        "delta_atcf": 219.20083333333332
+        "irr": 5.132754576858131,
+        "delta_irr": 1.174118363298477,
+        "delta_pct": 29.659668127036493,
+        "atcf": -491.13057598039205,
+        "delta_atcf": 91.33368055555553
       },
       "range_pct": 40,
-      "impact": 3.2562111569568497,
-      "base_atcf": -114.58088235294115,
-      "impact_atcf": 519.86
+      "impact": 2.765565801411869,
+      "base_atcf": -582.4642565359476,
+      "impact_atcf": 216.6083333333334
     },
     {
       "parameter": "Interest Rate",
+      "parameter_name": "Interest Rate",
       "base_value": 0.01,
-      "base_irr": 5.332956652622666,
+      "base_irr": 3.9586362135596542,
       "low": {
         "value": 0.0023076900000000003,
-        "irr": 6.710680278483771,
-        "delta_irr": 1.3777236258611048,
-        "delta_pct": 25.834142589243836,
-        "atcf": 53.68839889705887,
-        "delta_atcf": 168.26928125
+        "irr": 5.173061070498076,
+        "delta_irr": 1.2144248569384222,
+        "delta_pct": 30.67785953098217,
+        "atcf": -414.1949752859475,
+        "delta_atcf": 168.26928125000006
       },
       "high": {
         "value": 0.01769231,
-        "irr": 4.00223289756104,
-        "delta_irr": -1.3307237550616264,
-        "delta_pct": -24.952832766926708,
-        "atcf": -282.8501636029411,
+        "irr": 2.774845662061122,
+        "delta_irr": -1.1837905514985323,
+        "delta_pct": -29.90399944919549,
+        "atcf": -750.7335377859475,
         "delta_atcf": -168.26928124999995
       },
       "range_pct": 154,
-      "impact": 2.708447380922731,
-      "base_atcf": -114.58088235294115,
-      "impact_atcf": 336.53856249999995
+      "impact": 2.3982154084369545,
+      "base_atcf": -582.4642565359476,
+      "impact_atcf": 336.5385625
     },
     {
       "parameter": "Average Length of Stay",
+      "parameter_name": "Average Length of Stay",
       "base_value": 1.7,
-      "base_irr": 5.332956652622666,
+      "base_irr": 3.9586362135596542,
       "low": {
         "value": 1.19,
-        "irr": 4.134072129148988,
-        "delta_irr": -1.1988845234736782,
-        "delta_pct": -22.480672571829086,
-        "atcf": -307.3119747899157,
-        "delta_atcf": -192.73109243697456
+        "irr": 2.9358829683624177,
+        "delta_irr": -1.0227532451972365,
+        "delta_pct": -25.835999824736717,
+        "atcf": -662.7688783846871,
+        "delta_atcf": -80.30462184873954
       },
       "high": {
         "value": 2.21,
-        "irr": 5.990174094680693,
-        "delta_irr": 0.6572174420580268,
-        "delta_pct": 12.323697432170526,
-        "atcf": -10.802601809954771,
-        "delta_atcf": 103.77828054298638
+        "irr": 4.513092855457213,
+        "delta_irr": 0.5544566418975587,
+        "delta_pct": 14.006253971970425,
+        "atcf": -539.2233063097033,
+        "delta_atcf": 43.24095022624431
       },
       "range_pct": 60,
-      "impact": 1.856101965531705,
-      "base_atcf": -114.58088235294115,
-      "impact_atcf": 296.509372979961
+      "impact": 1.5772098870947953,
+      "base_atcf": -582.4642565359476,
+      "impact_atcf": 123.54557207498385
     },
     {
       "parameter": "Maintenance Reserve Rate",
+      "parameter_name": "Maintenance Reserve Rate",
       "base_value": 0.003,
-      "base_irr": 5.332956652622666,
+      "base_irr": 3.9586362135596542,
       "low": {
         "value": 0.0,
-        "irr": 6.212714696768668,
-        "delta_irr": 0.8797580441460013,
-        "delta_pct": 16.49662844556124,
-        "atcf": 10.41911764705886,
-        "delta_atcf": 125.0
+        "irr": 4.742485336493697,
+        "delta_irr": 0.783849122934043,
+        "delta_pct": 19.80098904388075,
+        "atcf": -457.46425653594764,
+        "delta_atcf": 124.99999999999994
       },
       "high": {
         "value": 0.006,
-        "irr": 4.463444470893588,
-        "delta_irr": -0.8695121817290783,
-        "delta_pct": -16.304504956016576,
-        "atcf": -239.58088235294113,
-        "delta_atcf": -124.99999999999999
+        "irr": 3.1801311573944946,
+        "delta_irr": -0.7785050561651596,
+        "delta_pct": -19.6659913709302,
+        "atcf": -707.4642565359476,
+        "delta_atcf": -125.0
       },
       "range_pct": 100,
-      "impact": 1.7492702258750796,
-      "base_atcf": -114.58088235294115,
-      "impact_atcf": 250.0
+      "impact": 1.5623541790992026,
+      "base_atcf": -582.4642565359476,
+      "impact_atcf": 249.99999999999994
     },
     {
       "parameter": "Cleaning Cost per Stay",
+      "parameter_name": "Cleaning Cost per Stay",
       "base_value": 100.0,
-      "base_irr": 5.332956652622666,
+      "base_irr": 3.9586362135596542,
       "low": {
         "value": 70.0,
-        "irr": 6.188959368970242,
-        "delta_irr": 0.8560027163475752,
-        "delta_pct": 16.051184588695396,
-        "atcf": 20.330882352941142,
-        "delta_atcf": 134.9117647058823
+        "irr": 4.67992979334667,
+        "delta_irr": 0.7212935797870155,
+        "delta_pct": 18.220759394771953,
+        "atcf": -526.25102124183,
+        "delta_atcf": 56.21323529411757
       },
       "high": {
         "value": 130.0,
-        "irr": 4.490820286329831,
-        "delta_irr": -0.8421363662928352,
-        "delta_pct": -15.791172161106642,
-        "atcf": -249.49264705882342,
-        "delta_atcf": -134.91176470588226
+        "irr": 3.24174591572955,
+        "delta_irr": -0.7168902978301044,
+        "delta_pct": -18.109527098613285,
+        "atcf": -638.6774918300653,
+        "delta_atcf": -56.21323529411768
       },
       "range_pct": 60,
-      "impact": 1.6981390826404104,
-      "base_atcf": -114.58088235294115,
-      "impact_atcf": 269.8235294117646
+      "impact": 1.4381838776171199,
+      "base_atcf": -582.4642565359476,
+      "impact_atcf": 112.42647058823525
     },
     {
       "parameter": "Loan-to-Value (LTV)",
+      "parameter_name": "Loan-to-Value (LTV)",
       "base_value": 0.75,
-      "base_irr": 5.332956652622666,
+      "base_irr": 3.9586362135596542,
       "low": {
         "value": 0.675,
-        "irr": 4.689051315654065,
-        "delta_irr": -0.6439053369686016,
-        "delta_pct": -12.07407783170221,
-        "atcf": -61.45588235294114,
-        "delta_atcf": 53.12500000000001
+        "irr": 3.561145938467232,
+        "delta_irr": -0.3974902750924221,
+        "delta_pct": -10.041091265999254,
+        "atcf": -529.3392565359476,
+        "delta_atcf": 53.125
       },
       "high": {
         "value": 0.8250000000000001,
-        "irr": 6.271984651219095,
-        "delta_irr": 0.9390279985964289,
-        "delta_pct": 17.60801858636202,
-        "atcf": -167.70588235294127,
-        "delta_atcf": -53.12500000000013
+        "irr": 4.50871155923232,
+        "delta_irr": 0.5500753456726657,
+        "delta_pct": 13.895577062334585,
+        "atcf": -635.5892565359477,
+        "delta_atcf": -53.125000000000114
       },
       "range_pct": 20,
-      "impact": 1.5829333355650306,
-      "base_atcf": -114.58088235294115,
-      "impact_atcf": 106.25000000000014
+      "impact": 0.9475656207650878,
+      "base_atcf": -582.4642565359476,
+      "impact_atcf": 106.25000000000011
     },
     {
       "parameter": "Occupancy Rate",
+      "parameter_name": "Occupancy Rate",
       "base_value": 0.65,
-      "base_irr": 5.332956652622666,
+      "base_irr": 3.9586362135596542,
       "low": {
         "value": 0.5850000000000001,
-        "irr": 4.580080824438479,
-        "delta_irr": -0.7528758281841874,
-        "delta_pct": -14.117418858335078,
-        "atcf": -235.08843137254902,
-        "delta_atcf": -120.50754901960788
+        "irr": 3.3180732191540265,
+        "delta_irr": -0.6405629944056277,
+        "delta_pct": -16.181405914781585,
+        "atcf": -632.6757352941175,
+        "delta_atcf": -50.21147875816996
       },
       "high": {
         "value": 0.7150000000000001,
-        "irr": 5.572007005568589,
-        "delta_irr": 0.23905035294592292,
-        "delta_pct": 4.4825107068582986,
-        "atcf": -76.68215686274532,
-        "delta_atcf": 37.89872549019583
+        "irr": 4.160818539094177,
+        "delta_irr": 0.20218232553452298,
+        "delta_pct": 5.107373212066843,
+        "atcf": -566.6731209150327,
+        "delta_atcf": 15.791135620914929
       },
       "range_pct": 20,
-      "impact": 0.9919261811301103,
-      "base_atcf": -114.58088235294115,
-      "impact_atcf": 158.40627450980372
-    },
-    {
-      "parameter": "Amortization Rate",
-      "base_value": 0.01,
-      "base_irr": 5.332956652622666,
-      "low": {
-        "value": 0.0,
-        "irr": 5.879744364414361,
-        "delta_irr": 0.546787711791695,
-        "delta_pct": 10.25299374077592,
-        "atcf": 197.91911764705887,
-        "delta_atcf": 312.5
-      },
-      "high": {
-        "value": 0.02,
-        "irr": 4.889513129834083,
-        "delta_irr": -0.44344352278858334,
-        "delta_pct": -8.31515333188588,
-        "atcf": -427.08088235294116,
-        "delta_atcf": -312.5
-      },
-      "range_pct": 200,
-      "impact": 0.9902312345802784,
-      "base_atcf": -114.58088235294115,
-      "impact_atcf": 625.0
-    },
-    {
-      "parameter": "Property Management Fee",
-      "base_value": 0.2,
-      "base_irr": 5.332956652622666,
-      "low": {
-        "value": 0.15000000000000002,
-        "irr": 5.684461979661133,
-        "delta_irr": 0.35150532703846693,
-        "delta_pct": 6.591190402149659,
-        "atcf": -58.913802083333245,
-        "delta_atcf": 55.6670802696079
-      },
-      "high": {
-        "value": 0.25,
-        "irr": 4.983812490943816,
-        "delta_irr": -0.34914416167885065,
-        "delta_pct": -6.5469154246199786,
-        "atcf": -170.2479626225489,
-        "delta_atcf": -55.66708026960775
-      },
-      "range_pct": 50,
-      "impact": 0.7006494887173176,
-      "base_atcf": -114.58088235294115,
-      "impact_atcf": 111.33416053921565
-    },
-    {
-      "parameter": "Purchase Price",
-      "base_value": 1000000.0,
-      "base_irr": 5.332956652622666,
-      "low": {
-        "value": 900000.0,
-        "irr": 5.71309711737558,
-        "delta_irr": 0.3801404647529134,
-        "delta_pct": 7.128137157574048,
-        "atcf": -48.95588235294114,
-        "delta_atcf": 65.625
-      },
-      "high": {
-        "value": 1100000.0,
-        "irr": 5.023986558895555,
-        "delta_irr": -0.3089700937271118,
-        "delta_pct": -5.793598445529556,
-        "atcf": -180.20588235294113,
-        "delta_atcf": -65.62499999999999
-      },
-      "range_pct": 20,
-      "impact": 0.6891105584800252,
-      "base_atcf": -114.58088235294115,
-      "impact_atcf": 131.25
+      "impact": 0.8427453199401507,
+      "base_atcf": -582.4642565359476,
+      "impact_atcf": 66.00261437908489
     },
     {
       "parameter": "Selling Costs Rate",
+      "parameter_name": "Selling Costs Rate",
       "base_value": 0.078,
-      "base_irr": 5.332956652622666,
+      "base_irr": 3.9586362135596542,
       "low": {
         "value": 0.057999942000000006,
-        "irr": 5.645531383808698,
-        "delta_irr": 0.3125747311860314,
-        "delta_pct": 5.861190171727946,
-        "atcf": -114.58088235294115,
+        "irr": 4.266264666337516,
+        "delta_irr": 0.3076284527778621,
+        "delta_pct": 7.771071555505193,
+        "atcf": -582.4642565359476,
         "delta_atcf": 0.0
       },
       "high": {
         "value": 0.09799998,
-        "irr": 5.007231385912743,
-        "delta_irr": -0.32572526670992374,
-        "delta_pct": -6.107780128865984,
-        "atcf": -114.58088235294115,
+        "irr": 3.638090376276521,
+        "delta_irr": -0.32054583728313313,
+        "delta_pct": -8.097380511630655,
+        "atcf": -582.4642565359476,
         "delta_atcf": 0.0
       },
       "range_pct": 26,
-      "impact": 0.6382999978959552,
-      "base_atcf": -114.58088235294115,
+      "impact": 0.6281742900609952,
+      "base_atcf": -582.4642565359476,
       "impact_atcf": 0.0
     },
     {
+      "parameter": "Amortization Rate",
+      "parameter_name": "Amortization Rate",
+      "base_value": 0.01,
+      "base_irr": 3.9586362135596542,
+      "low": {
+        "value": 0.0,
+        "irr": 4.3010803512297535,
+        "delta_irr": 0.3424441376700993,
+        "delta_pct": 8.650558404359398,
+        "atcf": -269.9642565359475,
+        "delta_atcf": 312.50000000000006
+      },
+      "high": {
+        "value": 0.02,
+        "irr": 3.677507726009932,
+        "delta_irr": -0.2811284875497222,
+        "delta_pct": -7.1016499719464745,
+        "atcf": -894.9642565359476,
+        "delta_atcf": -312.5
+      },
+      "range_pct": 200,
+      "impact": 0.6235726252198215,
+      "base_atcf": -582.4642565359476,
+      "impact_atcf": 625.0
+    },
+    {
+      "parameter": "Property Management Fee",
+      "parameter_name": "Property Management Fee",
+      "base_value": 0.2,
+      "base_irr": 3.9586362135596542,
+      "low": {
+        "value": 0.15000000000000002,
+        "irr": 4.255728387739506,
+        "delta_irr": 0.29709217417985156,
+        "delta_pct": 7.504912251401414,
+        "atcf": -559.2696397569443,
+        "delta_atcf": 23.19461677900324
+      },
+      "high": {
+        "value": 0.25,
+        "irr": 3.662293599452819,
+        "delta_irr": -0.29634261410683527,
+        "delta_pct": -7.485977445761815,
+        "atcf": -605.6588733149509,
+        "delta_atcf": -23.194616779003354
+      },
+      "range_pct": 50,
+      "impact": 0.5934347882866868,
+      "base_atcf": -582.4642565359476,
+      "impact_atcf": 46.389233558006595
+    },
+    {
       "parameter": "Insurance Rate",
+      "parameter_name": "Insurance Rate",
       "base_value": 0.004,
-      "base_irr": 5.332956652622666,
+      "base_irr": 3.9586362135596542,
       "low": {
         "value": 0.003,
-        "irr": 5.595833914820101,
-        "delta_irr": 0.2628772621974349,
-        "delta_pct": 4.9292968107692365,
-        "atcf": -72.91421568627447,
-        "delta_atcf": 41.66666666666667
+        "irr": 4.19228881364688,
+        "delta_irr": 0.23365260008722588,
+        "delta_pct": 5.90235089768763,
+        "atcf": -540.7975898692808,
+        "delta_atcf": 41.66666666666674
       },
       "high": {
         "value": 0.005,
-        "irr": 5.071402113419024,
-        "delta_irr": -0.261554539203642,
-        "delta_pct": -4.904494002872,
-        "atcf": -156.24754901960782,
-        "delta_atcf": -41.66666666666667
+        "irr": 3.725784814450886,
+        "delta_irr": -0.2328513991087684,
+        "delta_pct": -5.882111579517573,
+        "atcf": -624.1309232026142,
+        "delta_atcf": -41.66666666666663
       },
       "range_pct": 50,
-      "impact": 0.5244318014010769,
-      "base_atcf": -114.58088235294115,
-      "impact_atcf": 83.33333333333334
+      "impact": 0.4665039991959943,
+      "base_atcf": -582.4642565359476,
+      "impact_atcf": 83.33333333333337
+    },
+    {
+      "parameter": "Purchase Price",
+      "parameter_name": "Purchase Price",
+      "base_value": 1000000.0,
+      "base_irr": 3.9586362135596542,
+      "low": {
+        "value": 900000.0,
+        "irr": 4.1897553415037665,
+        "delta_irr": 0.23111912794411227,
+        "delta_pct": 5.838352287902886,
+        "atcf": -516.8392565359476,
+        "delta_atcf": 65.625
+      },
+      "high": {
+        "value": 1100000.0,
+        "irr": 3.7676277528516904,
+        "delta_irr": -0.19100846070796385,
+        "delta_pct": -4.825107698800307,
+        "atcf": -648.0892565359476,
+        "delta_atcf": -65.625
+      },
+      "range_pct": 20,
+      "impact": 0.4221275886520761,
+      "base_atcf": -582.4642565359476,
+      "impact_atcf": 131.25
+    },
+    {
+      "parameter": "Ramp-Up Period",
+      "parameter_name": "Ramp-Up Period",
+      "base_value": 7,
+      "base_irr": 3.9586362135596542,
+      "low": {
+        "value": 3.01,
+        "irr": 4.082431223709133,
+        "delta_irr": 0.12379501014947847,
+        "delta_pct": 3.1272136026401998,
+        "atcf": -315.10232843137254,
+        "delta_atcf": 267.36192810457504
+      },
+      "high": {
+        "value": 11.969999999999999,
+        "irr": 3.8369257575832276,
+        "delta_irr": -0.1217104559764266,
+        "delta_pct": -3.074555210694217,
+        "atcf": -849.8261846405229,
+        "delta_atcf": -267.3619281045753
+      },
+      "range_pct": 171,
+      "impact": 0.24550546612590507,
+      "base_atcf": -582.4642565359476,
+      "impact_atcf": 534.7238562091504
     },
     {
       "parameter": "Inflation Rate",
+      "parameter_name": "Inflation Rate",
       "base_value": 0.008,
-      "base_irr": 5.332956652622666,
+      "base_irr": 3.9586362135596542,
       "low": {
         "value": 0.004,
-        "irr": 5.250506578478959,
-        "delta_irr": -0.08245007414370775,
-        "delta_pct": -1.5460480839115778
+        "irr": 3.8824541182257186,
+        "delta_irr": -0.0761820953339356,
+        "delta_pct": -1.9244530495877956
       },
       "high": {
         "value": 0.012,
-        "irr": 5.417850210797037,
-        "delta_irr": 0.08489355817437083,
-        "delta_pct": 1.5918666455430774
+        "irr": 4.037122209090736,
+        "delta_irr": 0.07848599553108171,
+        "delta_pct": 1.982652390796631
       },
       "range_pct": 100,
-      "impact": 0.16734363231807858
+      "impact": 0.15466809086501732
     },
     {
       "parameter": "Winter Season Occupancy",
+      "parameter_name": "Winter Season Occupancy",
       "base_value": 0.65,
-      "base_irr": 5.332956652622666,
+      "base_irr": 3.9586362135596542,
       "low": {
         "value": 0.5525,
-        "irr": 5.332956652622666,
+        "irr": 3.9586362135596542,
         "delta_irr": 0.0,
         "delta_pct": 0.0,
-        "atcf": -114.58088235294115,
+        "atcf": -582.4642565359476,
         "delta_atcf": 0.0
       },
       "high": {
         "value": 0.7474999999999999,
-        "irr": 5.332956652622666,
+        "irr": 3.9586362135596542,
         "delta_irr": 0.0,
         "delta_pct": 0.0,
-        "atcf": -114.58088235294115,
+        "atcf": -582.4642565359476,
         "delta_atcf": 0.0
       },
       "range_pct": 30,
       "impact": 0.0,
-      "base_atcf": -114.58088235294115,
+      "base_atcf": -582.4642565359476,
       "impact_atcf": 0.0
     }
   ],
   "sorted_by": "impact",
   "analysis_type": "tornado_chart",
   "metric": "Project IRR",
-  "base_atcf": -114.58088235294115
+  "base_atcf": -582.4642565359476,
+  "by_horizon": {
+    "5": {
+      "sensitivities": [
+        {
+          "parameter": "Property Appreciation Rate",
+          "parameter_name": "Property Appreciation Rate",
+          "base_value": 0.025,
+          "base_irr": -2.674908565822992,
+          "low": {
+            "value": 0.015,
+            "irr": -5.435060764197262,
+            "delta_irr": -2.76015219837427,
+            "delta_pct": 103.18678677994555,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "high": {
+            "value": 0.034999999999999996,
+            "irr": -0.12129800347611604,
+            "delta_irr": 2.5536105623468757,
+            "delta_pct": -95.46534019794444,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "range_pct": 40,
+          "impact": 5.313762760721146,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 0.0
+        },
+        {
+          "parameter": "Average Daily Rate",
+          "parameter_name": "Average Daily Rate",
+          "base_value": 200.0,
+          "base_irr": -2.674908565822992,
+          "low": {
+            "value": 160.0,
+            "irr": -4.77078845864162,
+            "delta_irr": -2.0958798928186284,
+            "delta_pct": 78.35332839400388,
+            "atcf": -707.7389093137255,
+            "delta_atcf": -125.27465277777787
+          },
+          "high": {
+            "value": 240.0,
+            "irr": -1.162483472842726,
+            "delta_irr": 1.5124250929802658,
+            "delta_pct": -56.541188446751136,
+            "atcf": -491.13057598039205,
+            "delta_atcf": 91.33368055555553
+          },
+          "range_pct": 40,
+          "impact": 3.6083049857988945,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 216.6083333333334
+        },
+        {
+          "parameter": "Interest Rate",
+          "parameter_name": "Interest Rate",
+          "base_value": 0.01,
+          "base_irr": -2.674908565822992,
+          "low": {
+            "value": 0.0023076900000000003,
+            "irr": -0.8739897650666563,
+            "delta_irr": 1.8009188007563357,
+            "delta_pct": -67.32636860064954,
+            "atcf": -414.1949752859475,
+            "delta_atcf": 168.26928125000006
+          },
+          "high": {
+            "value": 0.01769231,
+            "irr": -4.475069114472719,
+            "delta_irr": -1.800160548649727,
+            "delta_pct": 67.29802175858185,
+            "atcf": -750.7335377859475,
+            "delta_atcf": -168.26928124999995
+          },
+          "range_pct": 154,
+          "impact": 3.6010793494060627,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 336.5385625
+        },
+        {
+          "parameter": "Selling Costs Rate",
+          "parameter_name": "Selling Costs Rate",
+          "base_value": 0.078,
+          "base_irr": -2.674908565822992,
+          "low": {
+            "value": 0.057999942000000006,
+            "irr": -1.2330965311266509,
+            "delta_irr": 1.441812034696341,
+            "delta_pct": -53.901357718099696,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "high": {
+            "value": 0.09799998,
+            "irr": -4.205407975707205,
+            "delta_irr": -1.530499409884213,
+            "delta_pct": 57.21688694108027,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "range_pct": 26,
+          "impact": 2.972311444580554,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 0.0
+        },
+        {
+          "parameter": "Average Length of Stay",
+          "parameter_name": "Average Length of Stay",
+          "base_value": 1.7,
+          "base_irr": -2.674908565822992,
+          "low": {
+            "value": 1.19,
+            "irr": -4.015550953801723,
+            "delta_irr": -1.3406423879787313,
+            "delta_pct": 50.11918557172269,
+            "atcf": -662.7688783846871,
+            "delta_atcf": -80.30462184873954
+          },
+          "high": {
+            "value": 2.21,
+            "irr": -1.957241097930822,
+            "delta_irr": 0.71766746789217,
+            "delta_pct": -26.829607451324772,
+            "atcf": -539.2233063097033,
+            "delta_atcf": 43.24095022624431
+          },
+          "range_pct": 60,
+          "impact": 2.058309855870901,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 123.54557207498385
+        },
+        {
+          "parameter": "Maintenance Reserve Rate",
+          "parameter_name": "Maintenance Reserve Rate",
+          "base_value": 0.003,
+          "base_irr": -2.674908565822992,
+          "low": {
+            "value": 0.0,
+            "irr": -1.669243858661506,
+            "delta_irr": 1.005664707161486,
+            "delta_pct": -37.596227400470866,
+            "atcf": -457.46425653594764,
+            "delta_atcf": 124.99999999999994
+          },
+          "high": {
+            "value": 0.006,
+            "irr": -3.681786067318174,
+            "delta_irr": -1.006877501495182,
+            "delta_pct": 37.64156705615824,
+            "atcf": -707.4642565359476,
+            "delta_atcf": -125.0
+          },
+          "range_pct": 100,
+          "impact": 2.0125422086566678,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 249.99999999999994
+        },
+        {
+          "parameter": "Cleaning Cost per Stay",
+          "parameter_name": "Cleaning Cost per Stay",
+          "base_value": 100.0,
+          "base_irr": -2.674908565822992,
+          "low": {
+            "value": 70.0,
+            "irr": -1.7425120775587881,
+            "delta_irr": 0.9323964882642037,
+            "delta_pct": -34.857134938267784,
+            "atcf": -526.25102124183,
+            "delta_atcf": 56.21323529411757
+          },
+          "high": {
+            "value": 130.0,
+            "irr": -3.6122835441492516,
+            "delta_irr": -0.9373749783262597,
+            "delta_pct": 35.043253077992844,
+            "atcf": -638.6774918300653,
+            "delta_atcf": -56.21323529411768
+          },
+          "range_pct": 60,
+          "impact": 1.8697714665904634,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 112.42647058823525
+        },
+        {
+          "parameter": "Loan-to-Value (LTV)",
+          "parameter_name": "Loan-to-Value (LTV)",
+          "base_value": 0.75,
+          "base_irr": -2.674908565822992,
+          "low": {
+            "value": 0.675,
+            "irr": -1.9778309916146133,
+            "delta_irr": 0.6970775742083786,
+            "delta_pct": -26.05986548904366,
+            "atcf": -529.3392565359476,
+            "delta_atcf": 53.125
+          },
+          "high": {
+            "value": 0.8250000000000001,
+            "irr": -3.79777665389702,
+            "delta_irr": -1.122868088074028,
+            "delta_pct": 41.97781196788512,
+            "atcf": -635.5892565359477,
+            "delta_atcf": -53.125000000000114
+          },
+          "range_pct": 20,
+          "impact": 1.8199456622824066,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 106.25000000000011
+        },
+        {
+          "parameter": "Occupancy Rate",
+          "parameter_name": "Occupancy Rate",
+          "base_value": 0.65,
+          "base_irr": -2.674908565822992,
+          "low": {
+            "value": 0.5850000000000001,
+            "irr": -3.5119631602428885,
+            "delta_irr": -0.8370545944198966,
+            "delta_pct": 31.29283015931272,
+            "atcf": -632.6757352941175,
+            "delta_atcf": -50.21147875816996
+          },
+          "high": {
+            "value": 0.7150000000000001,
+            "irr": -2.412483800668272,
+            "delta_irr": 0.2624247651547198,
+            "delta_pct": -9.810606930931835,
+            "atcf": -566.6731209150327,
+            "delta_atcf": 15.791135620914929
+          },
+          "range_pct": 20,
+          "impact": 1.0994793595746164,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 66.00261437908489
+        },
+        {
+          "parameter": "Ramp-Up Period",
+          "parameter_name": "Ramp-Up Period",
+          "base_value": 7,
+          "base_irr": -2.674908565822992,
+          "low": {
+            "value": 3.01,
+            "irr": -2.2846817630343157,
+            "delta_irr": 0.39022680278867616,
+            "delta_pct": -14.588416507934532,
+            "atcf": -315.10232843137254,
+            "delta_atcf": 267.36192810457504
+          },
+          "high": {
+            "value": 11.969999999999999,
+            "irr": -3.0588387572206583,
+            "delta_irr": -0.3839301913976665,
+            "delta_pct": 14.353021120164616,
+            "atcf": -849.8261846405229,
+            "delta_atcf": -267.3619281045753
+          },
+          "range_pct": 171,
+          "impact": 0.7741569941863427,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 534.7238562091504
+        },
+        {
+          "parameter": "Property Management Fee",
+          "parameter_name": "Property Management Fee",
+          "base_value": 0.2,
+          "base_irr": -2.674908565822992,
+          "low": {
+            "value": 0.15000000000000002,
+            "irr": -2.289584069978449,
+            "delta_irr": 0.385324495844543,
+            "delta_pct": -14.405146432584315,
+            "atcf": -559.2696397569443,
+            "delta_atcf": 23.19461677900324
+          },
+          "high": {
+            "value": 0.25,
+            "irr": -3.0610807905904975,
+            "delta_irr": -0.3861722247675057,
+            "delta_pct": 14.43683831670305,
+            "atcf": -605.6588733149509,
+            "delta_atcf": -23.194616779003354
+          },
+          "range_pct": 50,
+          "impact": 0.7714967206120487,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 46.389233558006595
+        },
+        {
+          "parameter": "Insurance Rate",
+          "parameter_name": "Insurance Rate",
+          "base_value": 0.004,
+          "base_irr": -2.674908565822992,
+          "low": {
+            "value": 0.003,
+            "irr": -2.3510173182003227,
+            "delta_irr": 0.3238912476226692,
+            "delta_pct": -12.108497903853294,
+            "atcf": -540.7975898692808,
+            "delta_atcf": 41.66666666666674
+          },
+          "high": {
+            "value": 0.005,
+            "irr": -2.99885298823938,
+            "delta_irr": -0.3239444224163881,
+            "delta_pct": 12.110485814557919,
+            "atcf": -624.1309232026142,
+            "delta_atcf": -41.66666666666663
+          },
+          "range_pct": 50,
+          "impact": 0.6478356700390573,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 83.33333333333337
+        },
+        {
+          "parameter": "Amortization Rate",
+          "parameter_name": "Amortization Rate",
+          "base_value": 0.01,
+          "base_irr": -2.674908565822992,
+          "low": {
+            "value": 0.0,
+            "irr": -2.8650110098533363,
+            "delta_irr": -0.1901024440303445,
+            "delta_pct": 7.106876341840697,
+            "atcf": -269.9642565359475,
+            "delta_atcf": 312.50000000000006
+          },
+          "high": {
+            "value": 0.02,
+            "irr": -2.503228120040151,
+            "delta_irr": 0.1716804457828407,
+            "delta_pct": -6.418179969827103,
+            "atcf": -894.9642565359476,
+            "delta_atcf": -312.5
+          },
+          "range_pct": 200,
+          "impact": 0.3617828898131852,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 625.0
+        },
+        {
+          "parameter": "Purchase Price",
+          "parameter_name": "Purchase Price",
+          "base_value": 1000000.0,
+          "base_irr": -2.674908565822992,
+          "low": {
+            "value": 900000.0,
+            "irr": -2.521773851942273,
+            "delta_irr": 0.15313471388071864,
+            "delta_pct": -5.72485788251994,
+            "atcf": -516.8392565359476,
+            "delta_atcf": 65.625
+          },
+          "high": {
+            "value": 1100000.0,
+            "irr": -2.8023010552860823,
+            "delta_irr": -0.12739248946309045,
+            "delta_pct": 4.762498841671452,
+            "atcf": -648.0892565359476,
+            "delta_atcf": -65.625
+          },
+          "range_pct": 20,
+          "impact": 0.2805272033438091,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 131.25
+        },
+        {
+          "parameter": "Inflation Rate",
+          "parameter_name": "Inflation Rate",
+          "base_value": 0.008,
+          "base_irr": -2.674908565822992,
+          "low": {
+            "value": 0.004,
+            "irr": -2.709372990299019,
+            "delta_irr": -0.034464424476027045,
+            "delta_pct": 1.2884337399930281
+          },
+          "high": {
+            "value": 0.012,
+            "irr": -2.640188493300232,
+            "delta_irr": 0.03472007252275988,
+            "delta_pct": -1.2979910029963033
+          },
+          "range_pct": 100,
+          "impact": 0.06918449699878693
+        },
+        {
+          "parameter": "Winter Season Occupancy",
+          "parameter_name": "Winter Season Occupancy",
+          "base_value": 0.65,
+          "base_irr": -2.674908565822992,
+          "low": {
+            "value": 0.5525,
+            "irr": -2.674908565822992,
+            "delta_irr": 0.0,
+            "delta_pct": -0.0,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "high": {
+            "value": 0.7474999999999999,
+            "irr": -2.674908565822992,
+            "delta_irr": 0.0,
+            "delta_pct": -0.0,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "range_pct": 30,
+          "impact": 0.0,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 0.0
+        }
+      ],
+      "base_irr": -2.674908565822992,
+      "base_atcf": -582.4642565359476
+    },
+    "10": {
+      "sensitivities": [
+        {
+          "parameter": "Property Appreciation Rate",
+          "parameter_name": "Property Appreciation Rate",
+          "base_value": 0.025,
+          "base_irr": 2.7756565776653557,
+          "low": {
+            "value": 0.015,
+            "irr": 0.3453215486369997,
+            "delta_irr": -2.430335029028356,
+            "delta_pct": -87.55892384469787,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "high": {
+            "value": 0.034999999999999996,
+            "irr": 4.9330847603268895,
+            "delta_irr": 2.157428182661534,
+            "delta_pct": 77.72676922719948,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "range_pct": 40,
+          "impact": 4.587763211689889,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 0.0
+        },
+        {
+          "parameter": "Average Daily Rate",
+          "parameter_name": "Average Daily Rate",
+          "base_value": 200.0,
+          "base_irr": 2.7756565776653557,
+          "low": {
+            "value": 160.0,
+            "irr": 0.9573465515859393,
+            "delta_irr": -1.8183100260794163,
+            "delta_pct": -65.5091858521209,
+            "atcf": -707.7389093137255,
+            "delta_atcf": -125.27465277777787
+          },
+          "high": {
+            "value": 240.0,
+            "irr": 4.100475374143568,
+            "delta_irr": 1.3248187964782123,
+            "delta_pct": 47.72992477306167,
+            "atcf": -491.13057598039205,
+            "delta_atcf": 91.33368055555553
+          },
+          "range_pct": 40,
+          "impact": 3.1431288225576286,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 216.6083333333334
+        },
+        {
+          "parameter": "Interest Rate",
+          "parameter_name": "Interest Rate",
+          "base_value": 0.01,
+          "base_irr": 2.7756565776653557,
+          "low": {
+            "value": 0.0023076900000000003,
+            "irr": 4.21970246499404,
+            "delta_irr": 1.4440458873286839,
+            "delta_pct": 52.02538019106425,
+            "atcf": -414.1949752859475,
+            "delta_atcf": 168.26928125000006
+          },
+          "high": {
+            "value": 0.01769231,
+            "irr": 1.3485754947178032,
+            "delta_irr": -1.4270810829475524,
+            "delta_pct": -51.41418050167758,
+            "atcf": -750.7335377859475,
+            "delta_atcf": -168.26928124999995
+          },
+          "range_pct": 154,
+          "impact": 2.8711269702762365,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 336.5385625
+        },
+        {
+          "parameter": "Average Length of Stay",
+          "parameter_name": "Average Length of Stay",
+          "base_value": 1.7,
+          "base_irr": 2.7756565776653557,
+          "low": {
+            "value": 1.19,
+            "irr": 1.610158155206588,
+            "delta_irr": -1.1654984224587677,
+            "delta_pct": -41.99000812409888,
+            "atcf": -662.7688783846871,
+            "delta_atcf": -80.30462184873954
+          },
+          "high": {
+            "value": 2.21,
+            "irr": 3.4030046132393155,
+            "delta_irr": 0.6273480355739598,
+            "delta_pct": 22.6017887307093,
+            "atcf": -539.2233063097033,
+            "delta_atcf": 43.24095022624431
+          },
+          "range_pct": 60,
+          "impact": 1.7928464580327275,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 123.54557207498385
+        },
+        {
+          "parameter": "Maintenance Reserve Rate",
+          "parameter_name": "Maintenance Reserve Rate",
+          "base_value": 0.003,
+          "base_irr": 2.7756565776653557,
+          "low": {
+            "value": 0.0,
+            "irr": 3.645441791508343,
+            "delta_irr": 0.8697852138429871,
+            "delta_pct": 31.336197022420397,
+            "atcf": -457.46425653594764,
+            "delta_atcf": 124.99999999999994
+          },
+          "high": {
+            "value": 0.006,
+            "irr": 1.9078383198939226,
+            "delta_irr": -0.8678182577714331,
+            "delta_pct": -31.26533248941652,
+            "atcf": -707.4642565359476,
+            "delta_atcf": -125.0
+          },
+          "range_pct": 100,
+          "impact": 1.7376034716144202,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 249.99999999999994
+        },
+        {
+          "parameter": "Cleaning Cost per Stay",
+          "parameter_name": "Cleaning Cost per Stay",
+          "base_value": 100.0,
+          "base_irr": 2.7756565776653557,
+          "low": {
+            "value": 70.0,
+            "irr": 3.591167199891058,
+            "delta_irr": 0.8155106222257023,
+            "delta_pct": 29.380818534533542,
+            "atcf": -526.25102124183,
+            "delta_atcf": 56.21323529411757
+          },
+          "high": {
+            "value": 130.0,
+            "irr": 1.9598514488898187,
+            "delta_irr": -0.815805128775537,
+            "delta_pct": -29.391428872721796,
+            "atcf": -638.6774918300653,
+            "delta_atcf": -56.21323529411768
+          },
+          "range_pct": 60,
+          "impact": 1.6313157510012393,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 112.42647058823525
+        },
+        {
+          "parameter": "Selling Costs Rate",
+          "parameter_name": "Selling Costs Rate",
+          "base_value": 0.078,
+          "base_irr": 2.7756565776653557,
+          "low": {
+            "value": 0.057999942000000006,
+            "irr": 3.334364646580067,
+            "delta_irr": 0.5587080689147115,
+            "delta_pct": 20.128861524527967,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "high": {
+            "value": 0.09799998,
+            "irr": 2.188951468560841,
+            "delta_irr": -0.5867051091045146,
+            "delta_pct": -21.13752521927625,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "range_pct": 26,
+          "impact": 1.145413178019226,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 0.0
+        },
+        {
+          "parameter": "Occupancy Rate",
+          "parameter_name": "Occupancy Rate",
+          "base_value": 0.65,
+          "base_irr": 2.7756565776653557,
+          "low": {
+            "value": 0.5850000000000001,
+            "irr": 2.04696352081373,
+            "delta_irr": -0.7286930568516259,
+            "delta_pct": -26.252997676843005,
+            "atcf": -632.6757352941175,
+            "delta_atcf": -50.21147875816996
+          },
+          "high": {
+            "value": 0.7150000000000001,
+            "irr": 3.0047806282527714,
+            "delta_irr": 0.2291240505874157,
+            "delta_pct": 8.254769427568565,
+            "atcf": -566.6731209150327,
+            "delta_atcf": 15.791135620914929
+          },
+          "range_pct": 20,
+          "impact": 0.9578171074390416,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 66.00261437908489
+        },
+        {
+          "parameter": "Loan-to-Value (LTV)",
+          "parameter_name": "Loan-to-Value (LTV)",
+          "base_value": 0.75,
+          "base_irr": 2.7756565776653557,
+          "low": {
+            "value": 0.675,
+            "irr": 2.49666786426678,
+            "delta_irr": -0.2789887133985758,
+            "delta_pct": -10.051269153521766,
+            "atcf": -529.3392565359476,
+            "delta_atcf": 53.125
+          },
+          "high": {
+            "value": 0.8250000000000001,
+            "irr": 3.1839034999720726,
+            "delta_irr": 0.4082469223067169,
+            "delta_pct": 14.708120795336258,
+            "atcf": -635.5892565359477,
+            "delta_atcf": -53.125000000000114
+          },
+          "range_pct": 20,
+          "impact": 0.6872356357052927,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 106.25000000000011
+        },
+        {
+          "parameter": "Property Management Fee",
+          "parameter_name": "Property Management Fee",
+          "base_value": 0.2,
+          "base_irr": 2.7756565776653557,
+          "low": {
+            "value": 0.15000000000000002,
+            "irr": 3.112193711567667,
+            "delta_irr": 0.3365371339023113,
+            "delta_pct": 12.124595550123045,
+            "atcf": -559.2696397569443,
+            "delta_atcf": 23.19461677900324
+          },
+          "high": {
+            "value": 0.25,
+            "irr": 2.4390698480419784,
+            "delta_irr": -0.3365867296233773,
+            "delta_pct": -12.126382360547112,
+            "atcf": -605.6588733149509,
+            "delta_atcf": -23.194616779003354
+          },
+          "range_pct": 50,
+          "impact": 0.6731238635256886,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 46.389233558006595
+        },
+        {
+          "parameter": "Insurance Rate",
+          "parameter_name": "Insurance Rate",
+          "base_value": 0.004,
+          "base_irr": 2.7756565776653557,
+          "low": {
+            "value": 0.003,
+            "irr": 3.04486317420378,
+            "delta_irr": 0.2692065965384245,
+            "delta_pct": 9.698843823282273,
+            "atcf": -540.7975898692808,
+            "delta_atcf": 41.66666666666674
+          },
+          "high": {
+            "value": 0.005,
+            "irr": 2.5068329419009356,
+            "delta_irr": -0.26882363576442003,
+            "delta_pct": -9.685046699492322,
+            "atcf": -624.1309232026142,
+            "delta_atcf": -41.66666666666663
+          },
+          "range_pct": 50,
+          "impact": 0.5380302323028445,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 83.33333333333337
+        },
+        {
+          "parameter": "Purchase Price",
+          "parameter_name": "Purchase Price",
+          "base_value": 1000000.0,
+          "base_irr": 2.7756565776653557,
+          "low": {
+            "value": 900000.0,
+            "irr": 3.003822970669714,
+            "delta_irr": 0.22816639300435826,
+            "delta_pct": 8.220267407730688,
+            "atcf": -516.8392565359476,
+            "delta_atcf": 65.625
+          },
+          "high": {
+            "value": 1100000.0,
+            "irr": 2.58648673770949,
+            "delta_irr": -0.1891698399558659,
+            "delta_pct": -6.815318634086186,
+            "atcf": -648.0892565359476,
+            "delta_atcf": -65.625
+          },
+          "range_pct": 20,
+          "impact": 0.41733623296022415,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 131.25
+        },
+        {
+          "parameter": "Ramp-Up Period",
+          "parameter_name": "Ramp-Up Period",
+          "base_value": 7,
+          "base_irr": 2.7756565776653557,
+          "low": {
+            "value": 3.01,
+            "irr": 2.9653418040834336,
+            "delta_irr": 0.18968522641807795,
+            "delta_pct": 6.83388672591567,
+            "atcf": -315.10232843137254,
+            "delta_atcf": 267.36192810457504
+          },
+          "high": {
+            "value": 11.969999999999999,
+            "irr": 2.589146499987688,
+            "delta_irr": -0.18651007767766759,
+            "delta_pct": -6.719494017323421,
+            "atcf": -849.8261846405229,
+            "delta_atcf": -267.3619281045753
+          },
+          "range_pct": 171,
+          "impact": 0.37619530409574553,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 534.7238562091504
+        },
+        {
+          "parameter": "Amortization Rate",
+          "parameter_name": "Amortization Rate",
+          "base_value": 0.01,
+          "base_irr": 2.7756565776653557,
+          "low": {
+            "value": 0.0,
+            "irr": 2.936639175284651,
+            "delta_irr": 0.16098259761929512,
+            "delta_pct": 5.799802429258013,
+            "atcf": -269.9642565359475,
+            "delta_atcf": 312.50000000000006
+          },
+          "high": {
+            "value": 0.02,
+            "irr": 2.6388040878809953,
+            "delta_irr": -0.13685248978436038,
+            "delta_pct": -4.930454685408847,
+            "atcf": -894.9642565359476,
+            "delta_atcf": -312.5
+          },
+          "range_pct": 200,
+          "impact": 0.2978350874036555,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 625.0
+        },
+        {
+          "parameter": "Inflation Rate",
+          "parameter_name": "Inflation Rate",
+          "base_value": 0.008,
+          "base_irr": 2.7756565776653557,
+          "low": {
+            "value": 0.004,
+            "irr": 2.7159929252229595,
+            "delta_irr": -0.05966365244239613,
+            "delta_pct": -2.1495329401514103
+          },
+          "high": {
+            "value": 0.012,
+            "irr": 2.8364573526196146,
+            "delta_irr": 0.06080077495425895,
+            "delta_pct": 2.1905006348227474
+          },
+          "range_pct": 100,
+          "impact": 0.12046442739665508
+        },
+        {
+          "parameter": "Winter Season Occupancy",
+          "parameter_name": "Winter Season Occupancy",
+          "base_value": 0.65,
+          "base_irr": 2.7756565776653557,
+          "low": {
+            "value": 0.5525,
+            "irr": 2.7756565776653557,
+            "delta_irr": 0.0,
+            "delta_pct": 0.0,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "high": {
+            "value": 0.7474999999999999,
+            "irr": 2.7756565776653557,
+            "delta_irr": 0.0,
+            "delta_pct": 0.0,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "range_pct": 30,
+          "impact": 0.0,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 0.0
+        }
+      ],
+      "base_irr": 2.7756565776653557,
+      "base_atcf": -582.4642565359476
+    },
+    "15": {
+      "sensitivities": [
+        {
+          "parameter": "Property Appreciation Rate",
+          "parameter_name": "Property Appreciation Rate",
+          "base_value": 0.025,
+          "base_irr": 3.9586362135596542,
+          "low": {
+            "value": 0.015,
+            "irr": 1.8899076771922374,
+            "delta_irr": -2.068728536367417,
+            "delta_pct": -52.258616977264275,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "high": {
+            "value": 0.034999999999999996,
+            "irr": 5.774680686648932,
+            "delta_irr": 1.8160444730892782,
+            "delta_pct": 45.87550800623502,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "range_pct": 40,
+          "impact": 3.884773009456695,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 0.0
+        },
+        {
+          "parameter": "Average Daily Rate",
+          "parameter_name": "Average Daily Rate",
+          "base_value": 200.0,
+          "base_irr": 3.9586362135596542,
+          "low": {
+            "value": 160.0,
+            "irr": 2.3671887754462624,
+            "delta_irr": -1.5914474381133918,
+            "delta_pct": -40.20191177613522,
+            "atcf": -707.7389093137255,
+            "delta_atcf": -125.27465277777787
+          },
+          "high": {
+            "value": 240.0,
+            "irr": 5.132754576858131,
+            "delta_irr": 1.174118363298477,
+            "delta_pct": 29.659668127036493,
+            "atcf": -491.13057598039205,
+            "delta_atcf": 91.33368055555553
+          },
+          "range_pct": 40,
+          "impact": 2.765565801411869,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 216.6083333333334
+        },
+        {
+          "parameter": "Interest Rate",
+          "parameter_name": "Interest Rate",
+          "base_value": 0.01,
+          "base_irr": 3.9586362135596542,
+          "low": {
+            "value": 0.0023076900000000003,
+            "irr": 5.173061070498076,
+            "delta_irr": 1.2144248569384222,
+            "delta_pct": 30.67785953098217,
+            "atcf": -414.1949752859475,
+            "delta_atcf": 168.26928125000006
+          },
+          "high": {
+            "value": 0.01769231,
+            "irr": 2.774845662061122,
+            "delta_irr": -1.1837905514985323,
+            "delta_pct": -29.90399944919549,
+            "atcf": -750.7335377859475,
+            "delta_atcf": -168.26928124999995
+          },
+          "range_pct": 154,
+          "impact": 2.3982154084369545,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 336.5385625
+        },
+        {
+          "parameter": "Average Length of Stay",
+          "parameter_name": "Average Length of Stay",
+          "base_value": 1.7,
+          "base_irr": 3.9586362135596542,
+          "low": {
+            "value": 1.19,
+            "irr": 2.9358829683624177,
+            "delta_irr": -1.0227532451972365,
+            "delta_pct": -25.835999824736717,
+            "atcf": -662.7688783846871,
+            "delta_atcf": -80.30462184873954
+          },
+          "high": {
+            "value": 2.21,
+            "irr": 4.513092855457213,
+            "delta_irr": 0.5544566418975587,
+            "delta_pct": 14.006253971970425,
+            "atcf": -539.2233063097033,
+            "delta_atcf": 43.24095022624431
+          },
+          "range_pct": 60,
+          "impact": 1.5772098870947953,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 123.54557207498385
+        },
+        {
+          "parameter": "Maintenance Reserve Rate",
+          "parameter_name": "Maintenance Reserve Rate",
+          "base_value": 0.003,
+          "base_irr": 3.9586362135596542,
+          "low": {
+            "value": 0.0,
+            "irr": 4.742485336493697,
+            "delta_irr": 0.783849122934043,
+            "delta_pct": 19.80098904388075,
+            "atcf": -457.46425653594764,
+            "delta_atcf": 124.99999999999994
+          },
+          "high": {
+            "value": 0.006,
+            "irr": 3.1801311573944946,
+            "delta_irr": -0.7785050561651596,
+            "delta_pct": -19.6659913709302,
+            "atcf": -707.4642565359476,
+            "delta_atcf": -125.0
+          },
+          "range_pct": 100,
+          "impact": 1.5623541790992026,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 249.99999999999994
+        },
+        {
+          "parameter": "Cleaning Cost per Stay",
+          "parameter_name": "Cleaning Cost per Stay",
+          "base_value": 100.0,
+          "base_irr": 3.9586362135596542,
+          "low": {
+            "value": 70.0,
+            "irr": 4.67992979334667,
+            "delta_irr": 0.7212935797870155,
+            "delta_pct": 18.220759394771953,
+            "atcf": -526.25102124183,
+            "delta_atcf": 56.21323529411757
+          },
+          "high": {
+            "value": 130.0,
+            "irr": 3.24174591572955,
+            "delta_irr": -0.7168902978301044,
+            "delta_pct": -18.109527098613285,
+            "atcf": -638.6774918300653,
+            "delta_atcf": -56.21323529411768
+          },
+          "range_pct": 60,
+          "impact": 1.4381838776171199,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 112.42647058823525
+        },
+        {
+          "parameter": "Loan-to-Value (LTV)",
+          "parameter_name": "Loan-to-Value (LTV)",
+          "base_value": 0.75,
+          "base_irr": 3.9586362135596542,
+          "low": {
+            "value": 0.675,
+            "irr": 3.561145938467232,
+            "delta_irr": -0.3974902750924221,
+            "delta_pct": -10.041091265999254,
+            "atcf": -529.3392565359476,
+            "delta_atcf": 53.125
+          },
+          "high": {
+            "value": 0.8250000000000001,
+            "irr": 4.50871155923232,
+            "delta_irr": 0.5500753456726657,
+            "delta_pct": 13.895577062334585,
+            "atcf": -635.5892565359477,
+            "delta_atcf": -53.125000000000114
+          },
+          "range_pct": 20,
+          "impact": 0.9475656207650878,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 106.25000000000011
+        },
+        {
+          "parameter": "Occupancy Rate",
+          "parameter_name": "Occupancy Rate",
+          "base_value": 0.65,
+          "base_irr": 3.9586362135596542,
+          "low": {
+            "value": 0.5850000000000001,
+            "irr": 3.3180732191540265,
+            "delta_irr": -0.6405629944056277,
+            "delta_pct": -16.181405914781585,
+            "atcf": -632.6757352941175,
+            "delta_atcf": -50.21147875816996
+          },
+          "high": {
+            "value": 0.7150000000000001,
+            "irr": 4.160818539094177,
+            "delta_irr": 0.20218232553452298,
+            "delta_pct": 5.107373212066843,
+            "atcf": -566.6731209150327,
+            "delta_atcf": 15.791135620914929
+          },
+          "range_pct": 20,
+          "impact": 0.8427453199401507,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 66.00261437908489
+        },
+        {
+          "parameter": "Selling Costs Rate",
+          "parameter_name": "Selling Costs Rate",
+          "base_value": 0.078,
+          "base_irr": 3.9586362135596542,
+          "low": {
+            "value": 0.057999942000000006,
+            "irr": 4.266264666337516,
+            "delta_irr": 0.3076284527778621,
+            "delta_pct": 7.771071555505193,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "high": {
+            "value": 0.09799998,
+            "irr": 3.638090376276521,
+            "delta_irr": -0.32054583728313313,
+            "delta_pct": -8.097380511630655,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "range_pct": 26,
+          "impact": 0.6281742900609952,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 0.0
+        },
+        {
+          "parameter": "Amortization Rate",
+          "parameter_name": "Amortization Rate",
+          "base_value": 0.01,
+          "base_irr": 3.9586362135596542,
+          "low": {
+            "value": 0.0,
+            "irr": 4.3010803512297535,
+            "delta_irr": 0.3424441376700993,
+            "delta_pct": 8.650558404359398,
+            "atcf": -269.9642565359475,
+            "delta_atcf": 312.50000000000006
+          },
+          "high": {
+            "value": 0.02,
+            "irr": 3.677507726009932,
+            "delta_irr": -0.2811284875497222,
+            "delta_pct": -7.1016499719464745,
+            "atcf": -894.9642565359476,
+            "delta_atcf": -312.5
+          },
+          "range_pct": 200,
+          "impact": 0.6235726252198215,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 625.0
+        },
+        {
+          "parameter": "Property Management Fee",
+          "parameter_name": "Property Management Fee",
+          "base_value": 0.2,
+          "base_irr": 3.9586362135596542,
+          "low": {
+            "value": 0.15000000000000002,
+            "irr": 4.255728387739506,
+            "delta_irr": 0.29709217417985156,
+            "delta_pct": 7.504912251401414,
+            "atcf": -559.2696397569443,
+            "delta_atcf": 23.19461677900324
+          },
+          "high": {
+            "value": 0.25,
+            "irr": 3.662293599452819,
+            "delta_irr": -0.29634261410683527,
+            "delta_pct": -7.485977445761815,
+            "atcf": -605.6588733149509,
+            "delta_atcf": -23.194616779003354
+          },
+          "range_pct": 50,
+          "impact": 0.5934347882866868,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 46.389233558006595
+        },
+        {
+          "parameter": "Insurance Rate",
+          "parameter_name": "Insurance Rate",
+          "base_value": 0.004,
+          "base_irr": 3.9586362135596542,
+          "low": {
+            "value": 0.003,
+            "irr": 4.19228881364688,
+            "delta_irr": 0.23365260008722588,
+            "delta_pct": 5.90235089768763,
+            "atcf": -540.7975898692808,
+            "delta_atcf": 41.66666666666674
+          },
+          "high": {
+            "value": 0.005,
+            "irr": 3.725784814450886,
+            "delta_irr": -0.2328513991087684,
+            "delta_pct": -5.882111579517573,
+            "atcf": -624.1309232026142,
+            "delta_atcf": -41.66666666666663
+          },
+          "range_pct": 50,
+          "impact": 0.4665039991959943,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 83.33333333333337
+        },
+        {
+          "parameter": "Purchase Price",
+          "parameter_name": "Purchase Price",
+          "base_value": 1000000.0,
+          "base_irr": 3.9586362135596542,
+          "low": {
+            "value": 900000.0,
+            "irr": 4.1897553415037665,
+            "delta_irr": 0.23111912794411227,
+            "delta_pct": 5.838352287902886,
+            "atcf": -516.8392565359476,
+            "delta_atcf": 65.625
+          },
+          "high": {
+            "value": 1100000.0,
+            "irr": 3.7676277528516904,
+            "delta_irr": -0.19100846070796385,
+            "delta_pct": -4.825107698800307,
+            "atcf": -648.0892565359476,
+            "delta_atcf": -65.625
+          },
+          "range_pct": 20,
+          "impact": 0.4221275886520761,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 131.25
+        },
+        {
+          "parameter": "Ramp-Up Period",
+          "parameter_name": "Ramp-Up Period",
+          "base_value": 7,
+          "base_irr": 3.9586362135596542,
+          "low": {
+            "value": 3.01,
+            "irr": 4.082431223709133,
+            "delta_irr": 0.12379501014947847,
+            "delta_pct": 3.1272136026401998,
+            "atcf": -315.10232843137254,
+            "delta_atcf": 267.36192810457504
+          },
+          "high": {
+            "value": 11.969999999999999,
+            "irr": 3.8369257575832276,
+            "delta_irr": -0.1217104559764266,
+            "delta_pct": -3.074555210694217,
+            "atcf": -849.8261846405229,
+            "delta_atcf": -267.3619281045753
+          },
+          "range_pct": 171,
+          "impact": 0.24550546612590507,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 534.7238562091504
+        },
+        {
+          "parameter": "Inflation Rate",
+          "parameter_name": "Inflation Rate",
+          "base_value": 0.008,
+          "base_irr": 3.9586362135596542,
+          "low": {
+            "value": 0.004,
+            "irr": 3.8824541182257186,
+            "delta_irr": -0.0761820953339356,
+            "delta_pct": -1.9244530495877956
+          },
+          "high": {
+            "value": 0.012,
+            "irr": 4.037122209090736,
+            "delta_irr": 0.07848599553108171,
+            "delta_pct": 1.982652390796631
+          },
+          "range_pct": 100,
+          "impact": 0.15466809086501732
+        },
+        {
+          "parameter": "Winter Season Occupancy",
+          "parameter_name": "Winter Season Occupancy",
+          "base_value": 0.65,
+          "base_irr": 3.9586362135596542,
+          "low": {
+            "value": 0.5525,
+            "irr": 3.9586362135596542,
+            "delta_irr": 0.0,
+            "delta_pct": 0.0,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "high": {
+            "value": 0.7474999999999999,
+            "irr": 3.9586362135596542,
+            "delta_irr": 0.0,
+            "delta_pct": 0.0,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "range_pct": 30,
+          "impact": 0.0,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 0.0
+        }
+      ],
+      "base_irr": 3.9586362135596542,
+      "base_atcf": -582.4642565359476
+    },
+    "20": {
+      "sensitivities": [
+        {
+          "parameter": "Property Appreciation Rate",
+          "parameter_name": "Property Appreciation Rate",
+          "base_value": 0.025,
+          "base_irr": 4.2709910874254975,
+          "low": {
+            "value": 0.015,
+            "irr": 2.468571121338752,
+            "delta_irr": -1.8024199660867457,
+            "delta_pct": -42.20144526626074,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "high": {
+            "value": 0.034999999999999996,
+            "irr": 5.856061640661206,
+            "delta_irr": 1.5850705532357088,
+            "delta_pct": 37.11247625644591,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "range_pct": 40,
+          "impact": 3.3874905193224545,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 0.0
+        },
+        {
+          "parameter": "Average Daily Rate",
+          "parameter_name": "Average Daily Rate",
+          "base_value": 200.0,
+          "base_irr": 4.2709910874254975,
+          "low": {
+            "value": 160.0,
+            "irr": 2.8477380783297086,
+            "delta_irr": -1.423253009095789,
+            "delta_pct": -33.323717609387685,
+            "atcf": -707.7389093137255,
+            "delta_atcf": -125.27465277777787
+          },
+          "high": {
+            "value": 240.0,
+            "irr": 5.335080065298822,
+            "delta_irr": 1.0640889778733245,
+            "delta_pct": 24.9143338417675,
+            "atcf": -491.13057598039205,
+            "delta_atcf": 91.33368055555553
+          },
+          "range_pct": 40,
+          "impact": 2.4873419869691133,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 216.6083333333334
+        },
+        {
+          "parameter": "Interest Rate",
+          "parameter_name": "Interest Rate",
+          "base_value": 0.01,
+          "base_irr": 4.2709910874254975,
+          "low": {
+            "value": 0.0023076900000000003,
+            "irr": 5.3261078414507175,
+            "delta_irr": 1.05511675402522,
+            "delta_pct": 24.704260262487033,
+            "atcf": -414.1949752859475,
+            "delta_atcf": 168.26928125000006
+          },
+          "high": {
+            "value": 0.01769231,
+            "irr": 3.2569370339624566,
+            "delta_irr": -1.014054053463041,
+            "delta_pct": -23.742827664721272,
+            "atcf": -750.7335377859475,
+            "delta_atcf": -168.26928124999995
+          },
+          "range_pct": 154,
+          "impact": 2.069170807488261,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 336.5385625
+        },
+        {
+          "parameter": "Maintenance Reserve Rate",
+          "parameter_name": "Maintenance Reserve Rate",
+          "base_value": 0.003,
+          "base_irr": 4.2709910874254975,
+          "low": {
+            "value": 0.0,
+            "irr": 4.997737128753212,
+            "delta_irr": 0.7267460413277149,
+            "delta_pct": 17.01586415076761,
+            "atcf": -457.46425653594764,
+            "delta_atcf": 124.99999999999994
+          },
+          "high": {
+            "value": 0.006,
+            "irr": 3.552716711070386,
+            "delta_irr": -0.7182743763551116,
+            "delta_pct": -16.817510541518804,
+            "atcf": -707.4642565359476,
+            "delta_atcf": -125.0
+          },
+          "range_pct": 100,
+          "impact": 1.4450204176828265,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 249.99999999999994
+        },
+        {
+          "parameter": "Average Length of Stay",
+          "parameter_name": "Average Length of Stay",
+          "base_value": 1.7,
+          "base_irr": 4.2709910874254975,
+          "low": {
+            "value": 1.19,
+            "irr": 3.35383889218792,
+            "delta_irr": -0.9171521952375774,
+            "delta_pct": -21.47398991156467,
+            "atcf": -662.7688783846871,
+            "delta_atcf": -80.30462184873954
+          },
+          "high": {
+            "value": 2.21,
+            "irr": 4.771988143678751,
+            "delta_irr": 0.5009970562532535,
+            "delta_pct": 11.730229494701394,
+            "atcf": -539.2233063097033,
+            "delta_atcf": 43.24095022624431
+          },
+          "range_pct": 60,
+          "impact": 1.418149251490831,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 123.54557207498385
+        },
+        {
+          "parameter": "Cleaning Cost per Stay",
+          "parameter_name": "Cleaning Cost per Stay",
+          "base_value": 100.0,
+          "base_irr": 4.2709910874254975,
+          "low": {
+            "value": 70.0,
+            "irr": 4.9232642962597275,
+            "delta_irr": 0.65227320883423,
+            "delta_pct": 15.272174431705793,
+            "atcf": -526.25102124183,
+            "delta_atcf": 56.21323529411757
+          },
+          "high": {
+            "value": 130.0,
+            "irr": 3.6271767611615338,
+            "delta_irr": -0.6438143262639637,
+            "delta_pct": -15.074120106676395,
+            "atcf": -638.6774918300653,
+            "delta_atcf": -56.21323529411768
+          },
+          "range_pct": 60,
+          "impact": 1.2960875350981937,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 112.42647058823525
+        },
+        {
+          "parameter": "Loan-to-Value (LTV)",
+          "parameter_name": "Loan-to-Value (LTV)",
+          "base_value": 0.75,
+          "base_irr": 4.2709910874254975,
+          "low": {
+            "value": 0.675,
+            "irr": 3.885881847236302,
+            "delta_irr": -0.38510924018919557,
+            "delta_pct": -9.016858904787245,
+            "atcf": -529.3392565359476,
+            "delta_atcf": 53.125
+          },
+          "high": {
+            "value": 0.8250000000000001,
+            "irr": 4.784846729133274,
+            "delta_irr": 0.5138556417077762,
+            "delta_pct": 12.031297448047878,
+            "atcf": -635.5892565359477,
+            "delta_atcf": -53.125000000000114
+          },
+          "range_pct": 20,
+          "impact": 0.8989648818969718,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 106.25000000000011
+        },
+        {
+          "parameter": "Amortization Rate",
+          "parameter_name": "Amortization Rate",
+          "base_value": 0.01,
+          "base_irr": 4.2709910874254975,
+          "low": {
+            "value": 0.0,
+            "irr": 4.707559211645271,
+            "delta_irr": 0.4365681242197734,
+            "delta_pct": 10.221705343874447,
+            "atcf": -269.9642565359475,
+            "delta_atcf": 312.50000000000006
+          },
+          "high": {
+            "value": 0.02,
+            "irr": 3.9210119792260203,
+            "delta_irr": -0.3499791081994772,
+            "delta_pct": -8.194330098928875,
+            "atcf": -894.9642565359476,
+            "delta_atcf": -312.5
+          },
+          "range_pct": 200,
+          "impact": 0.7865472324192506,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 625.0
+        },
+        {
+          "parameter": "Occupancy Rate",
+          "parameter_name": "Occupancy Rate",
+          "base_value": 0.65,
+          "base_irr": 4.2709910874254975,
+          "low": {
+            "value": 0.5850000000000001,
+            "irr": 3.6955130179412627,
+            "delta_irr": -0.5754780694842347,
+            "delta_pct": -13.474110755663649,
+            "atcf": -632.6757352941175,
+            "delta_atcf": -50.21147875816996
+          },
+          "high": {
+            "value": 0.7150000000000001,
+            "irr": 4.453369381371883,
+            "delta_irr": 0.18237829394638538,
+            "delta_pct": 4.270163299645771,
+            "atcf": -566.6731209150327,
+            "delta_atcf": 15.791135620914929
+          },
+          "range_pct": 20,
+          "impact": 0.7578563634306201,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 66.00261437908489
+        },
+        {
+          "parameter": "Property Management Fee",
+          "parameter_name": "Property Management Fee",
+          "base_value": 0.2,
+          "base_irr": 4.2709910874254975,
+          "low": {
+            "value": 0.15000000000000002,
+            "irr": 4.539105044212189,
+            "delta_irr": 0.26811395678669125,
+            "delta_pct": 6.277558330104293,
+            "atcf": -559.2696397569443,
+            "delta_atcf": 23.19461677900324
+          },
+          "high": {
+            "value": 0.25,
+            "irr": 4.004317451734093,
+            "delta_irr": -0.26667363569140434,
+            "delta_pct": -6.243834984262447,
+            "atcf": -605.6588733149509,
+            "delta_atcf": -23.194616779003354
+          },
+          "range_pct": 50,
+          "impact": 0.5347875924780956,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 46.389233558006595
+        },
+        {
+          "parameter": "Insurance Rate",
+          "parameter_name": "Insurance Rate",
+          "base_value": 0.004,
+          "base_irr": 4.2709910874254975,
+          "low": {
+            "value": 0.003,
+            "irr": 4.479942461941389,
+            "delta_irr": 0.20895137451589108,
+            "delta_pct": 4.892339277669729,
+            "atcf": -540.7975898692808,
+            "delta_atcf": 41.66666666666674
+          },
+          "high": {
+            "value": 0.005,
+            "irr": 4.063201377633956,
+            "delta_irr": -0.2077897097915411,
+            "delta_pct": -4.865140327810758,
+            "atcf": -624.1309232026142,
+            "delta_atcf": -41.66666666666663
+          },
+          "range_pct": 50,
+          "impact": 0.4167410843074322,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 83.33333333333337
+        },
+        {
+          "parameter": "Selling Costs Rate",
+          "parameter_name": "Selling Costs Rate",
+          "base_value": 0.078,
+          "base_irr": 4.2709910874254975,
+          "low": {
+            "value": 0.057999942000000006,
+            "irr": 4.471074542496349,
+            "delta_irr": 0.20008345507085146,
+            "delta_pct": 4.684707857619515,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "high": {
+            "value": 0.09799998,
+            "irr": 4.063566443044689,
+            "delta_irr": -0.20742464438080876,
+            "delta_pct": -4.856592770504746,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "range_pct": 26,
+          "impact": 0.4075080994516602,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 0.0
+        },
+        {
+          "parameter": "Purchase Price",
+          "parameter_name": "Purchase Price",
+          "base_value": 1000000.0,
+          "base_irr": 4.2709910874254975,
+          "low": {
+            "value": 900000.0,
+            "irr": 4.493892153259363,
+            "delta_irr": 0.2229010658338657,
+            "delta_pct": 5.218954131984101,
+            "atcf": -516.8392565359476,
+            "delta_atcf": 65.625
+          },
+          "high": {
+            "value": 1100000.0,
+            "irr": 4.087354493793097,
+            "delta_irr": -0.18363659363240092,
+            "delta_pct": -4.2996248382034175,
+            "atcf": -648.0892565359476,
+            "delta_atcf": -65.625
+          },
+          "range_pct": 20,
+          "impact": 0.40653765946626663,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 131.25
+        },
+        {
+          "parameter": "Ramp-Up Period",
+          "parameter_name": "Ramp-Up Period",
+          "base_value": 7,
+          "base_irr": 4.2709910874254975,
+          "low": {
+            "value": 3.01,
+            "irr": 4.362246191594747,
+            "delta_irr": 0.09125510416924953,
+            "delta_pct": 2.136625956394983,
+            "atcf": -315.10232843137254,
+            "delta_atcf": 267.36192810457504
+          },
+          "high": {
+            "value": 11.969999999999999,
+            "irr": 4.181271405424919,
+            "delta_irr": -0.08971968200057834,
+            "delta_pct": -2.1006759359608096,
+            "atcf": -849.8261846405229,
+            "delta_atcf": -267.3619281045753
+          },
+          "range_pct": 171,
+          "impact": 0.18097478616982787,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 534.7238562091504
+        },
+        {
+          "parameter": "Inflation Rate",
+          "parameter_name": "Inflation Rate",
+          "base_value": 0.008,
+          "base_irr": 4.2709910874254975,
+          "low": {
+            "value": 0.004,
+            "irr": 4.182680537458506,
+            "delta_irr": -0.08831054996699184,
+            "delta_pct": -2.0676828436142767
+          },
+          "high": {
+            "value": 0.012,
+            "irr": 4.362941042985765,
+            "delta_irr": 0.09194995556026786,
+            "delta_pct": 2.1528950465615275
+          },
+          "range_pct": 100,
+          "impact": 0.1802605055272597
+        },
+        {
+          "parameter": "Winter Season Occupancy",
+          "parameter_name": "Winter Season Occupancy",
+          "base_value": 0.65,
+          "base_irr": 4.2709910874254975,
+          "low": {
+            "value": 0.5525,
+            "irr": 4.2709910874254975,
+            "delta_irr": 0.0,
+            "delta_pct": 0.0,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "high": {
+            "value": 0.7474999999999999,
+            "irr": 4.2709910874254975,
+            "delta_irr": 0.0,
+            "delta_pct": 0.0,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "range_pct": 30,
+          "impact": 0.0,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 0.0
+        }
+      ],
+      "base_irr": 4.2709910874254975,
+      "base_atcf": -582.4642565359476
+    },
+    "25": {
+      "sensitivities": [
+        {
+          "parameter": "Property Appreciation Rate",
+          "parameter_name": "Property Appreciation Rate",
+          "base_value": 0.025,
+          "base_irr": 4.317222991492596,
+          "low": {
+            "value": 0.015,
+            "irr": 2.711049203295258,
+            "delta_irr": -1.6061737881973377,
+            "delta_pct": -37.20386441382391,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "high": {
+            "value": 0.034999999999999996,
+            "irr": 5.741423432249572,
+            "delta_irr": 1.4242004407569766,
+            "delta_pct": 32.988808860776196,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "range_pct": 40,
+          "impact": 3.0303742289543143,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 0.0
+        },
+        {
+          "parameter": "Average Daily Rate",
+          "parameter_name": "Average Daily Rate",
+          "base_value": 200.0,
+          "base_irr": 4.317222991492596,
+          "low": {
+            "value": 160.0,
+            "irr": 3.023194957058873,
+            "delta_irr": -1.2940280344337225,
+            "delta_pct": -29.973620472783075,
+            "atcf": -707.7389093137255,
+            "delta_atcf": -125.27465277777787
+          },
+          "high": {
+            "value": 240.0,
+            "irr": 5.297809647861865,
+            "delta_irr": 0.9805866563692689,
+            "delta_pct": 22.713365936890142,
+            "atcf": -491.13057598039205,
+            "delta_atcf": 91.33368055555553
+          },
+          "range_pct": 40,
+          "impact": 2.2746146908029914,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 216.6083333333334
+        },
+        {
+          "parameter": "Interest Rate",
+          "parameter_name": "Interest Rate",
+          "base_value": 0.01,
+          "base_irr": 4.317222991492596,
+          "low": {
+            "value": 0.0023076900000000003,
+            "irr": 5.254019182641056,
+            "delta_irr": 0.9367961911484599,
+            "delta_pct": 21.69904572903659,
+            "atcf": -414.1949752859475,
+            "delta_atcf": 168.26928125000006
+          },
+          "high": {
+            "value": 0.01769231,
+            "irr": 3.4293501670472293,
+            "delta_irr": -0.8878728244453664,
+            "delta_pct": -20.565831929344043,
+            "atcf": -750.7335377859475,
+            "delta_atcf": -168.26928124999995
+          },
+          "range_pct": 154,
+          "impact": 1.8246690155938263,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 336.5385625
+        },
+        {
+          "parameter": "Maintenance Reserve Rate",
+          "parameter_name": "Maintenance Reserve Rate",
+          "base_value": 0.003,
+          "base_irr": 4.317222991492596,
+          "low": {
+            "value": 0.0,
+            "irr": 5.003687081392852,
+            "delta_irr": 0.6864640899002561,
+            "delta_pct": 15.900593767173572,
+            "atcf": -457.46425653594764,
+            "delta_atcf": 124.99999999999994
+          },
+          "high": {
+            "value": 0.006,
+            "irr": 3.6421020054258375,
+            "delta_irr": -0.6751209860667582,
+            "delta_pct": -15.637853022582654,
+            "atcf": -707.4642565359476,
+            "delta_atcf": -125.0
+          },
+          "range_pct": 100,
+          "impact": 1.3615850759670143,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 249.99999999999994
+        },
+        {
+          "parameter": "Average Length of Stay",
+          "parameter_name": "Average Length of Stay",
+          "base_value": 1.7,
+          "base_irr": 4.317222991492596,
+          "low": {
+            "value": 1.19,
+            "irr": 3.4810928204096823,
+            "delta_irr": -0.8361301710829134,
+            "delta_pct": -19.367314885762656,
+            "atcf": -662.7688783846871,
+            "delta_atcf": -80.30462184873954
+          },
+          "high": {
+            "value": 2.21,
+            "irr": 4.7774840653873945,
+            "delta_irr": 0.46026107389479876,
+            "delta_pct": 10.66104472253986,
+            "atcf": -539.2233063097033,
+            "delta_atcf": 43.24095022624431
+          },
+          "range_pct": 60,
+          "impact": 1.2963912449777122,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 123.54557207498385
+        },
+        {
+          "parameter": "Cleaning Cost per Stay",
+          "parameter_name": "Cleaning Cost per Stay",
+          "base_value": 100.0,
+          "base_irr": 4.317222991492596,
+          "low": {
+            "value": 70.0,
+            "irr": 4.9169554137624765,
+            "delta_irr": 0.5997324222698808,
+            "delta_pct": 13.891624858194666,
+            "atcf": -526.25102124183,
+            "delta_atcf": 56.21323529411757
+          },
+          "high": {
+            "value": 130.0,
+            "irr": 3.7294221748597893,
+            "delta_irr": -0.5878008166328064,
+            "delta_pct": -13.615252623992575,
+            "atcf": -638.6774918300653,
+            "delta_atcf": -56.21323529411768
+          },
+          "range_pct": 60,
+          "impact": 1.1875332389026871,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 112.42647058823525
+        },
+        {
+          "parameter": "Amortization Rate",
+          "parameter_name": "Amortization Rate",
+          "base_value": 0.01,
+          "base_irr": 4.317222991492596,
+          "low": {
+            "value": 0.0,
+            "irr": 4.803570392075923,
+            "delta_irr": 0.4863474005833277,
+            "delta_pct": 11.265283297659419,
+            "atcf": -269.9642565359475,
+            "delta_atcf": 312.50000000000006
+          },
+          "high": {
+            "value": 0.02,
+            "irr": 3.9341972828842664,
+            "delta_irr": -0.3830257086083293,
+            "delta_pct": -8.87203902515829,
+            "atcf": -894.9642565359476,
+            "delta_atcf": -312.5
+          },
+          "range_pct": 200,
+          "impact": 0.869373109191657,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 625.0
+        },
+        {
+          "parameter": "Loan-to-Value (LTV)",
+          "parameter_name": "Loan-to-Value (LTV)",
+          "base_value": 0.75,
+          "base_irr": 4.317222991492596,
+          "low": {
+            "value": 0.675,
+            "irr": 3.9689797335304298,
+            "delta_irr": -0.34824325796216593,
+            "delta_pct": -8.066371800771115,
+            "atcf": -529.3392565359476,
+            "delta_atcf": 53.125
+          },
+          "high": {
+            "value": 0.8250000000000001,
+            "irr": 4.769949094858019,
+            "delta_irr": 0.45272610336542307,
+            "delta_pct": 10.486511914199314,
+            "atcf": -635.5892565359477,
+            "delta_atcf": -53.125000000000114
+          },
+          "range_pct": 20,
+          "impact": 0.800969361327589,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 106.25000000000011
+        },
+        {
+          "parameter": "Occupancy Rate",
+          "parameter_name": "Occupancy Rate",
+          "base_value": 0.65,
+          "base_irr": 4.317222991492596,
+          "low": {
+            "value": 0.5850000000000001,
+            "irr": 3.7916192994452977,
+            "delta_irr": -0.525603692047298,
+            "delta_pct": -12.1745782667015,
+            "atcf": -632.6757352941175,
+            "delta_atcf": -50.21147875816996
+          },
+          "high": {
+            "value": 0.7150000000000001,
+            "irr": 4.484481237363068,
+            "delta_irr": 0.1672582458704719,
+            "delta_pct": 3.8742090969140697,
+            "atcf": -566.6731209150327,
+            "delta_atcf": 15.791135620914929
+          },
+          "range_pct": 20,
+          "impact": 0.6928619379177698,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 66.00261437908489
+        },
+        {
+          "parameter": "Property Management Fee",
+          "parameter_name": "Property Management Fee",
+          "base_value": 0.2,
+          "base_irr": 4.317222991492596,
+          "low": {
+            "value": 0.15000000000000002,
+            "irr": 4.563223903533068,
+            "delta_irr": 0.24600091204047203,
+            "delta_pct": 5.698128461866224,
+            "atcf": -559.2696397569443,
+            "delta_atcf": 23.19461677900324
+          },
+          "high": {
+            "value": 0.25,
+            "irr": 4.073254481423643,
+            "delta_irr": -0.24396851006895304,
+            "delta_pct": -5.651051857865828,
+            "atcf": -605.6588733149509,
+            "delta_atcf": -23.194616779003354
+          },
+          "range_pct": 50,
+          "impact": 0.48996942210942507,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 46.389233558006595
+        },
+        {
+          "parameter": "Purchase Price",
+          "parameter_name": "Purchase Price",
+          "base_value": 1000000.0,
+          "base_irr": 4.317222991492596,
+          "low": {
+            "value": 900000.0,
+            "irr": 4.530094984453167,
+            "delta_irr": 0.21287199296057135,
+            "delta_pct": 4.930762051903532,
+            "atcf": -516.8392565359476,
+            "delta_atcf": 65.625
+          },
+          "high": {
+            "value": 1100000.0,
+            "irr": 4.142392961774019,
+            "delta_irr": -0.17483002971857697,
+            "delta_pct": -4.04959461355349,
+            "atcf": -648.0892565359476,
+            "delta_atcf": -65.625
+          },
+          "range_pct": 20,
+          "impact": 0.38770202267914833,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 131.25
+        },
+        {
+          "parameter": "Insurance Rate",
+          "parameter_name": "Insurance Rate",
+          "base_value": 0.004,
+          "base_irr": 4.317222991492596,
+          "low": {
+            "value": 0.003,
+            "irr": 4.507815257180478,
+            "delta_irr": 0.190592265687882,
+            "delta_pct": 4.414695883521839,
+            "atcf": -540.7975898692808,
+            "delta_atcf": 41.66666666666674
+          },
+          "high": {
+            "value": 0.005,
+            "irr": 4.128101724665609,
+            "delta_irr": -0.18912126682698638,
+            "delta_pct": -4.380623081079289,
+            "atcf": -624.1309232026142,
+            "delta_atcf": -41.66666666666663
+          },
+          "range_pct": 50,
+          "impact": 0.3797135325148684,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 83.33333333333337
+        },
+        {
+          "parameter": "Selling Costs Rate",
+          "parameter_name": "Selling Costs Rate",
+          "base_value": 0.078,
+          "base_irr": 4.317222991492596,
+          "low": {
+            "value": 0.057999942000000006,
+            "irr": 4.460743804927912,
+            "delta_irr": 0.14352081343531609,
+            "delta_pct": 3.3243780485310666,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "high": {
+            "value": 0.09799998,
+            "irr": 4.168956327717748,
+            "delta_irr": -0.14826666377484798,
+            "delta_pct": -3.4343063600610466,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "range_pct": 26,
+          "impact": 0.29178747721016407,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 0.0
+        },
+        {
+          "parameter": "Inflation Rate",
+          "parameter_name": "Inflation Rate",
+          "base_value": 0.008,
+          "base_irr": 4.317222991492596,
+          "low": {
+            "value": 0.004,
+            "irr": 4.219459599349644,
+            "delta_irr": -0.09776339214295149,
+            "delta_pct": -2.264497162541787
+          },
+          "high": {
+            "value": 0.012,
+            "irr": 4.420077358838167,
+            "delta_irr": 0.10285436734557152,
+            "delta_pct": 2.382419614373721
+          },
+          "range_pct": 100,
+          "impact": 0.200617759488523
+        },
+        {
+          "parameter": "Ramp-Up Period",
+          "parameter_name": "Ramp-Up Period",
+          "base_value": 7,
+          "base_irr": 4.317222991492596,
+          "low": {
+            "value": 3.01,
+            "irr": 4.38917308906093,
+            "delta_irr": 0.07195009756833404,
+            "delta_pct": 1.6665828406389243,
+            "atcf": -315.10232843137254,
+            "delta_atcf": 267.36192810457504
+          },
+          "high": {
+            "value": 11.969999999999999,
+            "irr": 4.246480064000932,
+            "delta_irr": -0.070742927491664,
+            "delta_pct": -1.6386211143382705,
+            "atcf": -849.8261846405229,
+            "delta_atcf": -267.3619281045753
+          },
+          "range_pct": 171,
+          "impact": 0.14269302505999804,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 534.7238562091504
+        },
+        {
+          "parameter": "Winter Season Occupancy",
+          "parameter_name": "Winter Season Occupancy",
+          "base_value": 0.65,
+          "base_irr": 4.317222991492596,
+          "low": {
+            "value": 0.5525,
+            "irr": 4.317222991492596,
+            "delta_irr": 0.0,
+            "delta_pct": 0.0,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "high": {
+            "value": 0.7474999999999999,
+            "irr": 4.317222991492596,
+            "delta_irr": 0.0,
+            "delta_pct": 0.0,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "range_pct": 30,
+          "impact": 0.0,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 0.0
+        }
+      ],
+      "base_irr": 4.317222991492596,
+      "base_atcf": -582.4642565359476
+    },
+    "30": {
+      "sensitivities": [
+        {
+          "parameter": "Property Appreciation Rate",
+          "parameter_name": "Property Appreciation Rate",
+          "base_value": 0.025,
+          "base_irr": 4.268077210988848,
+          "low": {
+            "value": 0.015,
+            "irr": 2.8108199439011483,
+            "delta_irr": -1.4572572670876993,
+            "delta_pct": -34.143179587655005,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "high": {
+            "value": 0.034999999999999996,
+            "irr": 5.575611131731417,
+            "delta_irr": 1.3075339207425696,
+            "delta_pct": 30.63519838338712,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "range_pct": 40,
+          "impact": 2.764791187830269,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 0.0
+        },
+        {
+          "parameter": "Average Daily Rate",
+          "parameter_name": "Average Daily Rate",
+          "base_value": 200.0,
+          "base_irr": 4.268077210988848,
+          "low": {
+            "value": 160.0,
+            "irr": 3.0770646021701364,
+            "delta_irr": -1.1910126088187112,
+            "delta_pct": -27.90513268486003,
+            "atcf": -707.7389093137255,
+            "delta_atcf": -125.27465277777787
+          },
+          "high": {
+            "value": 240.0,
+            "irr": 5.182758312206712,
+            "delta_irr": 0.9146811012178642,
+            "delta_pct": 21.43075338147284,
+            "atcf": -491.13057598039205,
+            "delta_atcf": 91.33368055555553
+          },
+          "range_pct": 40,
+          "impact": 2.1056937100365754,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 216.6083333333334
+        },
+        {
+          "parameter": "Interest Rate",
+          "parameter_name": "Interest Rate",
+          "base_value": 0.01,
+          "base_irr": 4.268077210988848,
+          "low": {
+            "value": 0.0023076900000000003,
+            "irr": 5.112633030395952,
+            "delta_irr": 0.8445558194071046,
+            "delta_pct": 19.787735264785287,
+            "atcf": -414.1949752859475,
+            "delta_atcf": 168.26928125000006
+          },
+          "high": {
+            "value": 0.01769231,
+            "irr": 3.4783599427901173,
+            "delta_irr": -0.7897172681987303,
+            "delta_pct": -18.502881488776186,
+            "atcf": -750.7335377859475,
+            "delta_atcf": -168.26928124999995
+          },
+          "range_pct": 154,
+          "impact": 1.634273087605835,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 336.5385625
+        },
+        {
+          "parameter": "Maintenance Reserve Rate",
+          "parameter_name": "Maintenance Reserve Rate",
+          "base_value": 0.003,
+          "base_irr": 4.268077210988848,
+          "low": {
+            "value": 0.0,
+            "irr": 4.9248789693228865,
+            "delta_irr": 0.6568017583340389,
+            "delta_pct": 15.388703762035927,
+            "atcf": -457.46425653594764,
+            "delta_atcf": 124.99999999999994
+          },
+          "high": {
+            "value": 0.006,
+            "irr": 3.6252772961743145,
+            "delta_irr": -0.6427999148145331,
+            "delta_pct": -15.060644009896118,
+            "atcf": -707.4642565359476,
+            "delta_atcf": -125.0
+          },
+          "range_pct": 100,
+          "impact": 1.299601673148572,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 249.99999999999994
+        },
+        {
+          "parameter": "Average Length of Stay",
+          "parameter_name": "Average Length of Stay",
+          "base_value": 1.7,
+          "base_irr": 4.268077210988848,
+          "low": {
+            "value": 1.19,
+            "irr": 3.4964838554151334,
+            "delta_irr": -0.7715933555737142,
+            "delta_pct": -18.07824267066031,
+            "atcf": -662.7688783846871,
+            "delta_atcf": -80.30462184873954
+          },
+          "high": {
+            "value": 2.21,
+            "irr": 4.696067320648576,
+            "delta_irr": 0.4279901096597287,
+            "delta_pct": 10.027703073360522,
+            "atcf": -539.2233063097033,
+            "delta_atcf": 43.24095022624431
+          },
+          "range_pct": 60,
+          "impact": 1.199583465233443,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 123.54557207498385
+        },
+        {
+          "parameter": "Cleaning Cost per Stay",
+          "parameter_name": "Cleaning Cost per Stay",
+          "base_value": 100.0,
+          "base_irr": 4.268077210988848,
+          "low": {
+            "value": 70.0,
+            "irr": 4.82622489938512,
+            "delta_irr": 0.5581476883962724,
+            "delta_pct": 13.077263151641958,
+            "atcf": -526.25102124183,
+            "delta_atcf": 56.21323529411757
+          },
+          "high": {
+            "value": 130.0,
+            "irr": 3.724862947594371,
+            "delta_irr": -0.5432142633944768,
+            "delta_pct": -12.727376674346115,
+            "atcf": -638.6774918300653,
+            "delta_atcf": -56.21323529411768
+          },
+          "range_pct": 60,
+          "impact": 1.1013619517907491,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 112.42647058823525
+        },
+        {
+          "parameter": "Amortization Rate",
+          "parameter_name": "Amortization Rate",
+          "base_value": 0.01,
+          "base_irr": 4.268077210988848,
+          "low": {
+            "value": 0.0,
+            "irr": 4.779938797932115,
+            "delta_irr": 0.511861586943267,
+            "delta_pct": 11.99279117128897,
+            "atcf": -269.9642565359475,
+            "delta_atcf": 312.50000000000006
+          },
+          "high": {
+            "value": 0.02,
+            "irr": 3.870573642197993,
+            "delta_irr": -0.3975035687908548,
+            "delta_pct": -9.313410914109479,
+            "atcf": -894.9642565359476,
+            "delta_atcf": -312.5
+          },
+          "range_pct": 200,
+          "impact": 0.9093651557341218,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 625.0
+        },
+        {
+          "parameter": "Loan-to-Value (LTV)",
+          "parameter_name": "Loan-to-Value (LTV)",
+          "base_value": 0.75,
+          "base_irr": 4.268077210988848,
+          "low": {
+            "value": 0.675,
+            "irr": 3.9582353574223785,
+            "delta_irr": -0.3098418535664691,
+            "delta_pct": -7.259518472832021,
+            "atcf": -529.3392565359476,
+            "delta_atcf": 53.125
+          },
+          "high": {
+            "value": 0.8250000000000001,
+            "irr": 4.663007937837389,
+            "delta_irr": 0.3949307268485418,
+            "delta_pct": 9.253129859781577,
+            "atcf": -635.5892565359477,
+            "delta_atcf": -53.125000000000114
+          },
+          "range_pct": 20,
+          "impact": 0.7047725804150109,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 106.25000000000011
+        },
+        {
+          "parameter": "Occupancy Rate",
+          "parameter_name": "Occupancy Rate",
+          "base_value": 0.65,
+          "base_irr": 4.268077210988848,
+          "low": {
+            "value": 0.5850000000000001,
+            "irr": 3.782165945973244,
+            "delta_irr": -0.48591126501560344,
+            "delta_pct": -11.384781506870286,
+            "atcf": -632.6757352941175,
+            "delta_atcf": -50.21147875816996
+          },
+          "high": {
+            "value": 0.7150000000000001,
+            "irr": 4.423336871434,
+            "delta_irr": 0.15525966044515194,
+            "delta_pct": 3.637695682857168,
+            "atcf": -566.6731209150327,
+            "delta_atcf": 15.791135620914929
+          },
+          "range_pct": 20,
+          "impact": 0.6411709254607554,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 66.00261437908489
+        },
+        {
+          "parameter": "Property Management Fee",
+          "parameter_name": "Property Management Fee",
+          "base_value": 0.2,
+          "base_irr": 4.268077210988848,
+          "low": {
+            "value": 0.15000000000000002,
+            "irr": 4.4965375992469445,
+            "delta_irr": 0.2284603882580969,
+            "delta_pct": 5.352770743460054,
+            "atcf": -559.2696397569443,
+            "delta_atcf": 23.19461677900324
+          },
+          "high": {
+            "value": 0.25,
+            "irr": 4.042159498203543,
+            "delta_irr": -0.22591771278530448,
+            "delta_pct": -5.2931964820983834,
+            "atcf": -605.6588733149509,
+            "delta_atcf": -23.194616779003354
+          },
+          "range_pct": 50,
+          "impact": 0.4543781010434014,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 46.389233558006595
+        },
+        {
+          "parameter": "Purchase Price",
+          "parameter_name": "Purchase Price",
+          "base_value": 1000000.0,
+          "base_irr": 4.268077210988848,
+          "low": {
+            "value": 900000.0,
+            "irr": 4.471205434296276,
+            "delta_irr": 0.20312822330742808,
+            "delta_pct": 4.759244345075154,
+            "atcf": -516.8392565359476,
+            "delta_atcf": 65.625
+          },
+          "high": {
+            "value": 1100000.0,
+            "irr": 4.101756682153788,
+            "delta_irr": -0.16632052883506,
+            "delta_pct": -3.896849110574691,
+            "atcf": -648.0892565359476,
+            "delta_atcf": -65.625
+          },
+          "range_pct": 20,
+          "impact": 0.36944875214248807,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 131.25
+        },
+        {
+          "parameter": "Insurance Rate",
+          "parameter_name": "Insurance Rate",
+          "base_value": 0.004,
+          "base_irr": 4.268077210988848,
+          "low": {
+            "value": 0.003,
+            "irr": 4.4443342681042814,
+            "delta_irr": 0.17625705711543382,
+            "delta_pct": 4.129659525878113,
+            "atcf": -540.7975898692808,
+            "delta_atcf": 41.66666666666674
+          },
+          "high": {
+            "value": 0.005,
+            "irr": 4.093558049295094,
+            "delta_irr": -0.1745191616937536,
+            "delta_pct": -4.088941063306589,
+            "atcf": -624.1309232026142,
+            "delta_atcf": -41.66666666666663
+          },
+          "range_pct": 50,
+          "impact": 0.3507762188091874,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 83.33333333333337
+        },
+        {
+          "parameter": "Selling Costs Rate",
+          "parameter_name": "Selling Costs Rate",
+          "base_value": 0.078,
+          "base_irr": 4.268077210988848,
+          "low": {
+            "value": 0.057999942000000006,
+            "irr": 4.3778821374289665,
+            "delta_irr": 0.10980492644011886,
+            "delta_pct": 2.572702437467825,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "high": {
+            "value": 0.09799998,
+            "irr": 4.154925340320912,
+            "delta_irr": -0.1131518706679353,
+            "delta_pct": -2.65112051807797,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "range_pct": 26,
+          "impact": 0.22295679710805416,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 0.0
+        },
+        {
+          "parameter": "Inflation Rate",
+          "parameter_name": "Inflation Rate",
+          "base_value": 0.008,
+          "base_irr": 4.268077210988848,
+          "low": {
+            "value": 0.004,
+            "irr": 4.162686815019694,
+            "delta_irr": -0.10539039596915334,
+            "delta_pct": -2.4692710735834136
+          },
+          "high": {
+            "value": 0.012,
+            "irr": 4.380095026921477,
+            "delta_irr": 0.11201781593262972,
+            "delta_pct": 2.6245498943698093
+          },
+          "range_pct": 100,
+          "impact": 0.21740821190178305
+        },
+        {
+          "parameter": "Ramp-Up Period",
+          "parameter_name": "Ramp-Up Period",
+          "base_value": 7,
+          "base_irr": 4.268077210988848,
+          "low": {
+            "value": 3.01,
+            "irr": 4.327290411572901,
+            "delta_irr": 0.059213200584053105,
+            "delta_pct": 1.387350735633349,
+            "atcf": -315.10232843137254,
+            "delta_atcf": 267.36192810457504
+          },
+          "high": {
+            "value": 11.969999999999999,
+            "irr": 4.209852857049551,
+            "delta_irr": -0.05822435393929659,
+            "delta_pct": -1.3641823017959627,
+            "atcf": -849.8261846405229,
+            "delta_atcf": -267.3619281045753
+          },
+          "range_pct": 171,
+          "impact": 0.1174375545233497,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 534.7238562091504
+        },
+        {
+          "parameter": "Winter Season Occupancy",
+          "parameter_name": "Winter Season Occupancy",
+          "base_value": 0.65,
+          "base_irr": 4.268077210988848,
+          "low": {
+            "value": 0.5525,
+            "irr": 4.268077210988848,
+            "delta_irr": 0.0,
+            "delta_pct": 0.0,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "high": {
+            "value": 0.7474999999999999,
+            "irr": 4.268077210988848,
+            "delta_irr": 0.0,
+            "delta_pct": 0.0,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "range_pct": 30,
+          "impact": 0.0,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 0.0
+        }
+      ],
+      "base_irr": 4.268077210988848,
+      "base_atcf": -582.4642565359476
+    },
+    "35": {
+      "sensitivities": [
+        {
+          "parameter": "Property Appreciation Rate",
+          "parameter_name": "Property Appreciation Rate",
+          "base_value": 0.025,
+          "base_irr": 4.1837956742383495,
+          "low": {
+            "value": 0.015,
+            "irr": 2.8428761637769613,
+            "delta_irr": -1.3409195104613882,
+            "delta_pct": -32.05031064777081,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "high": {
+            "value": 0.034999999999999996,
+            "irr": 5.403792636003342,
+            "delta_irr": 1.2199969617649922,
+            "delta_pct": 29.16005122518537,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "range_pct": 40,
+          "impact": 2.5609164722263804,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 0.0
+        },
+        {
+          "parameter": "Average Daily Rate",
+          "parameter_name": "Average Daily Rate",
+          "base_value": 200.0,
+          "base_irr": 4.1837956742383495,
+          "low": {
+            "value": 160.0,
+            "irr": 3.07740461407229,
+            "delta_irr": -1.1063910601660596,
+            "delta_pct": -26.444672405458125,
+            "atcf": -707.7389093137255,
+            "delta_atcf": -125.27465277777787
+          },
+          "high": {
+            "value": 240.0,
+            "irr": 5.044779948424545,
+            "delta_irr": 0.8609842741861957,
+            "delta_pct": 20.579023002669363,
+            "atcf": -491.13057598039205,
+            "delta_atcf": 91.33368055555553
+          },
+          "range_pct": 40,
+          "impact": 1.9673753343522553,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 216.6083333333334
+        },
+        {
+          "parameter": "Interest Rate",
+          "parameter_name": "Interest Rate",
+          "base_value": 0.01,
+          "base_irr": 4.1837956742383495,
+          "low": {
+            "value": 0.0023076900000000003,
+            "irr": 4.95387252559885,
+            "delta_irr": 0.7700768513605007,
+            "delta_pct": 18.40617734040493,
+            "atcf": -414.1949752859475,
+            "delta_atcf": 168.26928125000006
+          },
+          "high": {
+            "value": 0.01769231,
+            "irr": 3.4729938902892137,
+            "delta_irr": -0.7108017839491358,
+            "delta_pct": -16.989400039917957,
+            "atcf": -750.7335377859475,
+            "delta_atcf": -168.26928124999995
+          },
+          "range_pct": 154,
+          "impact": 1.4808786353096366,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 336.5385625
+        },
+        {
+          "parameter": "Maintenance Reserve Rate",
+          "parameter_name": "Maintenance Reserve Rate",
+          "base_value": 0.003,
+          "base_irr": 4.1837956742383495,
+          "low": {
+            "value": 0.0,
+            "irr": 4.818085065577176,
+            "delta_irr": 0.6342893913388261,
+            "delta_pct": 15.16062065947561,
+            "atcf": -457.46425653594764,
+            "delta_atcf": 124.99999999999994
+          },
+          "high": {
+            "value": 0.006,
+            "irr": 3.5659981383942037,
+            "delta_irr": -0.6177975358441459,
+            "delta_pct": -14.766436603207552,
+            "atcf": -707.4642565359476,
+            "delta_atcf": -125.0
+          },
+          "range_pct": 100,
+          "impact": 1.252086927182972,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 249.99999999999994
+        },
+        {
+          "parameter": "Average Length of Stay",
+          "parameter_name": "Average Length of Stay",
+          "base_value": 1.7,
+          "base_irr": 4.1837956742383495,
+          "low": {
+            "value": 1.19,
+            "irr": 3.4651966248638892,
+            "delta_irr": -0.7185990493744603,
+            "delta_pct": -17.175768257499325,
+            "atcf": -662.7688783846871,
+            "delta_atcf": -80.30462184873954
+          },
+          "high": {
+            "value": 2.21,
+            "irr": 4.585401882883157,
+            "delta_irr": 0.40160620864480734,
+            "delta_pct": 9.599087525179366,
+            "atcf": -539.2233063097033,
+            "delta_atcf": 43.24095022624431
+          },
+          "range_pct": 60,
+          "impact": 1.1202052580192676,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 123.54557207498385
+        },
+        {
+          "parameter": "Cleaning Cost per Stay",
+          "parameter_name": "Cleaning Cost per Stay",
+          "base_value": 100.0,
+          "base_irr": 4.1837956742383495,
+          "low": {
+            "value": 70.0,
+            "irr": 4.707972850184885,
+            "delta_irr": 0.5241771759465355,
+            "delta_pct": 12.528747022091624,
+            "atcf": -526.25102124183,
+            "delta_atcf": 56.21323529411757
+          },
+          "high": {
+            "value": 130.0,
+            "irr": 3.677177428733554,
+            "delta_irr": -0.5066182455047956,
+            "delta_pct": -12.109058016965045,
+            "atcf": -638.6774918300653,
+            "delta_atcf": -56.21323529411768
+          },
+          "range_pct": 60,
+          "impact": 1.030795421451331,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 112.42647058823525
+        },
+        {
+          "parameter": "Amortization Rate",
+          "parameter_name": "Amortization Rate",
+          "base_value": 0.01,
+          "base_irr": 4.1837956742383495,
+          "low": {
+            "value": 0.0,
+            "irr": 4.707050472032276,
+            "delta_irr": 0.5232547977939266,
+            "delta_pct": 12.506700578516755,
+            "atcf": -269.9642565359475,
+            "delta_atcf": 312.50000000000006
+          },
+          "high": {
+            "value": 0.02,
+            "irr": 3.782100500073281,
+            "delta_irr": -0.4016951741650687,
+            "delta_pct": -9.60121395598977,
+            "atcf": -894.9642565359476,
+            "delta_atcf": -312.5
+          },
+          "range_pct": 200,
+          "impact": 0.9249499719589953,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 625.0
+        },
+        {
+          "parameter": "Loan-to-Value (LTV)",
+          "parameter_name": "Loan-to-Value (LTV)",
+          "base_value": 0.75,
+          "base_irr": 4.1837956742383495,
+          "low": {
+            "value": 0.675,
+            "irr": 3.9085184591822286,
+            "delta_irr": -0.2752772150561209,
+            "delta_pct": -6.579604657826281,
+            "atcf": -529.3392565359476,
+            "delta_atcf": 53.125
+          },
+          "high": {
+            "value": 0.8250000000000001,
+            "irr": 4.529229360166934,
+            "delta_irr": 0.34543368592858403,
+            "delta_pct": 8.25646644398975,
+            "atcf": -635.5892565359477,
+            "delta_atcf": -53.125000000000114
+          },
+          "range_pct": 20,
+          "impact": 0.6207109009847049,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 106.25000000000011
+        },
+        {
+          "parameter": "Occupancy Rate",
+          "parameter_name": "Occupancy Rate",
+          "base_value": 0.65,
+          "base_irr": 4.1837956742383495,
+          "low": {
+            "value": 0.5850000000000001,
+            "irr": 3.7304590833373332,
+            "delta_irr": -0.4533365909010163,
+            "delta_pct": -10.835533716247872,
+            "atcf": -632.6757352941175,
+            "delta_atcf": -50.21147875816996
+          },
+          "high": {
+            "value": 0.7150000000000001,
+            "irr": 4.329231291543691,
+            "delta_irr": 0.14543561730534105,
+            "delta_pct": 3.4761644360612154,
+            "atcf": -566.6731209150327,
+            "delta_atcf": 15.791135620914929
+          },
+          "range_pct": 20,
+          "impact": 0.5987722082063573,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 66.00261437908489
+        },
+        {
+          "parameter": "Property Management Fee",
+          "parameter_name": "Property Management Fee",
+          "base_value": 0.2,
+          "base_irr": 4.1837956742383495,
+          "low": {
+            "value": 0.15000000000000002,
+            "irr": 4.397899890784172,
+            "delta_irr": 0.2141042165458229,
+            "delta_pct": 5.117463500050109,
+            "atcf": -559.2696397569443,
+            "delta_atcf": 23.19461677900324
+          },
+          "high": {
+            "value": 0.25,
+            "irr": 3.9726810059510136,
+            "delta_irr": -0.21111466828733594,
+            "delta_pct": -5.046008092299318,
+            "atcf": -605.6588733149509,
+            "delta_atcf": -23.194616779003354
+          },
+          "range_pct": 50,
+          "impact": 0.42521888483315884,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 46.389233558006595
+        },
+        {
+          "parameter": "Purchase Price",
+          "parameter_name": "Purchase Price",
+          "base_value": 1000000.0,
+          "base_irr": 4.1837956742383495,
+          "low": {
+            "value": 900000.0,
+            "irr": 4.377955252770333,
+            "delta_irr": 0.19415957853198318,
+            "delta_pct": 4.640751930777057,
+            "atcf": -516.8392565359476,
+            "delta_atcf": 65.625
+          },
+          "high": {
+            "value": 1100000.0,
+            "irr": 4.02529184008017,
+            "delta_irr": -0.15850383415817948,
+            "delta_pct": -3.7885175687274626,
+            "atcf": -648.0892565359476,
+            "delta_atcf": -65.625
+          },
+          "range_pct": 20,
+          "impact": 0.35266341269016266,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 131.25
+        },
+        {
+          "parameter": "Insurance Rate",
+          "parameter_name": "Insurance Rate",
+          "base_value": 0.004,
+          "base_irr": 4.1837956742383495,
+          "low": {
+            "value": 0.003,
+            "irr": 4.348443753551688,
+            "delta_irr": 0.1646480793133387,
+            "delta_pct": 3.9353757241816667,
+            "atcf": -540.7975898692808,
+            "delta_atcf": 41.66666666666674
+          },
+          "high": {
+            "value": 0.005,
+            "irr": 4.021119663957503,
+            "delta_irr": -0.16267601028084666,
+            "delta_pct": -3.8882398412169463,
+            "atcf": -624.1309232026142,
+            "delta_atcf": -41.66666666666663
+          },
+          "range_pct": 50,
+          "impact": 0.32732408959418535,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 83.33333333333337
+        },
+        {
+          "parameter": "Inflation Rate",
+          "parameter_name": "Inflation Rate",
+          "base_value": 0.008,
+          "base_irr": 4.1837956742383495,
+          "low": {
+            "value": 0.004,
+            "irr": 4.07212196057662,
+            "delta_irr": -0.1116737136617294,
+            "delta_pct": -2.669196164367165
+          },
+          "high": {
+            "value": 0.012,
+            "irr": 4.303698187228289,
+            "delta_irr": 0.11990251298993915,
+            "delta_pct": 2.865878793465867
+          },
+          "range_pct": 100,
+          "impact": 0.23157622665166855
+        },
+        {
+          "parameter": "Selling Costs Rate",
+          "parameter_name": "Selling Costs Rate",
+          "base_value": 0.078,
+          "base_irr": 4.1837956742383495,
+          "low": {
+            "value": 0.057999942000000006,
+            "irr": 4.271726331207898,
+            "delta_irr": 0.08793065696954816,
+            "delta_pct": 2.1016957761818933,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "high": {
+            "value": 0.09799998,
+            "irr": 4.093351996969428,
+            "delta_irr": -0.09044367726892144,
+            "delta_pct": -2.161761336143322,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "range_pct": 26,
+          "impact": 0.1783743342384696,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 0.0
+        },
+        {
+          "parameter": "Ramp-Up Period",
+          "parameter_name": "Ramp-Up Period",
+          "base_value": 7,
+          "base_irr": 4.1837956742383495,
+          "low": {
+            "value": 3.01,
+            "irr": 4.23399830376729,
+            "delta_irr": 0.05020262952894061,
+            "delta_pct": 1.199930241289326,
+            "atcf": -315.10232843137254,
+            "delta_atcf": 267.36192810457504
+          },
+          "high": {
+            "value": 11.969999999999999,
+            "irr": 4.134427479933944,
+            "delta_irr": -0.049368194304405755,
+            "delta_pct": -1.1799857867913954,
+            "atcf": -849.8261846405229,
+            "delta_atcf": -267.3619281045753
+          },
+          "range_pct": 171,
+          "impact": 0.09957082383334637,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 534.7238562091504
+        },
+        {
+          "parameter": "Winter Season Occupancy",
+          "parameter_name": "Winter Season Occupancy",
+          "base_value": 0.65,
+          "base_irr": 4.1837956742383495,
+          "low": {
+            "value": 0.5525,
+            "irr": 4.1837956742383495,
+            "delta_irr": 0.0,
+            "delta_pct": 0.0,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "high": {
+            "value": 0.7474999999999999,
+            "irr": 4.1837956742383495,
+            "delta_irr": 0.0,
+            "delta_pct": 0.0,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "range_pct": 30,
+          "impact": 0.0,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 0.0
+        }
+      ],
+      "base_irr": 4.1837956742383495,
+      "base_atcf": -582.4642565359476
+    },
+    "40": {
+      "sensitivities": [
+        {
+          "parameter": "Property Appreciation Rate",
+          "parameter_name": "Property Appreciation Rate",
+          "base_value": 0.025,
+          "base_irr": 4.088423102628437,
+          "low": {
+            "value": 0.015,
+            "irr": 2.840689861681309,
+            "delta_irr": -1.2477332409471278,
+            "delta_pct": -30.51869167222353,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "high": {
+            "value": 0.034999999999999996,
+            "irr": 5.240944318938998,
+            "delta_irr": 1.1525212163105607,
+            "delta_pct": 28.18987143404037,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "range_pct": 40,
+          "impact": 2.4002544572576885,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 0.0
+        },
+        {
+          "parameter": "Average Daily Rate",
+          "parameter_name": "Average Daily Rate",
+          "base_value": 200.0,
+          "base_irr": 4.088423102628437,
+          "low": {
+            "value": 160.0,
+            "irr": 3.053224399220195,
+            "delta_irr": -1.0351987034082422,
+            "delta_pct": -25.320243952802134,
+            "atcf": -707.7389093137255,
+            "delta_atcf": -125.27465277777787
+          },
+          "high": {
+            "value": 240.0,
+            "irr": 4.904533475171771,
+            "delta_irr": 0.8161103725433341,
+            "delta_pct": 19.961494983693314,
+            "atcf": -491.13057598039205,
+            "delta_atcf": 91.33368055555553
+          },
+          "range_pct": 40,
+          "impact": 1.8513090759515762,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 216.6083333333334
+        },
+        {
+          "parameter": "Interest Rate",
+          "parameter_name": "Interest Rate",
+          "base_value": 0.01,
+          "base_irr": 4.088423102628437,
+          "low": {
+            "value": 0.0023076900000000003,
+            "irr": 4.796754303853956,
+            "delta_irr": 0.7083312012255192,
+            "delta_pct": 17.325291033849574,
+            "atcf": -414.1949752859475,
+            "delta_atcf": 168.26928125000006
+          },
+          "high": {
+            "value": 0.01769231,
+            "irr": 3.4426638060249357,
+            "delta_irr": -0.6457592966035013,
+            "delta_pct": -15.794825545045576,
+            "atcf": -750.7335377859475,
+            "delta_atcf": -168.26928124999995
+          },
+          "range_pct": 154,
+          "impact": 1.3540904978290205,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 336.5385625
+        },
+        {
+          "parameter": "Maintenance Reserve Rate",
+          "parameter_name": "Maintenance Reserve Rate",
+          "base_value": 0.003,
+          "base_irr": 4.088423102628437,
+          "low": {
+            "value": 0.0,
+            "irr": 4.70525940181687,
+            "delta_irr": 0.6168362991884333,
+            "delta_pct": 15.08738904229043,
+            "atcf": -457.46425653594764,
+            "delta_atcf": 124.99999999999994
+          },
+          "high": {
+            "value": 0.006,
+            "irr": 3.490435733925548,
+            "delta_irr": -0.5979873687028889,
+            "delta_pct": -14.626357245619817,
+            "atcf": -707.4642565359476,
+            "delta_atcf": -125.0
+          },
+          "range_pct": 100,
+          "impact": 1.2148236678913222,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 249.99999999999994
+        },
+        {
+          "parameter": "Average Length of Stay",
+          "parameter_name": "Average Length of Stay",
+          "base_value": 1.7,
+          "base_irr": 4.088423102628437,
+          "low": {
+            "value": 1.19,
+            "irr": 3.4144065161235604,
+            "delta_irr": -0.6740165865048766,
+            "delta_pct": -16.48597930266936,
+            "atcf": -662.7688783846871,
+            "delta_atcf": -80.30462184873954
+          },
+          "high": {
+            "value": 2.21,
+            "irr": 4.467909619677808,
+            "delta_irr": 0.3794865170493713,
+            "delta_pct": 9.28197761150015,
+            "atcf": -539.2233063097033,
+            "delta_atcf": 43.24095022624431
+          },
+          "range_pct": 60,
+          "impact": 1.053503103554248,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 123.54557207498385
+        },
+        {
+          "parameter": "Cleaning Cost per Stay",
+          "parameter_name": "Cleaning Cost per Stay",
+          "base_value": 100.0,
+          "base_irr": 4.088423102628437,
+          "low": {
+            "value": 70.0,
+            "irr": 4.584140515420581,
+            "delta_irr": 0.49571741279214443,
+            "delta_pct": 12.12490489238868,
+            "atcf": -526.25102124183,
+            "delta_atcf": 56.21323529411757
+          },
+          "high": {
+            "value": 130.0,
+            "irr": 3.6125853932462593,
+            "delta_irr": -0.47583770938217773,
+            "delta_pct": -11.638661103256727,
+            "atcf": -638.6774918300653,
+            "delta_atcf": -56.21323529411768
+          },
+          "range_pct": 60,
+          "impact": 0.9715551221743222,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 112.42647058823525
+        },
+        {
+          "parameter": "Amortization Rate",
+          "parameter_name": "Amortization Rate",
+          "base_value": 0.01,
+          "base_irr": 4.088423102628437,
+          "low": {
+            "value": 0.0,
+            "irr": 4.6144746900536076,
+            "delta_irr": 0.5260515874251706,
+            "delta_pct": 12.866857813394441,
+            "atcf": -269.9642565359475,
+            "delta_atcf": 312.50000000000006
+          },
+          "high": {
+            "value": 0.02,
+            "irr": 3.6884934338740973,
+            "delta_irr": -0.39992966875433966,
+            "delta_pct": -9.782002956035198,
+            "atcf": -894.9642565359476,
+            "delta_atcf": -312.5
+          },
+          "range_pct": 200,
+          "impact": 0.9259812561795102,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 625.0
+        },
+        {
+          "parameter": "Occupancy Rate",
+          "parameter_name": "Occupancy Rate",
+          "base_value": 0.65,
+          "base_irr": 4.088423102628437,
+          "low": {
+            "value": 0.5850000000000001,
+            "irr": 3.6624817564152146,
+            "delta_irr": -0.42594134621322244,
+            "delta_pct": -10.418230587225324,
+            "atcf": -632.6757352941175,
+            "delta_atcf": -50.21147875816996
+          },
+          "high": {
+            "value": 0.7150000000000001,
+            "irr": 4.225611513946203,
+            "delta_irr": 0.1371884113177657,
+            "delta_pct": 3.3555336097569652,
+            "atcf": -566.6731209150327,
+            "delta_atcf": 15.791135620914929
+          },
+          "range_pct": 20,
+          "impact": 0.5631297575309882,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 66.00261437908489
+        },
+        {
+          "parameter": "Loan-to-Value (LTV)",
+          "parameter_name": "Loan-to-Value (LTV)",
+          "base_value": 0.75,
+          "base_irr": 4.088423102628437,
+          "low": {
+            "value": 0.675,
+            "irr": 3.8430117149837275,
+            "delta_irr": -0.2454113876447095,
+            "delta_pct": -6.002592723021625,
+            "atcf": -529.3392565359476,
+            "delta_atcf": 53.125
+          },
+          "high": {
+            "value": 0.8250000000000001,
+            "irr": 4.392471460159865,
+            "delta_irr": 0.30404835753142834,
+            "delta_pct": 7.436812431080248,
+            "atcf": -635.5892565359477,
+            "delta_atcf": -53.125000000000114
+          },
+          "range_pct": 20,
+          "impact": 0.5494597451761378,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 106.25000000000011
+        },
+        {
+          "parameter": "Property Management Fee",
+          "parameter_name": "Property Management Fee",
+          "base_value": 0.2,
+          "base_irr": 4.088423102628437,
+          "low": {
+            "value": 0.15000000000000002,
+            "irr": 4.290479649323967,
+            "delta_irr": 0.20205654669553041,
+            "delta_pct": 4.942163313910167,
+            "atcf": -559.2696397569443,
+            "delta_atcf": 23.19461677900324
+          },
+          "high": {
+            "value": 0.25,
+            "irr": 3.8897513360716367,
+            "delta_irr": -0.1986717665568003,
+            "delta_pct": -4.85937393390314,
+            "atcf": -605.6588733149509,
+            "delta_atcf": -23.194616779003354
+          },
+          "range_pct": 50,
+          "impact": 0.4007283132523307,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 46.389233558006595
+        },
+        {
+          "parameter": "Purchase Price",
+          "parameter_name": "Purchase Price",
+          "base_value": 1000000.0,
+          "base_irr": 4.088423102628437,
+          "low": {
+            "value": 900000.0,
+            "irr": 4.274444892536845,
+            "delta_irr": 0.18602178990840823,
+            "delta_pct": 4.549964258562556,
+            "atcf": -516.8392565359476,
+            "delta_atcf": 65.625
+          },
+          "high": {
+            "value": 1100000.0,
+            "irr": 3.9370053210295715,
+            "delta_irr": -0.15141778159886554,
+            "delta_pct": -3.703574160451237,
+            "atcf": -648.0892565359476,
+            "delta_atcf": -65.625
+          },
+          "range_pct": 20,
+          "impact": 0.3374395715072738,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 131.25
+        },
+        {
+          "parameter": "Insurance Rate",
+          "parameter_name": "Insurance Rate",
+          "base_value": 0.004,
+          "base_irr": 4.088423102628437,
+          "low": {
+            "value": 0.003,
+            "irr": 4.243404106702653,
+            "delta_irr": 0.1549810040742159,
+            "delta_pct": 3.790728116534196,
+            "atcf": -540.7975898692808,
+            "delta_atcf": 41.66666666666674
+          },
+          "high": {
+            "value": 0.005,
+            "irr": 3.935621242504564,
+            "delta_irr": -0.1528018601238732,
+            "delta_pct": -3.7374277634239292,
+            "atcf": -624.1309232026142,
+            "delta_atcf": -41.66666666666663
+          },
+          "range_pct": 50,
+          "impact": 0.3077828641980891,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 83.33333333333337
+        },
+        {
+          "parameter": "Inflation Rate",
+          "parameter_name": "Inflation Rate",
+          "base_value": 0.008,
+          "base_irr": 4.088423102628437,
+          "low": {
+            "value": 0.004,
+            "irr": 3.971508092712607,
+            "delta_irr": -0.11691500991583004,
+            "delta_pct": -2.8596602401709763
+          },
+          "high": {
+            "value": 0.012,
+            "irr": 4.215217886958267,
+            "delta_irr": 0.12679478432982982,
+            "delta_pct": 3.101312685771533
+          },
+          "range_pct": 100,
+          "impact": 0.24370979424565986
+        },
+        {
+          "parameter": "Selling Costs Rate",
+          "parameter_name": "Selling Costs Rate",
+          "base_value": 0.078,
+          "base_irr": 4.088423102628437,
+          "low": {
+            "value": 0.057999942000000006,
+            "irr": 4.161266945768145,
+            "delta_irr": 0.07284384313970804,
+            "delta_pct": 1.7817099970127093,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "high": {
+            "value": 0.09799998,
+            "irr": 4.013602588791397,
+            "delta_irr": -0.07482051383704036,
+            "delta_pct": -1.8300579944609559,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "range_pct": 26,
+          "impact": 0.1476643569767484,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 0.0
+        },
+        {
+          "parameter": "Ramp-Up Period",
+          "parameter_name": "Ramp-Up Period",
+          "base_value": 7,
+          "base_irr": 4.088423102628437,
+          "low": {
+            "value": 3.01,
+            "irr": 4.131927753333,
+            "delta_irr": 0.043504650704562664,
+            "delta_pct": 1.064093652063399,
+            "atcf": -315.10232843137254,
+            "delta_atcf": 267.36192810457504
+          },
+          "high": {
+            "value": 11.969999999999999,
+            "irr": 4.04563835682347,
+            "delta_irr": -0.04278474580496727,
+            "delta_pct": -1.0464852763761427,
+            "atcf": -849.8261846405229,
+            "delta_atcf": -267.3619281045753
+          },
+          "range_pct": 171,
+          "impact": 0.08628939650952994,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 534.7238562091504
+        },
+        {
+          "parameter": "Winter Season Occupancy",
+          "parameter_name": "Winter Season Occupancy",
+          "base_value": 0.65,
+          "base_irr": 4.088423102628437,
+          "low": {
+            "value": 0.5525,
+            "irr": 4.088423102628437,
+            "delta_irr": 0.0,
+            "delta_pct": 0.0,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "high": {
+            "value": 0.7474999999999999,
+            "irr": 4.088423102628437,
+            "delta_irr": 0.0,
+            "delta_pct": 0.0,
+            "atcf": -582.4642565359476,
+            "delta_atcf": 0.0
+          },
+          "range_pct": 30,
+          "impact": 0.0,
+          "base_atcf": -582.4642565359476,
+          "impact_atcf": 0.0
+        }
+      ],
+      "base_irr": 4.088423102628437,
+      "base_atcf": -582.4642565359476
+    }
+  }
 }

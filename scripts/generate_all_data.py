@@ -8,14 +8,12 @@ import os
 import sys
 import json
 import glob
+import argparse
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 # Add project root to path so we can import engelberg package
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-# Import get_project_root for path resolution
-from engelberg.core import get_project_root
 
 # Import from engelberg package
 from engelberg.analysis import (
@@ -28,9 +26,7 @@ from engelberg.analysis import (
     extract_case_name
 )
 from engelberg.core import (
-    create_base_case_config,
     load_assumptions_from_json,
-    get_projection_defaults,
     resolve_path,
     get_project_root
 )
@@ -80,7 +76,14 @@ def get_case_metadata(assumptions_path: str) -> Dict:
         }
 
 
-def generate_case_data(case_name: str, assumptions_path: str, case_metadata: Dict) -> Dict:
+def generate_case_data(
+    case_name: str,
+    assumptions_path: str,
+    case_metadata: Dict,
+    monte_carlo_simulations: int = 1000,
+    include_mc_sensitivity: bool = False,
+    mc_sensitivity_simulations: int = 1000
+) -> Dict:
     """
     Generate all JSON data for a specific case.
     Runs base case, sensitivity, and Monte Carlo analyses.
@@ -145,18 +148,33 @@ def generate_case_data(case_name: str, assumptions_path: str, case_metadata: Dic
                 print(f"  [+] NCF Sensitivity JSON: website/data/{case_name}_sensitivity_ncf.json")
             
             # Run Monte Carlo
-            run_monte_carlo_analysis(assumptions_path, case_name, n_simulations=1000, verbose=False)
+            run_monte_carlo_analysis(
+                assumptions_path,
+                case_name,
+                n_simulations=monte_carlo_simulations,
+                verbose=False
+            )
             json_path = resolve_path(f"website/data/{case_name}_monte_carlo.json")
             if os.path.exists(json_path):
                 result['monte_carlo'] = os.path.basename(json_path)
                 print(f"  [+] Monte Carlo JSON: website/data/{case_name}_monte_carlo.json")
             
-            # Run MC Sensitivity Analysis
-            run_monte_carlo_sensitivity_analysis(assumptions_path, case_name, num_simulations=1000, verbose=False)
             json_path_mc_sens = resolve_path(f"website/data/{case_name}_monte_carlo_sensitivity.json")
-            if os.path.exists(json_path_mc_sens):
+            if include_mc_sensitivity:
+                run_monte_carlo_sensitivity_analysis(
+                    assumptions_path,
+                    case_name,
+                    num_simulations=mc_sensitivity_simulations,
+                    verbose=False
+                )
+                if os.path.exists(json_path_mc_sens):
+                    result['monte_carlo_sensitivity'] = os.path.basename(json_path_mc_sens)
+                    print(f"  [+] MC Sensitivity JSON: website/data/{case_name}_monte_carlo_sensitivity.json")
+            elif os.path.exists(json_path_mc_sens):
                 result['monte_carlo_sensitivity'] = os.path.basename(json_path_mc_sens)
-                print(f"  [+] MC Sensitivity JSON: website/data/{case_name}_monte_carlo_sensitivity.json")
+                print("  [=] MC Sensitivity JSON reused (generation skipped)")
+            else:
+                print("  [~] MC Sensitivity skipped (run scripts/analyze_monte_carlo_sensitivity.py)")
         
         except Exception as e:
             error_msg = f"Analysis failed: {str(e)}"
@@ -175,13 +193,39 @@ def generate_case_data(case_name: str, assumptions_path: str, case_metadata: Dic
 
 def main():
     """Main function to generate all case data."""
+    parser = argparse.ArgumentParser(
+        description="Generate dashboard data for all assumptions files."
+    )
+    parser.add_argument(
+        "--monte-carlo-simulations",
+        type=int,
+        default=1000,
+        help="Monte Carlo simulations per case for monte_carlo output (default: 1000)."
+    )
+    parser.add_argument(
+        "--include-mc-sensitivity",
+        action="store_true",
+        help="Regenerate Monte Carlo sensitivity for each case (slow)."
+    )
+    parser.add_argument(
+        "--mc-sensitivity-simulations",
+        type=int,
+        default=1000,
+        help="Simulations per parameter value for MC sensitivity output (default: 1000)."
+    )
+    args = parser.parse_args()
+
     print("="*80)
     print("MASTER DATA GENERATOR")
     print("="*80)
     print("\nThis script will:")
     print("  1. Scan for all assumptions_*.json files")
     print("  2. Generate base case, sensitivity, and Monte Carlo data for each")
-    print("  3. Create cases_index.json with metadata for all cases")
+    if args.include_mc_sensitivity:
+        print("  3. Regenerate Monte Carlo sensitivity data for each case")
+    else:
+        print("  3. Skip MC sensitivity regeneration (separate script)")
+    print("  4. Create cases_index.json with metadata for all cases")
     print()
     
     # Find all assumptions files
@@ -246,7 +290,10 @@ def main():
         result = generate_case_data(
             case_info['case_name'],
             case_info['assumptions_file'],
-            case_info['metadata']
+            case_info['metadata'],
+            monte_carlo_simulations=args.monte_carlo_simulations,
+            include_mc_sensitivity=args.include_mc_sensitivity,
+            mc_sensitivity_simulations=args.mc_sensitivity_simulations
         )
         case_results.append(result)
     
@@ -316,4 +363,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

@@ -1,7 +1,7 @@
-"""
-═══════════════════════════════════════════════════════════════════════════════
+﻿"""
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 COMPREHENSIVE SYSTEM VALIDATION SCRIPT
-═══════════════════════════════════════════════════════════════════════════════
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 PURPOSE:
     Performs extensive validation of the entire Engelberg Property Investment
@@ -12,7 +12,7 @@ VALIDATION CATEGORIES:
     1. File Structure & Existence
     2. Python Module Imports & Dependencies
     3. Assumptions Files (Structure & Values)
-    4. Cross-Validation (Scripts ↔ Assumptions ↔ Data)
+    4. Cross-Validation (Scripts â†” Assumptions â†” Data)
     5. Data File Integrity
     6. Calculation Consistency
     7. Dashboard Components
@@ -21,7 +21,7 @@ VALIDATION CATEGORIES:
 USAGE:
     python validate_system.py [--verbose]
 
-═══════════════════════════════════════════════════════════════════════════════
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 """
 
 import os
@@ -71,13 +71,13 @@ class ValidationResult:
         print(f"[WARN] {message}")
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # VALIDATION SECTION 1: FILE STRUCTURE & EXISTENCE
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def validate_file_structure(result: ValidationResult):
     """Validate that all required files and directories exist."""
-    print("\n[1/12] Validating File Structure & Existence...")
+    print("\n[1/13] Validating File Structure & Existence...")
     print("-" * 80)
     
     # Required directories
@@ -105,6 +105,7 @@ def validate_file_structure(result: ValidationResult):
     # Required scripts
     required_scripts = [
         ('scripts/analyze.py', 'Main analysis CLI script'),
+        ('scripts/analyze_monte_carlo_sensitivity.py', 'Dedicated MC sensitivity CLI script'),
         ('scripts/generate_all_data.py', 'Batch data generator'),
         ('scripts/validate_system.py', 'This validation script')
     ]
@@ -134,13 +135,13 @@ def validate_file_structure(result: ValidationResult):
         result.add_fail("Dashboard missing: website/index.html")
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # VALIDATION SECTION 2: PYTHON MODULE IMPORTS & DEPENDENCIES
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def validate_python_imports(result: ValidationResult):
     """Validate that all Python modules can be imported."""
-    print("\n[2/12] Validating Python Module Imports...")
+    print("\n[2/13] Validating Python Module Imports...")
     print("-" * 80)
     
     # Check package modules
@@ -160,6 +161,7 @@ def validate_python_imports(result: ValidationResult):
     # Check script modules (these are in scripts/ directory)
     script_modules = [
         ('scripts.generate_all_data', 'Batch generator'),
+        ('scripts.analyze_monte_carlo_sensitivity', 'Dedicated MC sensitivity runner'),
     ]
     
     for module_name, description in script_modules:
@@ -193,13 +195,13 @@ def validate_python_imports(result: ValidationResult):
             result.add_fail(f"Package missing: {package} ({description}) - Run: pip install {package}")
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # VALIDATION SECTION 3: ASSUMPTIONS FILES (STRUCTURE & VALUES)
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def validate_assumptions_files(result: ValidationResult):
     """Validate all assumptions JSON files for structure and reasonable values."""
-    print("\n[3/12] Validating Assumptions Files...")
+    print("\n[3/13] Validating Assumptions Files...")
     print("-" * 80)
     
     import glob
@@ -281,15 +283,31 @@ def validate_assumptions_files(result: ValidationResult):
                     result.add_pass(f"{assumptions_file}: Appreciation {appr*100:.1f}% in reasonable range")
                 else:
                     result.add_warning(f"{assumptions_file}: Appreciation {appr*100:.1f}% seems unusual")
+        
+        # Expense rate ranges (catch typos e.g. 0.25 instead of 0.0025)
+        if 'expenses' in assumptions:
+            exp = assumptions['expenses']
+            if 'insurance_rate' in exp and not str(exp.get('insurance_rate', '')).startswith('_'):
+                ir = float(exp['insurance_rate'])
+                if 0.0005 <= ir <= 0.02:
+                    result.add_pass(f"{assumptions_file}: Insurance rate {ir*100:.2f}% in reasonable range (0.05-2%)")
+                else:
+                    result.add_warning(f"{assumptions_file}: Insurance rate {ir*100:.2f}% outside typical range (0.05-2%)")
+            if 'maintenance_rate' in exp and not str(exp.get('maintenance_rate', '')).startswith('_'):
+                mr = float(exp['maintenance_rate'])
+                if 0.0005 <= mr <= 0.02:
+                    result.add_pass(f"{assumptions_file}: Maintenance rate {mr*100:.2f}% in reasonable range (0.05-2%)")
+                else:
+                    result.add_warning(f"{assumptions_file}: Maintenance rate {mr*100:.2f}% outside typical range (0.05-2%)")
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-# VALIDATION SECTION 4: CROSS-VALIDATION (SCRIPTS ↔ ASSUMPTIONS ↔ DATA)
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# VALIDATION SECTION 4: CROSS-VALIDATION (SCRIPTS â†” ASSUMPTIONS â†” DATA)
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def validate_cross_checks(result: ValidationResult):
     """Perform cross-validation between scripts, assumptions, and generated data."""
-    print("\n[4/12] Validating Cross-Dependencies...")
+    print("\n[4/13] Validating Cross-Dependencies...")
     print("-" * 80)
     
     try:
@@ -303,7 +321,7 @@ def validate_cross_checks(result: ValidationResult):
         try:
             base_assumptions_path = resolve_path('assumptions/assumptions.json')
             config = create_base_case_config(base_assumptions_path)
-            result.add_pass(f"Cross-check: {os.path.relpath(base_assumptions_path, get_project_root())} → config creation successful")
+            result.add_pass(f"Cross-check: {os.path.relpath(base_assumptions_path, get_project_root())} â†’ config creation successful")
             
             # Verify config has expected structure
             if hasattr(config, 'financing') and hasattr(config, 'rental') and hasattr(config, 'expenses'):
@@ -344,39 +362,47 @@ def validate_cross_checks(result: ValidationResult):
         # Test 4: Verify assumptions values match config values
         try:
             base_assumptions_path = resolve_path('assumptions/assumptions.json')
-            assumptions = json.load(open(base_assumptions_path))
+            with open(base_assumptions_path, 'r', encoding='utf-8') as f:
+                assumptions = json.load(f)
             
             # Check financing consistency
             if assumptions['financing']['ltv'] == config.financing.ltv:
-                result.add_pass("Cross-check: LTV matches (JSON ↔ Config)")
+                result.add_pass("Cross-check: LTV matches (JSON â†” Config)")
             else:
                 result.add_fail(f"Cross-check: LTV mismatch (JSON: {assumptions['financing']['ltv']} vs Config: {config.financing.ltv})")
             
             if assumptions['financing']['interest_rate'] == config.financing.interest_rate:
-                result.add_pass("Cross-check: Interest rate matches (JSON ↔ Config)")
+                result.add_pass("Cross-check: Interest rate matches (JSON â†” Config)")
             else:
                 result.add_fail(f"Cross-check: Interest rate mismatch")
             
             # Check maintenance rate
             if assumptions['expenses']['maintenance_rate'] == config.expenses.maintenance_rate:
-                result.add_pass("Cross-check: Maintenance rate matches (JSON ↔ Config)")
+                result.add_pass("Cross-check: Maintenance rate matches (JSON â†” Config)")
             else:
                 result.add_fail(f"Cross-check: Maintenance rate mismatch")
             
+            # Check insurance rate (config stores insurance_annual; rate = insurance_annual / purchase_price)
+            expected_insurance_rate = config.expenses.insurance_annual / config.financing.purchase_price if config.financing.purchase_price else 0
+            if abs(assumptions['expenses']['insurance_rate'] - expected_insurance_rate) < 1e-9:
+                result.add_pass("Cross-check: Insurance rate matches (JSON â†” Config)")
+            else:
+                result.add_fail(f"Cross-check: Insurance rate mismatch (JSON: {assumptions['expenses']['insurance_rate']}, Config derived: {expected_insurance_rate})")
+            
         except Exception as e:
-            result.add_fail(f"Cross-check: JSON ↔ Config comparison failed - {str(e)}")
+            result.add_fail(f"Cross-check: JSON â†” Config comparison failed - {str(e)}")
         
     except ImportError as e:
         result.add_fail(f"Cross-check: Cannot import engelberg.core - {str(e)}")
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # VALIDATION SECTION 5: DATA FILE INTEGRITY
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def validate_data_files(result: ValidationResult):
     """Validate generated data files for completeness and consistency."""
-    print("\n[5/12] Validating Generated Data Files...")
+    print("\n[5/13] Validating Generated Data Files...")
     print("-" * 80)
     
     # Check cases_index.json
@@ -385,7 +411,7 @@ def validate_data_files(result: ValidationResult):
         result.add_pass(f"Cases index exists: {index_path}")
         
         try:
-            with open(index_path) as f:
+            with open(index_path, 'r', encoding='utf-8') as f:
                 index = json.load(f)
             result.add_pass("Cases index: Valid JSON")
             
@@ -405,7 +431,7 @@ def validate_data_files(result: ValidationResult):
                                 
                                 # Validate JSON structure
                                 try:
-                                    with open(file_path) as f:
+                                    with open(file_path, 'r', encoding='utf-8') as f:
                                         data = json.load(f)
                                     
                                     # Check for required keys based on analysis type
@@ -442,19 +468,19 @@ def validate_data_files(result: ValidationResult):
         result.add_fail(f"Cases index missing: {index_path}")
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # VALIDATION SECTION 6: CALCULATION CONSISTENCY
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def validate_calculation_consistency(result: ValidationResult):
     """Verify that calculations are internally consistent."""
-    print("\n[6/12] Validating Calculation Consistency...")
+    print("\n[6/13] Validating Calculation Consistency...")
     print("-" * 80)
     
     try:
         # Load base case data
         data_path = resolve_path('website/data/base_case_base_case_analysis.json')
-        with open(data_path) as f:
+        with open(data_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
         
         config = data['config']
@@ -466,7 +492,7 @@ def validate_calculation_consistency(result: ValidationResult):
         expected_loan = config['financing']['purchase_price'] * config['financing']['ltv']
         actual_loan = config['financing']['loan_amount']
         if abs(expected_loan - actual_loan) < 1:
-            result.add_pass("Calculation: LTV → Loan Amount consistent")
+            result.add_pass("Calculation: LTV â†’ Loan Amount consistent")
         else:
             result.add_fail(f"Calculation: LTV mismatch (expected {expected_loan:.0f}, got {actual_loan:.0f})")
         
@@ -488,6 +514,28 @@ def validate_calculation_consistency(result: ValidationResult):
             result.add_pass("Calculation: Net Revenue - Expenses = NOI consistent")
         else:
             result.add_fail(f"Calculation: NOI mismatch (expected {expected_noi:.2f}, got {actual_noi:.2f})")
+        
+        # Check 3b: Ramp-up metadata present
+        if 'ramp_up_months' in results and 'operational_months' in results:
+            ramp_up = results['ramp_up_months']
+            operational = results['operational_months']
+            if ramp_up + operational == 12:
+                result.add_pass(f"Ramp-up: Months add up (ramp-up: {ramp_up}, operational: {operational})")
+            else:
+                result.add_fail(f"Ramp-up: Months don't add to 12 (ramp-up: {ramp_up}, operational: {operational})")
+            
+            # If ramp-up > 0, revenue should be reduced proportionally
+            if ramp_up > 0 and projection:
+                year1_projection = projection[0] if isinstance(projection, list) else projection
+                if 'operational_months' in year1_projection:
+                    year1_op_months = year1_projection['operational_months']
+                    if year1_op_months < 12:
+                        result.add_pass(f"Ramp-up: Year 1 projection reflects partial operation ({year1_op_months} months)")
+                    else:
+                        result.add_fail("Ramp-up: Year 1 projection shows full year despite ramp-up")
+        else:
+            # Ramp-up metadata may not be present in older data
+            pass
         
         # Check 4: Cash Flow calculation (NOI - Debt Service)
         expected_cf = results['net_operating_income'] - results['debt_service']
@@ -527,19 +575,19 @@ def validate_calculation_consistency(result: ValidationResult):
         result.add_fail(f"Calculation: Validation error - {str(e)}")
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # VALIDATION SECTION 6B: OUTPUT KPI SAFETY RANGES
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def validate_output_kpi_ranges(result: ValidationResult):
     """Validate that output KPIs are within reasonable safety ranges to catch calculation errors."""
-    print("\n[6B/12] Validating Output KPI Safety Ranges...")
+    print("\n[7/13] Validating Output KPI Safety Ranges...")
     print("-" * 80)
     
     try:
         # Load base case data
         data_path = resolve_path('website/data/base_case_base_case_analysis.json')
-        with open(data_path) as f:
+        with open(data_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
         
         irr_results = data.get('irr_results', {})
@@ -583,7 +631,7 @@ def validate_output_kpi_ranges(result: ValidationResult):
         
         # Cash flow should be between -50% and +50% of purchase price (extreme values suggest errors)
         if -purchase_price * 0.5 <= cash_flow <= purchase_price * 0.5:
-            result.add_pass(f"Output KPI: Annual Cash Flow {cash_flow:,.0f} CHF within safety range (±50% of purchase price)")
+            result.add_pass(f"Output KPI: Annual Cash Flow {cash_flow:,.0f} CHF within safety range (Â±50% of purchase price)")
         else:
             result.add_fail(f"Output KPI: Annual Cash Flow {cash_flow:,.0f} CHF OUT OF RANGE! Possible calculation error.")
         
@@ -592,7 +640,7 @@ def validate_output_kpi_ranges(result: ValidationResult):
         # NPV should be between -200% and +200% of initial equity (extreme values suggest errors)
         initial_equity = config.get('financing', {}).get('equity_total', 325000)
         if -initial_equity * 2 <= npv <= initial_equity * 2:
-            result.add_pass(f"Output KPI: NPV {npv:,.0f} CHF within safety range (±200% of initial equity)")
+            result.add_pass(f"Output KPI: NPV {npv:,.0f} CHF within safety range (Â±200% of initial equity)")
         else:
             result.add_fail(f"Output KPI: NPV {npv:,.0f} CHF OUT OF RANGE! Possible calculation error.")
         
@@ -664,9 +712,9 @@ def validate_output_kpi_ranges(result: ValidationResult):
             
             # Loan should decrease (or stay same if no amortization)
             if final_loan <= initial_loan:
-                result.add_pass(f"Output KPI: Loan balance decreases correctly ({initial_loan:,.0f} → {final_loan:,.0f} CHF)")
+                result.add_pass(f"Output KPI: Loan balance decreases correctly ({initial_loan:,.0f} â†’ {final_loan:,.0f} CHF)")
             else:
-                result.add_fail(f"Output KPI: Loan balance INCREASES! ({initial_loan:,.0f} → {final_loan:,.0f} CHF) Possible calculation error.")
+                result.add_fail(f"Output KPI: Loan balance INCREASES! ({initial_loan:,.0f} â†’ {final_loan:,.0f} CHF) Possible calculation error.")
         
         # 11. Property Value Appreciation Validation (should increase over time if appreciation rate > 0)
         if len(projection) >= 2:
@@ -679,7 +727,7 @@ def validate_output_kpi_ranges(result: ValidationResult):
             
             if appreciation_rate > 0:
                 if final_value >= initial_value:
-                    result.add_pass(f"Output KPI: Property value increases with positive appreciation rate ({initial_value:,.0f} → {final_value:,.0f} CHF)")
+                    result.add_pass(f"Output KPI: Property value increases with positive appreciation rate ({initial_value:,.0f} â†’ {final_value:,.0f} CHF)")
                 else:
                     result.add_fail(f"Output KPI: Property value DECREASES despite positive appreciation rate! Possible calculation error.")
         
@@ -689,50 +737,59 @@ def validate_output_kpi_ranges(result: ValidationResult):
         result.add_fail(f"Output KPI: Validation error - {str(e)}")
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-# VALIDATION SECTION 7: ASSUMPTIONS ↔ DATA CROSS-VALIDATION
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# VALIDATION SECTION 7: ASSUMPTIONS â†” DATA CROSS-VALIDATION
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def validate_assumptions_data_cross_check(result: ValidationResult):
     """Cross-validate that data files reflect assumptions correctly."""
-    print("\n[8/12] Cross-Validating Assumptions ↔ Generated Data...")
+    print("\n[8/13] Cross-Validating Assumptions â†” Generated Data...")
     print("-" * 80)
     
     try:
         # Load assumptions
         base_assumptions_path = resolve_path('assumptions/assumptions.json')
-        with open(base_assumptions_path) as f:
+        with open(base_assumptions_path, 'r', encoding='utf-8') as f:
             assumptions = json.load(f)
         
         # Load generated data
         data_path = resolve_path('website/data/base_case_base_case_analysis.json')
-        with open(data_path) as f:
+        with open(data_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
         
         # Cross-check: Financing parameters
         if assumptions['financing']['purchase_price'] == data['config']['financing']['purchase_price']:
-            result.add_pass("Cross-check: Purchase price (assumptions/assumptions.json ↔ data)")
+            result.add_pass("Cross-check: Purchase price (assumptions/assumptions.json â†” data)")
         else:
             result.add_fail("Cross-check: Purchase price mismatch")
         
         if assumptions['financing']['ltv'] == data['config']['financing']['ltv']:
-            result.add_pass("Cross-check: LTV (assumptions/assumptions.json ↔ data)")
+            result.add_pass("Cross-check: LTV (assumptions/assumptions.json â†” data)")
         else:
             result.add_fail("Cross-check: LTV mismatch")
         
         if assumptions['financing']['interest_rate'] == data['config']['financing']['interest_rate']:
-            result.add_pass("Cross-check: Interest rate (assumptions/assumptions.json ↔ data)")
+            result.add_pass("Cross-check: Interest rate (assumptions/assumptions.json â†” data)")
         else:
             result.add_fail("Cross-check: Interest rate mismatch")
         
         # Cross-check: Expense parameters
         if assumptions['expenses']['maintenance_rate'] == data['config']['expenses']['maintenance_rate']:
-            result.add_pass("Cross-check: Maintenance rate (assumptions/assumptions.json ↔ data)")
+            result.add_pass("Cross-check: Maintenance rate (assumptions/assumptions.json â†” data)")
         else:
             result.add_fail("Cross-check: Maintenance rate mismatch")
         
+        # Insurance: data stores insurance_annual; rate = insurance_annual / purchase_price
+        purchase_price = data['config']['financing']['purchase_price']
+        insurance_annual = data['config']['expenses'].get('insurance_annual', 0)
+        data_insurance_rate = insurance_annual / purchase_price if purchase_price else 0
+        if abs(assumptions['expenses']['insurance_rate'] - data_insurance_rate) < 1e-9:
+            result.add_pass("Cross-check: Insurance rate (assumptions/assumptions.json â†” data)")
+        else:
+            result.add_fail("Cross-check: Insurance rate mismatch")
+        
         if assumptions['expenses']['cleaning_cost_per_stay'] == data['config']['expenses']['cleaning_cost_per_stay']:
-            result.add_pass("Cross-check: Cleaning cost (assumptions/assumptions.json ↔ data)")
+            result.add_pass("Cross-check: Cleaning cost (assumptions/assumptions.json â†” data)")
         else:
             result.add_fail("Cross-check: Cleaning cost mismatch")
         
@@ -755,18 +812,18 @@ def validate_assumptions_data_cross_check(result: ValidationResult):
         result.add_fail(f"Cross-check: Error - {str(e)}")
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # VALIDATION SECTION 8: SENSITIVITY ANALYSIS VALIDATION
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def validate_sensitivity_analysis(result: ValidationResult):
     """Validate sensitivity analysis calculations and consistency."""
-    print("\n[9/12] Validating Sensitivity Analysis...")
+    print("\n[9/13] Validating Sensitivity Analysis...")
     print("-" * 80)
     
     try:
         data_path = resolve_path('website/data/base_case_sensitivity.json')
-        with open(data_path) as f:
+        with open(data_path, 'r', encoding='utf-8') as f:
             sens_data = json.load(f)
         
         base_irr = sens_data['base_irr']
@@ -774,6 +831,13 @@ def validate_sensitivity_analysis(result: ValidationResult):
         
         result.add_pass(f"Sensitivity: Base IRR = {base_irr:.2f}%")
         result.add_pass(f"Sensitivity: {len(sensitivities)} parameters analyzed")
+        
+        # Verify ramp-up parameter is included (should be 16 total parameters now: 13 config + 3 special)
+        param_names = [s['parameter_name'] for s in sensitivities]
+        if 'Ramp-Up Period' in param_names:
+            result.add_pass("Sensitivity: Ramp-Up Period parameter included")
+        else:
+            result.add_warning("Sensitivity: Ramp-Up Period parameter not found (expected 16 total params)")
         
         # Validate each sensitivity
         for sens in sensitivities:
@@ -784,7 +848,7 @@ def validate_sensitivity_analysis(result: ValidationResult):
             stated_impact = sens['impact']
             
             if abs(calculated_impact - stated_impact) < 0.0001:
-                result.add_pass(f"Sensitivity '{param}': Impact calculation correct (±{stated_impact:.2f}%)")
+                result.add_pass(f"Sensitivity '{param}': Impact calculation correct (Â±{stated_impact:.2f}%)")
             else:
                 result.add_fail(f"Sensitivity '{param}': Impact mismatch (expected {calculated_impact:.4f}, got {stated_impact:.4f})")
             
@@ -816,18 +880,18 @@ def validate_sensitivity_analysis(result: ValidationResult):
         result.add_fail(f"Sensitivity: Validation error - {str(e)}")
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # VALIDATION SECTION 9: MONTE CARLO VALIDATION
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def validate_monte_carlo(result: ValidationResult):
     """Validate Monte Carlo simulation results."""
-    print("\n[10/12] Validating Monte Carlo Simulation...")
+    print("\n[10/13] Validating Monte Carlo Simulation...")
     print("-" * 80)
     
     try:
         data_path = resolve_path('website/data/base_case_monte_carlo.json')
-        with open(data_path) as f:
+        with open(data_path, 'r', encoding='utf-8') as f:
             mc_data = json.load(f)
         
         stats = mc_data.get('statistics', {})
@@ -865,13 +929,13 @@ def validate_monte_carlo(result: ValidationResult):
         result.add_fail(f"Monte Carlo: Validation error - {str(e)}")
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # VALIDATION SECTION 10: DASHBOARD VALIDATION
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def validate_dashboard(result: ValidationResult):
     """Validate dashboard HTML and JavaScript components."""
-    print("\n[11/12] Validating Dashboard Components...")
+    print("\n[11/13] Validating Dashboard Components...")
     print("-" * 80)
     
     if not os.path.exists('website/index.html'):
@@ -885,10 +949,18 @@ def validate_dashboard(result: ValidationResult):
     required_elements = [
         ('Plotly.js', 'plotly', 'Charting library'),
         ('Case Selector', 'id="caseSelect"', 'Case selection dropdown'),
+        ('Horizon Selector', 'id="horizonSelect"', 'Time horizon dropdown'),
         ('Content Area', 'contentArea', 'Main content display'),
+        ('Horizon State', 'currentHorizon', 'Global horizon state tracking'),
+        ('Horizon Options', 'supportedHorizons', 'Canonical horizon values'),
+        ('Horizon Selector Setup', 'populateHorizonSelector', 'Horizon selector initialization'),
+        ('Horizon Visibility Logic', 'updateHorizonVisibility', 'Per-analysis horizon visibility'),
+        ('Horizon Data Resolver', 'by_horizon', 'Horizon-specific payload resolution'),
         ('renderBaseCase', 'renderBaseCase', 'Model rendering function'),
         ('renderSensitivity', 'renderSensitivity', 'Sensitivity rendering function'),
         ('renderMonteCarlo', 'renderMonteCarlo', 'Monte Carlo rendering function'),
+        ('renderMonteCarloSensitivity', 'renderMonteCarloSensitivity', 'Monte Carlo sensitivity rendering function'),
+        ('renderScenarioComparison', 'renderScenarioComparison', 'Scenario comparison rendering function'),
     ]
     
     for name, search_term, description in required_elements:
@@ -909,10 +981,26 @@ def validate_dashboard(result: ValidationResult):
     else:
         result.add_warning("Dashboard: No explicit overlap prevention found")
 
+    # Check horizon visibility policy matrix
+    required_horizon_policies = [
+        '"base_case"',
+        '"sensitivity"',
+        '"sensitivity_coc"',
+        '"sensitivity_ncf"',
+        '"monte_carlo"',
+        '"monte_carlo_sensitivity"',
+        '"scenario_comparison"',
+    ]
+    missing_policies = [token for token in required_horizon_policies if token not in html_content]
+    if 'supportedAnalyses' in html_content and 'hiddenAnalyses' in html_content and not missing_policies:
+        result.add_pass("Dashboard: Horizon visibility policy matrix present")
+    else:
+        result.add_fail(f"Dashboard: Horizon visibility policy incomplete (missing tokens: {missing_policies})")
 
-# ═══════════════════════════════════════════════════════════════════════════
+
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # VALIDATION SECTION 11: SCRIPT INTEGRATION TESTS
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def validate_script_integration(result: ValidationResult):
     """Test that scripts can call each other correctly."""
@@ -942,9 +1030,9 @@ def validate_script_integration(result: ValidationResult):
         result.add_fail(f"Integration: Error - {str(e)}")
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # VALIDATION SECTION 12: END-TO-END CONSISTENCY
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def validate_end_to_end(result: ValidationResult):
     """Perform end-to-end validation across entire system."""
@@ -954,7 +1042,7 @@ def validate_end_to_end(result: ValidationResult):
     try:
         # Check that all cases in index have corresponding assumptions files
         index_path = resolve_path('website/data/cases_index.json')
-        with open(index_path) as f:
+        with open(index_path, 'r', encoding='utf-8') as f:
             index = json.load(f)
         
         for case in index['cases']:
@@ -988,9 +1076,9 @@ def validate_end_to_end(result: ValidationResult):
         result.add_fail(f"E2E: Validation error - {str(e)}")
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # MAIN VALIDATION ORCHESTRATOR
-# ═══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def main():
     """Run all validation checks and display summary."""
@@ -1044,3 +1132,4 @@ def main():
 if __name__ == "__main__":
     success = main()
     sys.exit(0 if success else 1)
+

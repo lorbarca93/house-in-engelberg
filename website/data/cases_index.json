@@ -121,6 +121,21 @@
       "errors": []
     },
     {
+      "case_name": "engelbergerstrasse53_850_success",
+      "display_name": "Engelbergerstrasse 53 (850k Success)",
+      "assumptions_file": "assumptions_engelbergerstrasse53_850_success.json",
+      "data_files": {
+        "base_case_analysis": "engelbergerstrasse53_850_success_base_case_analysis.json",
+        "sensitivity": "engelbergerstrasse53_850_success_sensitivity.json",
+        "sensitivity_coc": "engelbergerstrasse53_850_success_sensitivity_coc.json",
+        "sensitivity_ncf": "engelbergerstrasse53_850_success_sensitivity_ncf.json",
+        "monte_carlo": "engelbergerstrasse53_850_success_monte_carlo.json",
+        "monte_carlo_sensitivity": "engelbergerstrasse53_850_success_monte_carlo_sensitivity.json"
+      },
+      "status": "success",
+      "errors": []
+    },
+    {
       "case_name": "engelbergerstrasse53_longterm",
       "display_name": "Engelbergerstrasse 53 (Long-Term Rental)",
       "assumptions_file": "assumptions_engelbergerstrasse53_longterm.json",
@@ -166,6 +181,6 @@
       "errors": []
     }
   ],
-  "generated_at": "2026-01-28T08:04:38.413434",
-  "total_cases": 11
+  "generated_at": "2026-02-09T22:42:10.959908",
+  "total_cases": 12
 }

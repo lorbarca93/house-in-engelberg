@@ -1,4 +1,4 @@
-# Monte Carlo Simulation Engine — Technical Reference
+# Monte Carlo Simulation Engine - Technical Reference
 
 This document explains in detail how the Monte Carlo simulation is designed, engineered, and executed in the Engelberg Property Investment Simulation.
 
@@ -24,7 +24,7 @@ This document explains in detail how the Monte Carlo simulation is designed, eng
 
 ### What is Monte Carlo Simulation?
 
-Monte Carlo simulation is a probabilistic method that runs many scenarios (typically 1,000–10,000) where uncertain parameters are sampled from probability distributions. Each scenario produces a result (e.g., NPV, IRR), and the collection of results forms a distribution that quantifies risk and uncertainty.
+Monte Carlo simulation is a probabilistic method that runs many scenarios (typically 1,000-10,000) where uncertain parameters are sampled from probability distributions. Each scenario produces a result (e.g., NPV, IRR), and the collection of results forms a distribution that quantifies risk and uncertainty.
 
 ### Design Goals
 
@@ -35,7 +35,7 @@ Monte Carlo simulation is a probabilistic method that runs many scenarios (typic
 
 ### Key Features
 
-- **Latin Hypercube Sampling (LHS)**: Stratified sampling for better space coverage (2–3× more efficient than random)
+- **Latin Hypercube Sampling (LHS)**: Stratified sampling for better space coverage (2-3x more efficient than random)
 - **Correlation Modeling**: Gaussian copula preserves realistic parameter relationships
 - **Time-Varying Parameters**: AR(1) mean-reverting processes for inflation and property appreciation
 - **Event Modeling**: Poisson process for maintenance, low-probability market shocks, refinancing opportunities
@@ -50,11 +50,11 @@ Monte Carlo simulation is a probabilistic method that runs many scenarios (typic
 
 ```
 1. Load base configuration
-   ↓
+   v
 2. Define distributions for all stochastic parameters
-   ↓
+   v
 3. Sample all parameters at once (LHS or random, with/without correlations)
-   ↓
+   v
 4. For each simulation (parallel or sequential):
    a. Extract sampled values for this simulation
    b. Generate time-varying series (inflation, appreciation)
@@ -64,9 +64,9 @@ Monte Carlo simulation is a probabilistic method that runs many scenarios (typic
    f. Calculate 15-year projection (with time-varying params and events)
    g. Calculate NPV and IRR
    h. Store results
-   ↓
+   v
 5. Aggregate results (mean, median, percentiles, probabilities)
-   ↓
+   v
 6. Return DataFrame with all simulation results
 ```
 
@@ -175,25 +175,25 @@ DistributionConfig(
 
 | Parameter | Distribution | Parameters | Bounds | Rationale |
 |-----------|-------------|------------|--------|-----------|
-| **Occupancy Rate** | Beta | α=2.5, β=1.8 | 30–75% | Bounded, slightly right-skewed |
-| **Daily Rate** | Lognormal | μ=ln(300), σ=0.25 | 150–450 CHF | Multiplicative uncertainty |
-| **OTA Booking %** | Beta | α=3, β=3 | 30–70% | Symmetric, centered around 50% |
-| **OTA Fee Rate** | Triangular | min=25%, mode=30%, max=35% | 25–35% | Most likely 30% |
-| **Length of Stay** | Lognormal | μ=ln(1.7), σ=0.15 | 1.0–3.0 nights | Positive, multiplicative |
-| **Guests per Night** | Normal | μ=2.0, σ=0.3 | 1.0–4.0 | Symmetric around 2.0 |
-| **Cleaning Cost** | Normal | μ=100, σ=15 | 60–130 CHF | Symmetric around 100 CHF |
-| **Tax Rate** | Triangular | min=25%, mode=30%, max=35% | 25–35% | Most likely 30% |
-| **Discount Rate** | Normal | μ=3%, σ=0.5% | 2–5% | Symmetric around 3% |
-| **Inflation** | Normal | μ=1.5%, σ=0.75% | 0–3% | Time-varying (AR(1)) |
-| **Property Appreciation** | Normal | μ=3.5%, σ=2.75% | -2% to 9% | Time-varying (AR(1)) |
-| **Maintenance Rate** | Normal | μ=1%, σ=0.3% | 0.5–2.0% | Symmetric around 1% |
-| **Utilities** | Lognormal | μ=ln(2000), σ=0.20 | 1,200–3,500 CHF | Multiplicative uncertainty |
-| **Winter Occupancy** | Triangular | min=60%, mode=75%, max=90% | 60–90% | Peak season |
-| **Winter Rate** | Normal | μ=250, σ=40 | 180–350 CHF | Peak pricing |
-| **Summer Occupancy** | Triangular | min=50%, mode=65%, max=80% | 50–80% | High season |
-| **Summer Rate** | Normal | μ=200, σ=30 | 150–280 CHF | High pricing |
-| **Off-Peak Occupancy** | Triangular | min=35%, mode=50%, max=65% | 35–65% | Shoulder season |
-| **Off-Peak Rate** | Normal | μ=150, σ=25 | 100–220 CHF | Lower pricing |
+| **Occupancy Rate** | Beta | alpha=2.5, beta=1.8 | 30-75% | Bounded, slightly right-skewed |
+| **Daily Rate** | Lognormal | mu=ln(300), sigma=0.25 | 150-450 CHF | Multiplicative uncertainty |
+| **OTA Booking %** | Beta | alpha=3, beta=3 | 30-70% | Symmetric, centered around 50% |
+| **OTA Fee Rate** | Triangular | min=25%, mode=30%, max=35% | 25-35% | Most likely 30% |
+| **Length of Stay** | Lognormal | mu=ln(1.7), sigma=0.15 | 1.0-3.0 nights | Positive, multiplicative |
+| **Guests per Night** | Normal | mu=2.0, sigma=0.3 | 1.0-4.0 | Symmetric around 2.0 |
+| **Cleaning Cost** | Normal | mu=100, sigma=15 | 60-130 CHF | Symmetric around 100 CHF |
+| **Tax Rate** | Triangular | min=25%, mode=30%, max=35% | 25-35% | Most likely 30% |
+| **Discount Rate** | Normal | mu=3%, sigma=0.5% | 2-5% | Symmetric around 3% |
+| **Inflation** | Normal | mu=1.5%, sigma=0.75% | 0-3% | Time-varying (AR(1)) |
+| **Property Appreciation** | Normal | mu=3.5%, sigma=2.75% | -2% to 9% | Time-varying (AR(1)) |
+| **Maintenance Rate** | Normal | mu=1%, sigma=0.3% | 0.5-2.0% | Symmetric around 1% |
+| **Utilities** | Lognormal | mu=ln(2000), sigma=0.20 | 1,200-3,500 CHF | Multiplicative uncertainty |
+| **Winter Occupancy** | Triangular | min=60%, mode=75%, max=90% | 60-90% | Peak season |
+| **Winter Rate** | Normal | mu=250, sigma=40 | 180-350 CHF | Peak pricing |
+| **Summer Occupancy** | Triangular | min=50%, mode=65%, max=80% | 50-80% | High season |
+| **Summer Rate** | Normal | mu=200, sigma=30 | 150-280 CHF | High pricing |
+| **Off-Peak Occupancy** | Triangular | min=35%, mode=50%, max=65% | 35-65% | Shoulder season |
+| **Off-Peak Rate** | Normal | mu=150, sigma=25 | 100-220 CHF | Lower pricing |
 
 ### Fixed Parameters (Not Sampled)
 
@@ -224,7 +224,7 @@ These parameters use the **base case value** for all simulations:
 **Benefits**:
 - **Better coverage**: Every interval is sampled exactly once
 - **Lower variance**: More accurate estimates with fewer simulations
-- **Efficiency**: Typically 2–3× more efficient than random sampling
+- **Efficiency**: Typically 2-3x more efficient than random sampling
 
 **Example**: For 1,000 simulations and occupancy rate [0.30, 0.75]:
 - Divide into 1,000 intervals: [0.30, 0.30045), [0.30045, 0.3009), ..., [0.74955, 0.75]
@@ -241,18 +241,18 @@ These parameters use the **base case value** for all simulations:
 **How it works**:
 
 1. **Correlation matrix**: Define pairwise correlations (e.g., occupancy vs. daily rate = 0.4).
-2. **Cholesky decomposition**: Factor correlation matrix: `C = L × L^T`.
-3. **Correlated normals**: Generate independent standard normals `Z`, then `X = Z × L^T` (correlated).
-4. **Transform to uniform**: `U = Φ(X)` where `Φ` is standard normal CDF.
+2. **Cholesky decomposition**: Factor correlation matrix: `C = L x L^T`.
+3. **Correlated normals**: Generate independent standard normals `Z`, then `X = Z x L^T` (correlated).
+4. **Transform to uniform**: `U = Phi(X)` where `Phi` is standard normal CDF.
 5. **Inverse transform**: Use `U` with inverse CDF of each target distribution.
 
 **Key insight**: The Gaussian copula preserves correlation structure while allowing different marginal distributions.
 
 **Example correlations**:
-- Occupancy vs. Daily Rate: +0.4 (high occupancy → higher rates)
-- Occupancy vs. OTA Booking %: -0.3 (high occupancy → more direct bookings)
-- Daily Rate vs. Length of Stay: -0.2 (higher rates → shorter stays)
-- Inflation vs. Property Appreciation: +0.2 (economic growth → property growth)
+- Occupancy vs. Daily Rate: +0.4 (high occupancy -> higher rates)
+- Occupancy vs. OTA Booking %: -0.3 (high occupancy -> more direct bookings)
+- Daily Rate vs. Length of Stay: -0.2 (higher rates -> shorter stays)
+- Inflation vs. Property Appreciation: +0.2 (economic growth -> property growth)
 
 **Implementation**: `sample_correlated_variables()` and integrated into `latin_hypercube_sample()` when `correlation_matrix` is provided.
 
@@ -271,18 +271,18 @@ If `use_correlations=False`, each parameter is sampled independently from its di
 **Formula**:
 
 ```
-value[t] = mean + ρ × (value[t-1] - mean) + innovation[t]
+value[t] = mean + rho x (value[t-1] - mean) + innovation[t]
 ```
 
 Where:
 - `mean`: Long-term mean (base value)
-- `ρ` (rho): Mean reversion coefficient (0–1, higher = faster reversion)
-- `innovation[t]`: Random shock ~ N(0, σ²)
+- `rho` (rho): Mean reversion coefficient (0-1, higher = faster reversion)
+- `innovation[t]`: Random shock ~ N(0, sigma^2)
 
 **Properties**:
 - **Mean-reverting**: Deviations from mean decay over time
-- **Persistence**: Higher `ρ` → slower reversion (more persistence)
-- **Volatility**: Higher `σ` → more year-to-year variation
+- **Persistence**: Higher `rho` -> slower reversion (more persistence)
+- **Volatility**: Higher `sigma` -> more year-to-year variation
 
 ### Inflation Series
 
@@ -292,7 +292,7 @@ inflation_series = generate_time_series(
     mean_reversion=0.8,             # Moderate persistence
     innovation_std=0.005,            # 0.5% annual volatility
     num_years=15,
-    bounds=(0.0, 0.03)               # Clip to 0–3%
+    bounds=(0.0, 0.03)               # Clip to 0-3%
 )
 ```
 
@@ -331,8 +331,8 @@ This creates realistic year-to-year variation rather than constant rates.
 **Purpose**: Model rare, high-cost maintenance events (roof replacement, heating system, major renovations).
 
 **Process**:
-- **Poisson distribution**: Probability of event in year `t` = `λ` (default `λ = 0.15` = ~1 event per 6–7 years)
-- **Cost distribution**: Lognormal (mean 15,000 CHF, σ=0.5 on log scale), bounded 5,000–50,000 CHF
+- **Poisson distribution**: Probability of event in year `t` = `lambda` (default `lambda = 0.15` = ~1 event per 6-7 years)
+- **Cost distribution**: Lognormal (mean 15,000 CHF, sigma=0.5 on log scale), bounded 5,000-50,000 CHF
 
 **Implementation**:
 
@@ -356,7 +356,7 @@ for year in range(1, 16):
   - Occupancy: -30% to -50%
   - Daily Rate: -20% to -30%
   - Property Value: -10% to -20%
-- **Recovery**: 1–3 years (random) with gradual return to normal
+- **Recovery**: 1-3 years (random) with gradual return to normal
 
 **Implementation**:
 
@@ -586,7 +586,7 @@ with Pool(processes=num_workers) as pool:
 
 ### Performance
 
-- **Speedup**: Typically 4–8× faster on multi-core systems
+- **Speedup**: Typically 4-8x faster on multi-core systems
 - **Scalability**: Linear scaling up to number of cores
 - **Overhead**: Minimal for `num_simulations > 100`
 
@@ -625,7 +625,7 @@ if check_convergence and completed >= 1000 and completed % convergence_check_int
     convergence_stats['npv_mean'].append(df_temp['npv'].mean())
     convergence_stats['npv_std'].append(df_temp['npv'].std())
     # ... other stats
-    
+
     if len(convergence_stats['npv_mean']) >= 3:
         recent_means = convergence_stats['npv_mean'][-3:]
         cv = np.std(recent_means) / (abs(np.mean(recent_means)) + 1e-6)
@@ -688,20 +688,20 @@ This allows:
 
 ### 1. Vectorized Sampling
 
-**Before**: Sample each parameter separately in a loop  
+**Before**: Sample each parameter separately in a loop
 **After**: Sample all parameters at once using vectorized operations
 
-**Benefit**: 10–20× faster parameter sampling
+**Benefit**: 10-20x faster parameter sampling
 
 ### 2. Latin Hypercube Sampling
 
-**Benefit**: 2–3× more efficient than random sampling (achieves same accuracy with fewer simulations)
+**Benefit**: 2-3x more efficient than random sampling (achieves same accuracy with fewer simulations)
 
 **Trade-off**: Slightly more complex implementation, but worth it for large simulations
 
 ### 3. Parallel Processing
 
-**Benefit**: 4–8× speedup on multi-core systems
+**Benefit**: 4-8x speedup on multi-core systems
 
 **Implementation**: Uses Python `multiprocessing.Pool` with `imap` for progress tracking
 
@@ -724,7 +724,7 @@ This allows:
 The Monte Carlo engine is designed for **accuracy**, **efficiency**, and **realism**:
 
 - **Accurate**: LHS sampling and correlations ensure good parameter space coverage
-- **Efficient**: Parallel processing and vectorized operations provide 4–8× speedup
+- **Efficient**: Parallel processing and vectorized operations provide 4-8x speedup
 - **Realistic**: Time-varying parameters (AR(1)), events (maintenance, shocks, refinancing), and correlations capture real-world dynamics
 
 **Key innovations**:
@@ -733,4 +733,10 @@ The Monte Carlo engine is designed for **accuracy**, **efficiency**, and **reali
 3. **Event modeling**: Rare but impactful events (maintenance, market shocks, refinancing)
 4. **Parallel architecture**: Efficient multi-core execution
 
-For implementation details, see `engelberg/monte_carlo.py` (1,870+ lines).
+For implementation details, see `engelberg/monte_carlo.py` (2,430+ lines).
+
+---
+
+**Created**: February 2, 2026
+**Purpose**: Technical reference for Monte Carlo design and implementation
+**Status**: Reference Documentation

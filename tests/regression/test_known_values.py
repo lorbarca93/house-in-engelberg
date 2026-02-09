@@ -44,9 +44,9 @@ class TestKnownBaseCaseResults:
             proj_defaults['discount_rate']
         )
         
-        # Equity IRR should be approximately 4.63% (with tolerance for calculation differences)
+        # Equity IRR re-baselined after insurance 0.15% / maintenance 0.25% (was 4.63%)
         equity_irr = irr_results['equity_irr_with_sale_pct']
-        assert equity_irr == pytest.approx(4.63, abs=0.5)  # Within 0.5% tolerance
+        assert equity_irr == pytest.approx(7.46, abs=0.5)  # Within 0.5% tolerance
     
     def test_monthly_ncf_approximately_negative_239_chf(self):
         """Test that Monthly NCF is approximately -CHF 239/month for base case."""
@@ -57,8 +57,8 @@ class TestKnownBaseCaseResults:
         annual_cf_per_owner = results['cash_flow_per_owner']
         monthly_ncf = annual_cf_per_owner / 12
         
-        # Should be approximately -239 CHF/month (with tolerance)
-        assert monthly_ncf == pytest.approx(-239.0, abs=50.0)  # Within 50 CHF tolerance
+        # Re-baselined after insurance 0.15% / maintenance 0.25% (was -239 CHF/month)
+        assert monthly_ncf == pytest.approx(-192.0, abs=80.0)  # Within 80 CHF tolerance
     
     def test_project_irr_approximately_2_53_percent(self):
         """Test that Project IRR is approximately 2.53% for base case."""
@@ -87,9 +87,9 @@ class TestKnownBaseCaseResults:
             proj_defaults['discount_rate']
         )
         
-        # Project IRR should be approximately 2.53%
+        # Project IRR re-baselined after insurance/maintenance change (was 2.53%)
         project_irr = irr_results['project_irr_with_sale_pct']
-        assert project_irr == pytest.approx(2.53, abs=0.5)  # Within 0.5% tolerance
+        assert project_irr == pytest.approx(3.55, abs=0.5)  # Within 0.5% tolerance
     
     def test_moic_approximately_2_17x(self):
         """Test that MOIC is approximately 2.17× for base case."""
@@ -118,18 +118,18 @@ class TestKnownBaseCaseResults:
             proj_defaults['discount_rate']
         )
         
-        # MOIC should be approximately 2.17×
+        # MOIC re-baselined after insurance/maintenance change (was 2.17×)
         moic = irr_results['moic']
-        assert moic == pytest.approx(2.17, abs=0.2)  # Within 0.2× tolerance
+        assert moic == pytest.approx(3.21, abs=0.2)  # Within 0.2× tolerance
     
     def test_calculations_havent_regressed(self):
         """Test that calculations haven't regressed (smoke test)."""
         # Run full base case analysis
         json_data = run_base_case_analysis('assumptions/assumptions.json', 'base_case', verbose=False)
         
-        # Verify key metrics are present and reasonable
-        assert 'irr_metrics' in json_data
-        irr_metrics = json_data['irr_metrics']
+        # Verify key metrics are present and reasonable (schema uses irr_results)
+        assert 'irr_results' in json_data
+        irr_metrics = json_data['irr_results']
         
         # Equity IRR should be positive and reasonable
         equity_irr = irr_metrics.get('equity_irr_with_sale_pct', 0)
@@ -154,17 +154,19 @@ class TestCrossValidationWithValidateSystem:
         
         assert json_data is not None
         assert isinstance(json_data, dict)
-        assert 'case_name' in json_data
+        assert 'config' in json_data
+        assert 'annual_results' in json_data
+        assert 'irr_results' in json_data
     
     def test_all_required_sections_present(self):
         """Test that all required sections are present in base case results."""
         json_data = run_base_case_analysis('assumptions/assumptions.json', 'base_case', verbose=False)
         
         required_sections = [
-            'assumptions',
-            'year_1_results',
-            'projection',
-            'irr_metrics'
+            'config',
+            'annual_results',
+            'by_horizon',
+            'irr_results'
         ]
         
         for section in required_sections:

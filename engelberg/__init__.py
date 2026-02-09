@@ -11,6 +11,7 @@ __author__ = "Engelberg Investment Team"
 
 # Export commonly used classes and functions
 from engelberg.core import (
+    HORIZONS,
     FinancingParams,
     RentalParams,
     ExpenseParams,
@@ -44,6 +45,8 @@ from engelberg.monte_carlo import (
 )
 
 __all__ = [
+    # Constants
+    'HORIZONS',
     # Core dataclasses
     'FinancingParams',
     'RentalParams',

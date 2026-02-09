@@ -1,10 +1,11 @@
 """
-Unit tests for core calculation functions: compute_annual_cash_flows, expense calculations, tax calculations
+Unit tests for core calculation functions: compute_annual_cash_flows, expense calculations, tax calculations, ramp-up period
 """
 
 import pytest
 from engelberg.core import (
     compute_annual_cash_flows,
+    compute_15_year_projection,
     BaseCaseConfig,
     FinancingParams,
     RentalParams,
@@ -88,6 +89,19 @@ class TestComputeAnnualCashFlows:
         # Maintenance reserve = property_value * maintenance_rate
         expected = minimal_config.expenses.property_value * minimal_config.expenses.maintenance_rate
         assert results['maintenance_reserve'] == pytest.approx(expected, rel=1e-6)
+
+    def test_vat_on_gross_rental(self):
+        """Test VAT on gross rental revenue appears in results when vat_rate_on_gross_rental > 0."""
+        config = create_test_base_config()
+        config.expenses.vat_rate_on_gross_rental = 0.083  # 8.3%
+        results = compute_annual_cash_flows(config)
+        gross = results['gross_rental_income']
+        expected_vat = gross * 0.083
+        assert 'vat_on_rental' in results
+        assert results['vat_on_rental'] == pytest.approx(expected_vat, rel=1e-6)
+        assert results['vat_on_rental'] > 0
+        # VAT should be included in total_operating_expenses
+        assert results['vat_on_rental'] <= results['total_operating_expenses']
     
     def test_total_operating_expenses(self, minimal_config):
         """Test total operating expenses calculation."""
@@ -174,6 +188,7 @@ class TestComputeAnnualCashFlows:
             'property_management_cost',
             'cleaning_cost',
             'tourist_tax',
+            'vat_on_rental',
             'insurance',
             'nubbing_costs',
             'electricity_internet',
@@ -370,3 +385,149 @@ class TestTaxCalculations:
         # If principal were deductible, taxable would be lower
         taxable_with_principal = results['net_operating_income'] - results['interest_payment'] - results['amortization_payment']
         assert results['taxable_income'] > taxable_with_principal  # Should be higher (principal not deducted)
+
+
+class TestRampUpPeriod:
+    """Tests for ramp-up period functionality."""
+    
+    def test_rampup_year1_revenue_reduced(self, minimal_config):
+        """Test that 7-month ramp-up results in 5 months of revenue in Year 1."""
+        # Full year baseline
+        results_full = compute_annual_cash_flows(minimal_config, operational_months=12)
+        
+        # 7-month ramp-up = 5 months operational
+        results_rampup = compute_annual_cash_flows(minimal_config, operational_months=5)
+        
+        # Revenue should be 5/12 of full year
+        expected_revenue = results_full['gross_rental_income'] * (5 / 12)
+        assert results_rampup['gross_rental_income'] == pytest.approx(expected_revenue, rel=1e-6)
+        
+        # Rented nights should also be prorated
+        expected_nights = results_full['rented_nights'] * (5 / 12)
+        assert results_rampup['rented_nights'] == pytest.approx(expected_nights, rel=1e-6)
+    
+    def test_rampup_debt_service_unchanged(self, minimal_config):
+        """Test that debt service is paid for all 12 months regardless of ramp-up."""
+        results_full = compute_annual_cash_flows(minimal_config, operational_months=12)
+        results_rampup = compute_annual_cash_flows(minimal_config, operational_months=5)
+        
+        # Debt service should be identical (paid for full year)
+        assert results_rampup['debt_service'] == pytest.approx(results_full['debt_service'], rel=1e-6)
+        assert results_rampup['interest_payment'] == pytest.approx(results_full['interest_payment'], rel=1e-6)
+        assert results_rampup['amortization_payment'] == pytest.approx(results_full['amortization_payment'], rel=1e-6)
+    
+    def test_rampup_utilities_minimal(self, minimal_config):
+        """Test that utilities are minimal (25%) during ramp-up, full during operational."""
+        results_full = compute_annual_cash_flows(minimal_config, operational_months=12)
+        results_rampup = compute_annual_cash_flows(minimal_config, operational_months=5)
+        
+        # 7 months ramp-up at 25%, 5 months operational at 100%
+        # Formula: (7/12) × annual × 0.25 + (5/12) × annual = annual × (0.1458 + 0.4167) = annual × 0.5625
+        base_utilities = results_full['electricity_internet']
+        expected_utilities = base_utilities * ((7/12) * 0.25 + (5/12) * 1.0)
+        
+        assert results_rampup['electricity_internet'] == pytest.approx(expected_utilities, rel=1e-3)
+    
+    def test_rampup_no_management_fees(self, minimal_config):
+        """Test that property management fees are zero or minimal during ramp-up (no revenue)."""
+        results_rampup = compute_annual_cash_flows(minimal_config, operational_months=5)
+        results_full = compute_annual_cash_flows(minimal_config, operational_months=12)
+        
+        # Management fee should be roughly 5/12 of full year (based on revenue)
+        # Since management fee is % of revenue, and revenue is 5/12, fee should be ~5/12
+        expected_mgmt = results_full['property_management_cost'] * (5 / 12)
+        assert results_rampup['property_management_cost'] == pytest.approx(expected_mgmt, rel=1e-2)
+    
+    def test_rampup_fixed_costs_unchanged(self, minimal_config):
+        """Test that fixed costs (insurance, Nebenkosten) are paid for full year."""
+        results_full = compute_annual_cash_flows(minimal_config, operational_months=12)
+        results_rampup = compute_annual_cash_flows(minimal_config, operational_months=5)
+        
+        # Insurance: paid for full year
+        assert results_rampup['insurance'] == pytest.approx(results_full['insurance'], rel=1e-6)
+        
+        # Nebenkosten: paid for full year
+        assert results_rampup['nubbing_costs'] == pytest.approx(results_full['nubbing_costs'], rel=1e-6)
+        
+        # Maintenance reserve: paid for full year
+        assert results_rampup['maintenance_reserve'] == pytest.approx(results_full['maintenance_reserve'], rel=1e-6)
+    
+    def test_rampup_metadata_in_results(self, minimal_config):
+        """Test that operational_months and ramp_up_months are included in results."""
+        results = compute_annual_cash_flows(minimal_config, operational_months=5)
+        
+        assert 'operational_months' in results
+        assert 'ramp_up_months' in results
+        assert results['operational_months'] == 5
+        assert results['ramp_up_months'] == 7
+    
+    def test_rampup_projection_year1_partial(self):
+        """Test that Year 1 in projection handles ramp-up correctly."""
+        config = create_test_base_config()
+        projection = compute_15_year_projection(
+            config,
+            start_year=2026,
+            projection_years=15,
+            ramp_up_months=7
+        )
+        
+        # Year 1 should have 5 months operational
+        year1 = projection[0]
+        assert year1['year_number'] == 1
+        assert year1['operational_months'] == 5
+        assert year1['ramp_up_months'] == 7
+        
+        # Revenue should be reduced
+        # Compare to Year 2 (full year) - Year 1 should be roughly 5/12 of Year 2 (accounting for inflation)
+        year2 = projection[1]
+        assert year1['gross_rental_income'] < year2['gross_rental_income']
+    
+    def test_rampup_projection_year2_full(self):
+        """Test that Year 2+ in projection are full 12 months operational."""
+        config = create_test_base_config()
+        projection = compute_15_year_projection(
+            config,
+            start_year=2026,
+            projection_years=15,
+            ramp_up_months=7
+        )
+        
+        # Year 2 and beyond should be full 12 months
+        for year_idx in range(1, len(projection)):
+            year_data = projection[year_idx]
+            assert year_data['operational_months'] == 12, f"Year {year_data['year_number']} should have 12 operational months"
+            assert year_data['ramp_up_months'] == 0, f"Year {year_data['year_number']} should have 0 ramp-up months"
+    
+    def test_rampup_multiyear_spanning(self):
+        """Test that ramp-up spanning multiple years (14 months) works correctly."""
+        config = create_test_base_config()
+        projection = compute_15_year_projection(
+            config,
+            start_year=2026,
+            projection_years=15,
+            ramp_up_months=14  # Spans Year 1 and into Year 2
+        )
+        
+        # Year 1: entire year is ramp-up (0 operational months)
+        year1 = projection[0]
+        assert year1['operational_months'] == 0
+        assert year1['gross_rental_income'] == 0.0
+        
+        # Year 2: partial year (14 - 12 = 2 months ramp-up, 10 months operational)
+        year2 = projection[1]
+        assert year2['operational_months'] == 10
+        assert year2['ramp_up_months'] == 2
+        
+        # Year 3+: full operation
+        year3 = projection[2]
+        assert year3['operational_months'] == 12
+        assert year3['ramp_up_months'] == 0
+    
+    def test_rampup_zero_backward_compatible(self, minimal_config):
+        """Test that ramp_up_months=0 produces same results as not specifying it."""
+        results_explicit_zero = compute_annual_cash_flows(minimal_config, operational_months=12)
+        results_full_default = compute_annual_cash_flows(minimal_config)
+        
+        # Should be identical
+        assert results_explicit_zero['gross_rental_income'] == pytest.approx(results_full_default['gross_rental_income'], rel=1e-6)
+        assert results_explicit_zero['cash_flow_per_owner'] == pytest.approx(results_full_default['cash_flow_per_owner'], rel=1e-6)

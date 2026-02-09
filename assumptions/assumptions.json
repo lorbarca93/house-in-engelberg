@@ -29,8 +29,16 @@
       "_notary_fee_rate_explanation": "0.75% notary fees (buyer's share of 1.5% total, split 50-50 with seller)",
       "legal_documentation_fee_rate": 0.003,
       "_legal_documentation_fee_rate_explanation": "0.3% legal documentation fees",
+      "agency_fee_rate_buyer": 0.015,
+      "_agency_fee_rate_buyer_explanation": "1.5% buyer's share of agency fee (3% total split 50-50)",
+      "inspection_chf": 1500.0,
+      "_inspection_chf_explanation": "Technical expert / inspection of the flat",
+      "interior_designer_chf": 10000.0,
+      "_interior_designer_chf_explanation": "Interior designer costs",
+      "furniture_chf": 25000.0,
+      "_furniture_chf_explanation": "Furniture for short-term rental",
       "total_rate": 0.0105,
-      "_total_explanation": "Total acquisition costs = 1.05% of purchase price (0.75% notary + 0.3% legal)"
+      "_total_explanation": "Total acquisition costs = rate-based (notary + legal + agency) on purchase price + fixed CHF (inspection, interior designer, furniture)"
     }
   },
 
@@ -128,7 +136,10 @@
     "_ota_booking_percentage_explanation": "50% of bookings come through Online Travel Agencies (OTAs) like Airbnb or Booking.com. The remaining 50% come through direct bookings or other channels. This percentage can be adjusted based on actual booking channel mix.",
 
     "ota_fee_rate": 0.3,
-    "_ota_fee_rate_explanation": "30% fee charged by OTAs (Airbnb, Booking.com) on gross revenue for bookings made through their platform. This covers their services for listing, marketing, payment processing, and customer support. The effective platform fee on total revenue is calculated as ota_booking_percentage × ota_fee_rate (50% × 30% = 15%)."
+    "_ota_fee_rate_explanation": "30% fee charged by OTAs (Airbnb, Booking.com) on gross revenue for bookings made through their platform. This covers their services for listing, marketing, payment processing, and customer support. The effective platform fee on total revenue is calculated as ota_booking_percentage × ota_fee_rate (50% × 30% = 15%).",
+
+    "vat_rate_on_gross_rental": 0.083,
+    "_vat_rate_on_gross_rental_explanation": "8.3% VAT on gross short-term rental revenue (Swiss reduced rate). Set to 0 if exempt."
   },
 
   "tax": {
@@ -143,6 +154,9 @@
 
   "projection": {
     "_explanation": "Projection assumptions define how the investment evolves over time. These parameters affect the 15-year forecast and terminal value calculations.",
+
+    "ramp_up_months": 7,
+    "_ramp_up_months_explanation": "Pre-operational period (months) before starting short-term rentals. During this time: property acquired, society formed, management contract signed, apartment furnished, listings created on Airbnb/Booking.com. Costs paid during ramp-up: debt service (interest + principal), insurance, Nebenkosten (building fees), minimal utilities (~25% of full). No revenue generated during this period. After ramp-up, property begins normal rental operations.",
 
     "start_year": 2026,
     "_start_year_explanation": "Starting in January 2026 assumes purchase/closing in late 2025. This allows for full year analysis starting from the first operational year.",

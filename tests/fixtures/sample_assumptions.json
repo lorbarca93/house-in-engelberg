@@ -1,15 +1,23 @@
 {
   "_version": "test",
   "_comment": "Minimal valid assumptions file for testing",
-  
+
   "financing": {
     "purchase_price": 1000000.0,
     "ltv": 0.75,
     "interest_rate": 0.01,
     "amortization_rate": 0.01,
-    "num_owners": 2
+    "num_owners": 2,
+    "acquisition_costs": {
+      "notary_fee_rate": 0.0075,
+      "legal_documentation_fee_rate": 0.003,
+      "agency_fee_rate_buyer": 0.015,
+      "inspection_chf": 1500.0,
+      "interior_designer_chf": 10000.0,
+      "furniture_chf": 25000.0
+    }
   },
-  
+
   "rental": {
     "owner_nights_per_person": 5,
     "days_per_year": 365,
@@ -21,7 +29,7 @@
       "offpeak": 4
     }
   },
-  
+
   "seasonal": {
     "winter_peak": {
       "name": "Winter Peak",
@@ -32,19 +40,19 @@
     "summer_peak": {
       "name": "Summer Peak",
       "months": [6, 7, 8, 9],
-      "occupancy_rate": 0.70,
+      "occupancy_rate": 0.7,
       "average_daily_rate": 200.0
     },
     "offpeak": {
       "name": "Off-Peak",
       "months": [4, 5, 10, 11],
-      "occupancy_rate": 0.50,
+      "occupancy_rate": 0.5,
       "average_daily_rate": 150.0
     }
   },
-  
+
   "expenses": {
-    "property_management_fee_rate": 0.20,
+    "property_management_fee_rate": 0.2,
     "cleaning_cost_per_stay": 100.0,
     "average_length_of_stay": 1.7,
     "tourist_tax_per_person_per_night": 3.0,
@@ -52,15 +60,17 @@
     "insurance_rate": 0.004,
     "nubbing_costs_annual": 2000.0,
     "electricity_internet_annual": 1000.0,
-    "maintenance_rate": 0.003
+    "maintenance_rate": 0.003,
+    "vat_rate_on_gross_rental": 0.0
   },
-  
+
   "projection": {
     "start_year": 2026,
     "projection_years": 15,
     "inflation_rate": 0.008,
     "property_appreciation_rate": 0.025,
     "discount_rate": 0.05,
+    "ramp_up_months": 7,
     "selling_costs": {
       "broker_fee_rate": 0.03,
       "notary_fee_rate": 0.015,

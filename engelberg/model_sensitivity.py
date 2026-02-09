@@ -10,10 +10,11 @@ of parameter changes on financial outcomes.
 
 import os
 import json
-from typing import Dict, List, Callable, Tuple
+from typing import Dict, List, Callable, Tuple, Optional
 from dataclasses import replace
 
 from engelberg.core import (
+    HORIZONS,
     create_base_case_config,
     get_projection_defaults,
     compute_annual_cash_flows,
@@ -83,6 +84,7 @@ def create_sensitivity_result(param_name: str, base_value: float,
     """
     result = {
         'parameter': param_name,
+        'parameter_name': param_name,
         'base_value': base_value,
         'base_irr': base_irr,
         'low': {
@@ -254,13 +256,41 @@ def modify_winter_occupancy(cfg: BaseCaseConfig, value: float) -> BaseCaseConfig
     return replace(cfg, rental=new_rental)
 
 
+def modify_ramp_up_months(cfg: BaseCaseConfig, value: float, json_path: str) -> BaseCaseConfig:
+    """
+    Modify ramp-up period (pre-operational months) in the projection defaults.
+    
+    This function modifies how many months the property is in ramp-up (pre-operational)
+    before starting short-term rental operations. During ramp-up: no revenue, but
+    debt service, insurance, Nebenkosten, and minimal utilities are paid.
+    
+    Args:
+        cfg: Base configuration
+        value: New ramp-up period in months (will be rounded to integer)
+        json_path: Path to assumptions file (needed to reload projection defaults)
+    
+    Returns:
+        Modified configuration - ramp_up_months will be passed to projection functions
+    """
+    # Clamp to reasonable bounds (0-18 months)
+    value = max(0, min(18, int(round(value))))
+    
+    # Since ramp_up_months is a projection parameter (not config parameter),
+    # we need to store it for later use in compute_15_year_projection
+    # For now, return config unchanged - ramp_up_months will be passed separately to projection functions
+    # This is handled in the unified sensitivity loop
+    return cfg
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 # METRIC CALCULATORS
 # Functions that calculate specific financial metrics for sensitivity analysis
 # ═══════════════════════════════════════════════════════════════════════════
 
 def calculate_equity_irr(config: BaseCaseConfig, json_path: str, 
-                         property_appreciation_rate: float = None) -> float:
+                         property_appreciation_rate: float = None,
+                         projection_years: Optional[int] = None,
+                         ramp_up_months: Optional[int] = None) -> float:
     """
     Calculate Equity IRR (levered) for any configuration.
     
@@ -273,6 +303,8 @@ def calculate_equity_irr(config: BaseCaseConfig, json_path: str,
         config: Configuration to test
         json_path: Path to assumptions (for projection defaults)
         property_appreciation_rate: Override appreciation rate (for sensitivity)
+        projection_years: Horizon in years; if None, use proj_defaults['projection_years'] or 15
+        ramp_up_months: Override ramp-up period; if None, use proj_defaults['ramp_up_months'] or 0
     
     Returns:
         Equity IRR as percentage (e.g., 4.5 means 4.5%)
@@ -280,6 +312,8 @@ def calculate_equity_irr(config: BaseCaseConfig, json_path: str,
     # Load projection parameters
     proj_defaults = get_projection_defaults(json_path)
     appreciation_rate = property_appreciation_rate if property_appreciation_rate is not None else proj_defaults['property_appreciation_rate']
+    years = projection_years if projection_years is not None else proj_defaults.get('projection_years', 15)
+    ramp_up = ramp_up_months if ramp_up_months is not None else proj_defaults.get('ramp_up_months', 0)
     
     # Calculate results
     results = compute_annual_cash_flows(config)
@@ -287,7 +321,9 @@ def calculate_equity_irr(config: BaseCaseConfig, json_path: str,
         config,
         start_year=proj_defaults['start_year'],
         inflation_rate=proj_defaults['inflation_rate'],
-        property_appreciation_rate=appreciation_rate
+        property_appreciation_rate=appreciation_rate,
+        projection_years=years,
+        ramp_up_months=ramp_up
     )
     
     # Get IRR
@@ -305,8 +341,12 @@ def calculate_equity_irr(config: BaseCaseConfig, json_path: str,
     return irr_results['equity_irr_with_sale_pct']
 
 
-def calculate_after_tax_cash_flow_per_person(config: BaseCaseConfig, json_path: str,
-                                             property_appreciation_rate: float = None) -> float:
+def calculate_after_tax_cash_flow_per_person(
+    config: BaseCaseConfig,
+    json_path: str,
+    property_appreciation_rate: float = None,
+    ramp_up_months: Optional[int] = None,
+) -> float:
     """
     Calculate after-tax cash flow per person (monthly) for any configuration.
     
@@ -319,25 +359,46 @@ def calculate_after_tax_cash_flow_per_person(config: BaseCaseConfig, json_path: 
         config: Configuration to test
         json_path: Path to assumptions (for projection defaults)
         property_appreciation_rate: Override appreciation rate (for sensitivity)
-                                  Note: This does not affect Year 1 cash flow
+        ramp_up_months: Override ramp-up period for Year 1 cash flow
     
     Returns:
         After-tax cash flow per person (monthly, in CHF)
     """
     # Load projection parameters
     proj_defaults = get_projection_defaults(json_path)
-    appreciation_rate = property_appreciation_rate if property_appreciation_rate is not None else proj_defaults['property_appreciation_rate']
-    
-    # Calculate results (appreciation rate doesn't affect Year 1 cash flow, but included for consistency)
-    results = compute_annual_cash_flows(config)
-    
+    appreciation_rate = (
+        property_appreciation_rate
+        if property_appreciation_rate is not None
+        else proj_defaults["property_appreciation_rate"]
+    )
+    ramp_up = (
+        int(ramp_up_months)
+        if ramp_up_months is not None
+        else int(proj_defaults.get("ramp_up_months", 0))
+    )
+
+    # If ramp-up is active, use projection Year 1 because annual cash flows assume steady-state operation.
+    if ramp_up > 0:
+        projection = compute_15_year_projection(
+            config=config,
+            start_year=2026,
+            projection_years=1,
+            inflation_rate=proj_defaults["inflation_rate"],
+            property_appreciation_rate=appreciation_rate,
+            ramp_up_months=ramp_up,
+        )
+        annual_cash_flow = projection[0].get("after_tax_cash_flow_per_owner", 0.0)
+    else:
+        results = compute_annual_cash_flows(config)
+        annual_cash_flow = results.get("after_tax_cash_flow_per_owner", 0.0)
+
     # Return after-tax cash flow per owner (monthly = annual / 12)
-    annual_cash_flow = results.get('after_tax_cash_flow_per_owner', 0.0)
     return annual_cash_flow / 12.0
 
 
 def calculate_cash_on_cash(config: BaseCaseConfig, json_path: str, 
-                           property_appreciation_rate: float = None) -> float:
+                           property_appreciation_rate: float = None,
+                           projection_years: Optional[int] = None, **kwargs) -> float:
     """
     Calculate Cash-on-Cash return for any configuration.
     
@@ -371,7 +432,8 @@ def calculate_cash_on_cash(config: BaseCaseConfig, json_path: str,
 
 
 def calculate_monthly_ncf(config: BaseCaseConfig, json_path: str, 
-                          property_appreciation_rate: float = None) -> float:
+                          property_appreciation_rate: float = None,
+                          projection_years: Optional[int] = None, **kwargs) -> float:
     """
     Calculate Monthly Net Cash Flow per Owner after taxes and debt service.
     
@@ -411,7 +473,8 @@ def run_unified_sensitivity_analysis(
     metric_calculator: Callable,
     metric_name: str,
     verbose: bool = True,
-    include_atcf: bool = False
+    include_atcf: bool = False,
+    projection_years: Optional[int] = None
 ) -> Dict:
     """
     Unified sensitivity analysis function that tests all parameters for any metric.
@@ -426,6 +489,7 @@ def run_unified_sensitivity_analysis(
         metric_name: Name of the metric for display/export (e.g., "Equity IRR")
         verbose: Whether to print detailed output
         include_atcf: Whether to also calculate after-tax cash flow per person (for dual metrics)
+        projection_years: Horizon in years for projection-based metrics; if None, use defaults (15)
     
     Returns:
         Dictionary with all sensitivity results
@@ -438,9 +502,10 @@ def run_unified_sensitivity_analysis(
     # Load base configuration
     base_config = create_base_case_config(json_path)
     proj_defaults = get_projection_defaults(json_path)
+    years = projection_years if projection_years is not None else proj_defaults.get('projection_years', 15)
     
-    # Calculate base metric
-    base_metric = metric_calculator(base_config, json_path)
+    # Calculate base metric (pass projection_years for horizon; CoC/NCF accept via **kwargs)
+    base_metric = metric_calculator(base_config, json_path, projection_years=years)
     base_atcf = None
     if include_atcf:
         base_atcf = calculate_after_tax_cash_flow_per_person(base_config, json_path)
@@ -466,19 +531,29 @@ def run_unified_sensitivity_analysis(
             param_config['clamp_max']
         )
         
-        # Handle special case: winter_occupancy uses modify_winter_occupancy function
+        # Handle special cases
         if param_key == 'winter_occupancy':
             modifier = modify_winter_occupancy
+        elif param_key == 'ramp_up_months':
+            # Ramp-up is a projection parameter, not config - handle specially
+            modifier = None  # No config modification needed
         else:
             modifier = param_config['modifier']
         
         # Calculate metrics for base, low, and high
         base_metric_val = base_metric
         try:
-            low_config = modifier(base_config, low_value)
-            low_metric_val = metric_calculator(low_config, json_path)
-            high_config = modifier(base_config, high_value)
-            high_metric_val = metric_calculator(high_config, json_path)
+            if param_key == 'ramp_up_months':
+                # For ramp-up, pass as parameter to metric calculator
+                low_metric_val = metric_calculator(base_config, json_path, projection_years=years, ramp_up_months=int(low_value))
+                high_metric_val = metric_calculator(base_config, json_path, projection_years=years, ramp_up_months=int(high_value))
+                low_config = base_config  # No config change
+                high_config = base_config
+            else:
+                low_config = modifier(base_config, low_value)
+                low_metric_val = metric_calculator(low_config, json_path, projection_years=years)
+                high_config = modifier(base_config, high_value)
+                high_metric_val = metric_calculator(high_config, json_path, projection_years=years)
         except Exception as e:
             if verbose:
                 print(f"  Warning: Error testing {param_config['parameter_name']}: {e}")
@@ -490,10 +565,16 @@ def run_unified_sensitivity_analysis(
         high_atcf_val = None
         if include_atcf:
             try:
-                low_atcf_val = calculate_after_tax_cash_flow_per_person(low_config, json_path)
-                high_atcf_val = calculate_after_tax_cash_flow_per_person(high_config, json_path)
-            except Exception:
-                # If ATCF calculation fails, use base value
+                if param_key == 'ramp_up_months':
+                    # For ramp-up, pass as parameter to ATCF calculator
+                    low_atcf_val = calculate_after_tax_cash_flow_per_person(base_config, json_path, ramp_up_months=int(low_value))
+                    high_atcf_val = calculate_after_tax_cash_flow_per_person(base_config, json_path, ramp_up_months=int(high_value))
+                else:
+                    low_atcf_val = calculate_after_tax_cash_flow_per_person(low_config, json_path)
+                    high_atcf_val = calculate_after_tax_cash_flow_per_person(high_config, json_path)
+            except (ValueError, KeyError, TypeError) as e:
+                # If ATCF calculation fails (missing data, invalid config), use base value
+                print(f"Warning: ATCF calculation failed for {param_config['parameter_name']}: {e}")
                 low_atcf_val = base_atcf
                 high_atcf_val = base_atcf
         
@@ -529,9 +610,9 @@ def run_unified_sensitivity_analysis(
     # For metrics that use projection (like IRR), test with different appreciation rates
     # For Year 1 metrics (like CoC, NCF), appreciation has no effect
     if metric_name in ['Equity IRR', 'Project IRR']:
-        base_irr_appr = calculate_equity_irr(base_config, json_path, base_appr)
-        low_irr_appr = calculate_equity_irr(base_config, json_path, low_appr)
-        high_irr_appr = calculate_equity_irr(base_config, json_path, high_appr)
+        base_irr_appr = calculate_equity_irr(base_config, json_path, base_appr, projection_years=years)
+        low_irr_appr = calculate_equity_irr(base_config, json_path, low_appr, projection_years=years)
+        high_irr_appr = calculate_equity_irr(base_config, json_path, high_appr, projection_years=years)
         
         # ATCF doesn't change with appreciation (Year 1 metric)
         base_atcf_appr = base_atcf if include_atcf else None
@@ -578,13 +659,15 @@ def run_unified_sensitivity_analysis(
     
     if metric_name in ['Equity IRR', 'Project IRR']:
         # Test inflation sensitivity for IRR (affects projection)
-        def test_inflation_sensitivity(base_cfg, inflation_rate):
-            results = compute_annual_cash_flows(base_cfg)
+        def test_inflation_sensitivity(base_cfg, inflation_rate, ramp_up_months):
+            compute_annual_cash_flows(base_cfg)
             projection = compute_15_year_projection(
                 base_cfg,
                 start_year=proj_defaults['start_year'],
                 inflation_rate=inflation_rate,
-                property_appreciation_rate=proj_defaults['property_appreciation_rate']
+                property_appreciation_rate=proj_defaults['property_appreciation_rate'],
+                projection_years=years,
+                ramp_up_months=ramp_up_months
             )
             irr_results = calculate_irrs_from_projection(
                 projection,
@@ -598,9 +681,10 @@ def run_unified_sensitivity_analysis(
             )
             return irr_results['equity_irr_with_sale_pct']
         
-        base_irr_inflation = test_inflation_sensitivity(base_config, base_inflation)
-        low_irr_inflation = test_inflation_sensitivity(base_config, low_inflation)
-        high_irr_inflation = test_inflation_sensitivity(base_config, high_inflation)
+        ramp_up = proj_defaults.get('ramp_up_months', 0)
+        base_irr_inflation = base_metric
+        low_irr_inflation = test_inflation_sensitivity(base_config, low_inflation, ramp_up)
+        high_irr_inflation = test_inflation_sensitivity(base_config, high_inflation, ramp_up)
         
         sensitivities.append(create_sensitivity_result(
             'Inflation Rate',
@@ -636,13 +720,15 @@ def run_unified_sensitivity_analysis(
     
     if metric_name in ['Equity IRR', 'Project IRR']:
         # Test selling costs sensitivity for IRR (affects exit value)
-        def test_selling_costs_irr(base_cfg, selling_rate):
-            results = compute_annual_cash_flows(base_cfg)
+        def test_selling_costs_irr(base_cfg, selling_rate, ramp_up_months):
+            compute_annual_cash_flows(base_cfg)
             projection = compute_15_year_projection(
                 base_cfg,
                 start_year=proj_defaults['start_year'],
                 inflation_rate=proj_defaults['inflation_rate'],
-                property_appreciation_rate=proj_defaults['property_appreciation_rate']
+                property_appreciation_rate=proj_defaults['property_appreciation_rate'],
+                projection_years=years,
+                ramp_up_months=ramp_up_months
             )
             irr_results = calculate_irrs_from_projection(
                 projection,
@@ -656,9 +742,10 @@ def run_unified_sensitivity_analysis(
             )
             return irr_results['equity_irr_with_sale_pct']
         
-        base_irr_selling = test_selling_costs_irr(base_config, base_selling_rate)
-        low_irr_selling = test_selling_costs_irr(base_config, low_selling)
-        high_irr_selling = test_selling_costs_irr(base_config, high_selling)
+        ramp_up = proj_defaults.get('ramp_up_months', 0)
+        base_irr_selling = base_metric
+        low_irr_selling = test_selling_costs_irr(base_config, low_selling, ramp_up)
+        high_irr_selling = test_selling_costs_irr(base_config, high_selling, ramp_up)
         
         # Selling costs don't affect Year 1 cash flow
         base_atcf_selling = base_atcf if include_atcf else None
@@ -750,9 +837,10 @@ def run_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = Tru
     
     This analysis produces data for TWO tornado charts:
     1. After-Tax Cash Flow per Person (Year 1 cash flow impact)
-    2. Equity IRR (15-year return impact)
+    2. Equity IRR (per-horizon return impact)
     
-    This function is now a thin wrapper around run_unified_sensitivity_analysis().
+    Runs sensitivity for each horizon in HORIZONS and stores results in by_horizon; top-level
+    sensitivities are the 15-year run for backward compatibility.
     
     Args:
         json_path: Path to assumptions JSON file
@@ -761,19 +849,32 @@ def run_sensitivity_analysis(json_path: str, case_name: str, verbose: bool = Tru
     
     Returns:
         Dictionary with all sensitivity results including:
-        - base_irr: Base case Equity IRR
+        - base_irr: Base case Equity IRR (15Y)
         - base_atcf: Base case After-Tax Cash Flow per Person
-        - sensitivities: List of parameter sensitivity results with both metrics
+        - sensitivities: List of parameter sensitivity results (15Y)
+        - by_horizon: { "5": {...}, "10": {...}, ..., "40": {...} } with sensitivities per horizon
     """
-    # Use unified function with Equity IRR metric and include ATCF
-    output_data = run_unified_sensitivity_analysis(
-        json_path=json_path,
-        case_name=case_name,
-        metric_calculator=calculate_equity_irr,
-        metric_name='Equity IRR',
-        verbose=verbose,
-        include_atcf=True
-    )
+    by_horizon = {}
+    output_data_15 = None
+    for horizon in HORIZONS:
+        out = run_unified_sensitivity_analysis(
+            json_path=json_path,
+            case_name=case_name,
+            metric_calculator=calculate_equity_irr,
+            metric_name='Equity IRR',
+            verbose=verbose if horizon == 15 else False,
+            include_atcf=True,
+            projection_years=horizon
+        )
+        by_horizon[str(horizon)] = {
+            'sensitivities': out.get('sensitivities', []),
+            'base_irr': out.get('base_irr'),
+            'base_atcf': out.get('base_atcf'),
+        }
+        if horizon == 15:
+            output_data_15 = out
+    output_data = output_data_15
+    output_data['by_horizon'] = by_horizon
     
     # Export to JSON (unified function doesn't export, we do it here for backward compatibility)
     output_path = save_json(output_data, case_name, 'sensitivity')
@@ -809,7 +910,7 @@ def run_cash_on_cash_sensitivity_analysis(json_path: str, case_name: str, verbos
     Returns:
         Dictionary with all sensitivity results
     """
-    # Use unified function with Cash-on-Cash metric
+    # Use unified function with Cash-on-Cash metric (Year 1 metric; same result for all horizons)
     output_data = run_unified_sensitivity_analysis(
         json_path=json_path,
         case_name=case_name,
@@ -818,6 +919,10 @@ def run_cash_on_cash_sensitivity_analysis(json_path: str, case_name: str, verbos
         verbose=verbose,
         include_atcf=False
     )
+    # Duplicate same result under each horizon for uniform UI (by_horizon[horizon]).
+    # CoC is a Year-1 metric and does not vary by time horizon; the UI hides the horizon
+    # bar for this view and shows a note that the metric is Year 1 only.
+    output_data['by_horizon'] = {str(h): {'sensitivities': output_data.get('sensitivities', []), 'base_coc': output_data.get('base_coc')} for h in HORIZONS}
     
     # Export to JSON (unified function doesn't export, we do it here for backward compatibility)
     output_path = save_json(output_data, case_name, 'sensitivity_coc')
@@ -850,7 +955,7 @@ def run_monthly_ncf_sensitivity_analysis(json_path: str, case_name: str, verbose
     Returns:
         Dictionary with all sensitivity results
     """
-    # Use unified function with Monthly NCF metric
+    # Use unified function with Monthly NCF metric (Year 1 metric; same result for all horizons)
     output_data = run_unified_sensitivity_analysis(
         json_path=json_path,
         case_name=case_name,
@@ -859,6 +964,10 @@ def run_monthly_ncf_sensitivity_analysis(json_path: str, case_name: str, verbose
         verbose=verbose,
         include_atcf=False
     )
+    # Duplicate same result under each horizon for uniform UI (by_horizon[horizon]).
+    # Monthly NCF is a Year-1 metric and does not vary by time horizon; the UI hides the
+    # horizon bar for this view and shows a note that the metric is Year 1 only.
+    output_data['by_horizon'] = {str(h): {'sensitivities': output_data.get('sensitivities', []), 'base_ncf': output_data.get('base_ncf')} for h in HORIZONS}
     
     # Export to JSON (unified function doesn't export, we do it here for backward compatibility)
     output_path = save_json(output_data, case_name, 'sensitivity_ncf')

@@ -28,7 +28,6 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import json
 from scipy.stats import beta, lognorm, triang, norm
 from scipy.linalg import cholesky
 from engelberg.core import (
@@ -40,11 +39,9 @@ from engelberg.core import (
     apply_sensitivity  # Use the centralized sensitivity function
 )
 from datetime import datetime
-import random
 from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass
 from multiprocessing import Pool, cpu_count
-from functools import partial
 
 # Import shared layout functions
 try:
@@ -479,6 +476,8 @@ def run_single_simulation(args: Tuple) -> Dict:
     cleaning_cost_per_stay = float(samples_dict['cleaning_cost_per_stay'][i])
     marginal_tax_rate = float(samples_dict['marginal_tax_rate'][i])
     discount_rate = float(samples_dict['discount_rate'][i])
+    # Ramp-up months (default to 7 if not sampled for backward compatibility with old test data)
+    ramp_up_months = int(round(float(samples_dict['ramp_up_months'][i]))) if 'ramp_up_months' in samples_dict else 7
     
     # Generate time-varying series for inflation and appreciation using AR(1) process
     base_inflation = float(samples_dict['inflation_rate'][i])
@@ -583,12 +582,13 @@ def run_single_simulation(args: Tuple) -> Dict:
             if refi_result:
                 refinancing_events[year] = refi_result
     
-    # Calculate 15-year projection with time-varying parameters and events
+    # Calculate 15-year projection with time-varying parameters, events, and ramp-up
     projection = compute_15_year_projection(
         config, 
         start_year=2026, 
         inflation_rate=base_inflation,  # Base rate for backward compatibility
         property_appreciation_rate=base_appreciation,  # Base rate for backward compatibility
+        ramp_up_months=ramp_up_months,  # Sampled ramp-up period
         ota_booking_percentage=ota_booking_percentage,
         ota_fee_rate=ota_fee_rate,
         average_length_of_stay=average_length_of_stay,
@@ -823,7 +823,8 @@ def apply_enhanced_sensitivity(
             nubbing_costs_annual=nubbing_costs_annual if nubbing_costs_annual is not None else config.expenses.nubbing_costs_annual,
             electricity_internet_annual=electricity_internet_annual if electricity_internet_annual is not None else config.expenses.electricity_internet_annual,
             maintenance_rate=maintenance_rate if maintenance_rate is not None else config.expenses.maintenance_rate,
-            property_value=config.expenses.property_value
+            property_value=config.expenses.property_value,
+            vat_rate_on_gross_rental=config.expenses.vat_rate_on_gross_rental
         )
     
     return config
@@ -965,6 +966,13 @@ def get_default_distributions() -> Dict[str, DistributionConfig]:
             params={'mean': 0.035, 'std': 0.0275},  # Mean 3.5% per year, std 2.75% (allows for market volatility)
             bounds=(-0.02, 0.09)  # -2% to 9% per year (allows for market downturns)
         ),
+        
+        # Ramp-up period (pre-operational months)
+        'ramp_up_months': DistributionConfig(
+            dist_type='triangular',
+            params={'min': 4, 'mode': 7, 'max': 10},  # Most likely 7 months, range 4-10
+            bounds=(4, 10)
+        ),
     }
 
 
@@ -1000,8 +1008,9 @@ def get_default_correlation_matrix() -> np.ndarray:
     20: cleaning_cost_per_stay
     21: marginal_tax_rate
     22: discount_rate
+    23: ramp_up_months
     """
-    n = 23  # Updated to include all new stochastic parameters
+    n = 24  # Updated to include all stochastic parameters including ramp_up_months
     corr = np.eye(n)
     
     # Revenue correlations: occupancy and ADR are positively correlated
@@ -1029,6 +1038,13 @@ def get_default_correlation_matrix() -> np.ndarray:
     
     # Operational parameter correlations
     corr[1, 18] = corr[18, 1] = -0.2  # Daily rate vs length of stay (negative: longer stays get discounts)
+    
+    # Ramp-up correlations (index 23)
+    # Ramp-up vs interest rate: higher rates might delay decision (+0.1)
+    # Note: interest_rate is FIXED (index 8), so this correlation won't be used
+    # Ramp-up vs purchase price: more expensive properties take longer to prepare (+0.15)
+    # This is index 23 (ramp_up) vs index for purchase_price (not in current stochastic params)
+    # For now, keeping ramp-up mostly independent
     corr[0, 20] = corr[20, 0] = 0.4  # Occupancy vs cleaning cost (positive: more bookings = more cleaning)
     corr[18, 20] = corr[20, 18] = -0.3  # Length of stay vs cleaning cost (negative: longer stays = fewer cleanings)
     corr[19, 20] = corr[20, 19] = 0.2  # Avg guests vs cleaning cost (positive: more guests = more cleaning)
@@ -2412,4 +2428,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

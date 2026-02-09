@@ -124,6 +124,36 @@ class TestFinancingParams:
         )
         assert financing.equity_per_owner == 250000.0
 
+    def test_acquisition_costs_total_with_breakdown(self):
+        """Test acquisition_costs_total with rate-based and fixed CHF components."""
+        # Default: notary 0.75% + legal 0.3% = 1.05% of purchase price
+        financing = FinancingParams(
+            purchase_price=1000000.0,
+            ltv=0.75,
+            interest_rate=0.01,
+            amortization_rate=0.01,
+            num_owners=2
+        )
+        assert financing.acquisition_costs_total == pytest.approx(1000000.0 * 0.0105, rel=1e-9)  # 10500
+
+        # With agency, inspection, interior designer, furniture
+        financing_full = FinancingParams(
+            purchase_price=1000000.0,
+            ltv=0.75,
+            interest_rate=0.01,
+            amortization_rate=0.01,
+            num_owners=2,
+            notary_fee_rate=0.0075,
+            legal_doc_fee_rate=0.003,
+            agency_fee_rate_buyer=0.015,
+            inspection_chf=1500.0,
+            interior_designer_chf=10000.0,
+            furniture_chf=25000.0
+        )
+        rate_part = 1000000.0 * (0.0075 + 0.003 + 0.015)  # 25500
+        fixed_part = 1500.0 + 10000.0 + 25000.0  # 36500
+        assert financing_full.acquisition_costs_total == pytest.approx(rate_part + fixed_part, rel=1e-9)  # 62000
+
 
 class TestRentalParams:
     """Tests for RentalParams dataclass."""
