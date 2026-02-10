@@ -1,6 +1,6 @@
 # Quick Start
 
-Fast operator guide for running analyses, generating dashboard data, and validating outputs.
+Operator runbook for generating data, opening the dashboard, and validating consistency.
 
 ## 1) Install
 
@@ -9,21 +9,24 @@ Fast operator guide for running analyses, generating dashboard data, and validat
 pip install -r requirements.txt
 ```
 
-## 2) Generate Data
+Optional developer tooling:
 
-### Fast all-cases batch (recommended during normal iteration)
+```bash
+pip install -r requirements-dev.txt
+```
+
+## 2) Generate Dashboard Data
+
+Fast default (recommended):
 
 ```bash
 # Standard fast path
 python scripts/generate_all_data.py
 ```
 
-Behavior:
-- Discovers all assumptions files
-- Generates base case, sensitivity, and Monte Carlo JSONs
-- Reuses existing MC sensitivity JSON (does not regenerate by default)
+This generates all case outputs except fresh MC sensitivity regeneration (it reuses existing files when available).
 
-### Full all-cases batch (slow)
+Full regeneration including MC sensitivity:
 
 ```bash
 # Use this when you need completely fresh MC sensitivity output
@@ -56,95 +59,82 @@ python scripts/analyze.py assumptions/assumptions_migros.json
 python scripts/analyze.py --analysis base
 python scripts/analyze.py --analysis sensitivity
 python scripts/analyze.py --analysis monte_carlo
+python scripts/analyze.py --analysis loan_structure_sensitivity
 python scripts/analyze.py --analysis monte_carlo_sensitivity
 
 # Override Monte Carlo simulation count for this run
 python scripts/analyze.py --simulations 5000
 ```
 
-## 4) Open Dashboard
+## 4) Refresh MC Sensitivity Only
+
+```bash
+python scripts/analyze_monte_carlo_sensitivity.py
+python scripts/analyze_monte_carlo_sensitivity.py --all-cases
+python scripts/analyze_monte_carlo_sensitivity.py --all-cases --simulations 1500
+```
+
+## 5) Start Dashboard
 
 ```bash
 cd website
 python -m http.server 8080
 ```
 
-Open `http://localhost:8080/index.html`.
+Open: `http://localhost:8080/index.html`
 
 Tip: If the page loads but has empty charts, regenerate data and refresh the browser.
 
-## 5) Validate
+## 6) Validate System
 
 ```bash
+python -m pytest -q
 python scripts/validate_system.py
-python -m pytest tests -v
 ```
 
-Expected on current branch:
-- `validate_system.py`: `403 passed, 0 failed`
-- `pytest`: `154 passed`
+Current expected results:
 
-## Dashboard Summary
+- `172 passed` (pytest)
+- `427 passed, 0 failed` (validator)
 
-- Cases in dropdown: 12
-- Analysis views: 8
-- Time horizon selector options: `5, 10, 15, 20, 25, 30, 35, 40`
+## Dashboard Behavior Notes
 
-Horizon selector policy:
-- Visible: `base_case`, `sensitivity`
-- Hidden: `sensitivity_coc`, `sensitivity_ncf`, `monte_carlo`, `monte_carlo_sensitivity`, `scenario_comparison`
-
-## Current Base Case Snapshot
-
-From `website/data/base_case_base_case_analysis.json`:
-
-| Metric | Value |
-| --- | --- |
-| Equity IRR (with sale) | 6.07% |
-| Project IRR (with sale) | 3.66% |
-| NPV @ 5% | CHF 18,319 |
-| MOIC | 2.62x |
-| Annual Cash Flow per Owner (pre-tax) | CHF -4,408 |
-| Annual Cash Flow per Owner (after-tax) | CHF -3,458 |
-| Monthly Cash Flow per Owner (after-tax) | CHF -288 |
-| Payback Period | 15 years |
-
-## Files You Will Touch Most
-
-- `assumptions/` for scenario inputs
-- `scripts/generate_all_data.py` for batch generation
-- `scripts/analyze_monte_carlo_sensitivity.py` for isolated MC sensitivity runs
-- `website/index.html` for dashboard rendering
-- `website/data/` for generated JSON artifacts
+- Cases available: `12`
+- Views available: `9`
+- Horizon selector visible for:
+  - `base_case`
+  - `balance_sheet_cashflow`
+  - `sensitivity`
+- Horizon selector hidden for:
+  - `loan_structure_sensitivity`
+  - `sensitivity_coc`
+  - `sensitivity_ncf`
+  - `monte_carlo`
+  - `monte_carlo_sensitivity`
+  - `scenario_comparison`
 
 ## Common Issues
 
-### "No cases available" in dashboard
-
-Run:
+No cases in dropdown:
 
 ```bash
 python scripts/generate_all_data.py
 ```
 
-Confirm `website/data/cases_index.json` exists.
-
-### Slow iteration loop
-
-Use fast batch + separate MC sensitivity:
+MC sensitivity too slow during iteration:
 
 ```bash
 python scripts/generate_all_data.py
 python scripts/analyze_monte_carlo_sensitivity.py --all-cases --simulations 300
 ```
 
-### Sanity check before commit
+Unexpected output drift:
 
 ```bash
 python scripts/validate_system.py
-python -m pytest tests -v
+python -m pytest -q tests/integration/test_cross_script_consistency.py
 ```
 
 ---
 
-Last updated: February 9, 2026
+Last updated: February 10, 2026

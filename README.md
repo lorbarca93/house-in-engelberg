@@ -1,23 +1,57 @@
 # Engelberg Property Investment Simulation
 
-Financial modeling toolkit for co-ownership short-term rental investments in Engelberg, Switzerland.
+Financial modeling system for Swiss co-ownership vacation-rental investments (Engelberg focus), with deterministic and probabilistic analyses plus an interactive dashboard.
 
-It combines:
-- Deterministic base-case analysis
-- Deterministic sensitivity analysis (Equity IRR, Cash-on-Cash, Monthly NCF)
-- Probabilistic Monte Carlo analysis
-- Probabilistic Monte Carlo sensitivity analysis
-- Interactive dashboard visualizations (single-page HTML + JSON data)
+## Current Status (February 10, 2026)
 
-## What You Get
+- Active scenario set: `12` cases from `assumptions/`
+- Dashboard views: `9`
+- Data outputs per case: `7`
+- Automated tests: `172 passed`
+- System validation checks: `427 passed, 0 failed`
 
-- Core Python package in `engelberg/` for all calculations
-- CLI scripts in `scripts/` for single-case and batch runs
-- Scenario assumptions in `assumptions/`
-- Dashboard in `website/index.html`
-- Automated checks:
-1. `python -m pytest tests -v` (154 tests)
-2. `python scripts/validate_system.py` (403 validation checks)
+## What The Model Covers
+
+- Deterministic base-case cash-flow and return modeling
+- Balance-sheet vs cash-flow decomposition (equity build vs liquidity drag)
+- Deterministic sensitivity analysis:
+  - Equity IRR
+  - Cash-on-cash
+  - Monthly net cash flow
+- Loan-structure sensitivity across SARON/fixed mixes with DSCR stress tests
+- Monte Carlo simulation
+- Monte Carlo sensitivity (NPV probability vs parameter changes)
+- Scenario comparison across all configured cases
+
+## Financial Logic and Calculation Order
+
+Yearly operating flow (core ordering in `engelberg/core.py`):
+
+1. Gross rental income (prorated for downtime months)
+2. OTA platform fees
+3. Net rental income
+4. Cleaning cost (if separate)
+5. Property management fee on revenue after OTA and cleaning
+6. Tourist tax + VAT + fixed operating costs
+7. Net operating income (NOI)
+8. Debt service (interest + amortization)
+9. Pre-tax cash flow
+10. Tax shield from deductible interest
+11. After-tax cash flow
+
+Exit flow at sale:
+
+1. Gross sale price
+2. Selling costs (`selling_costs.total_rate`)
+3. Capital gains tax (default `2%` on positive gain only)
+4. Property transfer tax at sale (default `1.5%` on gross sale)
+5. Net sale price
+6. Net proceeds after loan payoff
+
+Downtime modeling:
+
+- Initial no-revenue ramp-up: default `3` months
+- Recurring renovation no-revenue period: default `3` months every `5` years
 
 ## Quick Start
 
@@ -66,16 +100,16 @@ python -m http.server 8080
 
 Then open `http://localhost:8080/index.html`.
 
-## Core Scripts
+## CLI Scripts
 
 | Script | Purpose |
 | --- | --- |
-| `scripts/analyze.py` | Run analyses for one assumptions file |
-| `scripts/generate_all_data.py` | Batch generation across all discovered cases |
+| `scripts/analyze.py` | Single-case analysis runner |
+| `scripts/generate_all_data.py` | Batch generation for all discovered cases |
 | `scripts/analyze_monte_carlo_sensitivity.py` | Dedicated MC sensitivity runner |
-| `scripts/validate_system.py` | Structural, data, and consistency validation |
+| `scripts/validate_system.py` | Cross-file and cross-calculation validation |
 
-### `analyze.py` examples
+Common commands:
 
 ```bash
 # Run all analyses for the default assumptions file (assumptions/assumptions.json)
@@ -88,102 +122,105 @@ python scripts/analyze.py assumptions/assumptions_migros.json
 python scripts/analyze.py --analysis base
 python scripts/analyze.py --analysis sensitivity
 python scripts/analyze.py --analysis monte_carlo
+python scripts/analyze.py --analysis loan_structure_sensitivity
 python scripts/analyze.py --analysis monte_carlo_sensitivity
 
 # Increase Monte Carlo simulation count for the run
 python scripts/analyze.py --simulations 5000
 ```
 
-## Dashboard Analysis Views
+## Dashboard Views
 
-The sidebar contains 8 analysis views:
+1. `Simulation KPIs`
+2. `Balance Sheet vs Cash Flow`
+3. `Loan Structure Sensitivity`
+4. `Model Sensitivity - Equity IRR`
+5. `Model Sensitivity - Cash-on-Cash`
+6. `Model Sensitivity - Monthly NCF`
+7. `Monte Carlo`
+8. `Monte Carlo Sensitivity`
+9. `Scenario Comparison`
 
-1. Model (base case)
-2. Model Sensitivity - Equity IRR
-3. Model Sensitivity - Cash-on-Cash
-4. Model Sensitivity - Monthly NCF
-5. Monte Carlo
-6. Monte Carlo Sensitivity
-7. Waterfall (Revenue vs Expenses)
-8. Scenario Comparison
+Horizon selector behavior:
 
-## Time Horizon Behavior
+- Visible: `base_case`, `balance_sheet_cashflow`, `sensitivity`
+- Hidden: `loan_structure_sensitivity`, `sensitivity_coc`, `sensitivity_ncf`, `monte_carlo`, `monte_carlo_sensitivity`, `scenario_comparison`
 
-Supported horizon options in UI: `5, 10, 15, 20, 25, 30, 35, 40`.
+## Scenario Catalog (from `website/data/cases_index.json`)
 
-Horizon selector visibility policy:
-- `base_case`: shown, uses `by_horizon[h]`
-- `sensitivity` (Equity IRR): shown, uses `by_horizon[h]`
-- `sensitivity_coc`: hidden (Year 1 metric)
-- `sensitivity_ncf`: hidden (Year 1 metric)
-- `monte_carlo`: hidden (fixed 15-year model)
-- `monte_carlo_sensitivity`: hidden (fixed 15-year model)
-- `scenario_comparison`: hidden
+1. `base_case` - Base Case
+2. `3_owners` - 3 Owners
+3. `5_owners` - 5 Owners
+4. `90day_restriction` - 90-Day Airbnb Restriction
+5. `climate_risk` - Climate Risk Scenario
+6. `early_exit` - Early Exit (Poor Performance)
+7. `engelbergerstrasse53` - Engelbergerstrasse 53
+8. `engelbergerstrasse53_145` - Engelbergerstrasse 53 (1.45%)
+9. `engelbergerstrasse53_850_success` - Engelbergerstrasse 53 (850k Success)
+10. `engelbergerstrasse53_longterm` - Engelbergerstrasse 53 (Long-Term Rental)
+11. `interest_rate_spike` - Interest Rate Spike
+12. `migros` - Migros Scenario
 
-## Scenario Set
+## Base Case Snapshot (Current Branch Data)
 
-Current repository includes 12 scenarios:
+Source: `website/data/base_case_base_case_analysis.json`
 
-1. `assumptions/assumptions.json` (`base_case`)
-2. `assumptions/assumptions_3_owners.json`
-3. `assumptions/assumptions_5_owners.json`
-4. `assumptions/assumptions_90day_restriction.json`
-5. `assumptions/assumptions_climate_risk.json`
-6. `assumptions/assumptions_early_exit.json`
-7. `assumptions/assumptions_engelbergerstrasse53.json`
-8. `assumptions/assumptions_engelbergerstrasse53_145.json`
-9. `assumptions/assumptions_engelbergerstrasse53_850_success.json`
-10. `assumptions/assumptions_engelbergerstrasse53_longterm.json`
-11. `assumptions/assumptions_interest_rate_spike.json`
-12. `assumptions/assumptions_migros.json`
+- Equity IRR (with sale): `5.97%`
+- Project IRR (with sale): `3.59%`
+- MOIC: `2.58x`
+- Annual pre-tax cash flow per owner: `CHF -3,019`
+- Annual after-tax cash flow per owner: `CHF -2,076`
+- Monthly after-tax cash flow per owner: `CHF -173`
+- Payback period: `15 years`
+- Year 1 operational months: `9` (`3` ramp-up months)
 
-## Base Case Snapshot
-
-From `website/data/base_case_base_case_analysis.json` generated on this branch:
-
-| Metric | Value |
-| --- | --- |
-| Equity IRR (with sale) | 6.07% |
-| Project IRR (with sale) | 3.66% |
-| NPV @ 5% | CHF 18,319 |
-| MOIC | 2.62x |
-| Annual Cash Flow per Owner (pre-tax) | CHF -4,408 |
-| Annual Cash Flow per Owner (after-tax) | CHF -3,458 |
-| Monthly Cash Flow per Owner (after-tax) | CHF -288 |
-| Payback Period | 15 years |
-
-## Project Structure
+## Project Layout
 
 ```text
 .
-|-- engelberg/                        # Core calculation and analysis package
-|-- scripts/                          # CLI entry points
-|-- assumptions/                      # Base and scenario assumptions
+|-- engelberg/                # Core package (model + analysis)
+|-- scripts/                  # CLI orchestration
+|-- assumptions/              # Case assumptions JSON files
 |-- website/
-|   |-- index.html                    # Dashboard UI
-|   `-- data/                         # Generated JSON data
-|-- tests/                            # Unit, integration, regression
-|-- docs/                             # Technical documentation
+|   |-- index.html            # Dashboard UI
+|   `-- data/                 # Generated analysis JSON
+|-- tests/                    # Unit/integration/regression
+|-- docs/                     # Technical documentation
+|-- README.md
 |-- QUICK_START.md
 |-- CHANGELOG.md
 `-- BUG_FIX_SUMMARY.md
 ```
 
-## Documentation
+## Quality Gates
 
-- `QUICK_START.md`: operator-focused commands and validation flow
+Run before release or major changes:
+
+```bash
+python -m pytest -q
+python scripts/validate_system.py
+```
+
+Expected currently:
+
+- `172 passed`
+- `427 passed, 0 failed`
+
+## Documentation Map
+
+- `QUICK_START.md`: operator runbook
+- `CHANGELOG.md`: full historical timeline (plans + implementations)
+- `BUG_FIX_SUMMARY.md`: quality and bug-fix history
+- `docs/README.md`: complete docs index
 - `docs/ARCHITECTURE.md`: system architecture and data flow
-- `docs/DEVELOPMENT.md`: development workflow and testing practices
-- `docs/SENSITIVITY_CALCULATIONS.md`: deterministic and MC sensitivity methodology
-- `docs/MONTE_CARLO_ENGINE.md`: Monte Carlo engine internals
-- `docs/WATERFALL_CHARTS.md`: interpretation of waterfall views
-- `CHANGELOG.md`: chronological change history
+- `docs/SENSITIVITY_CALCULATIONS.md`: deterministic and MC sensitivity math
+- `docs/MONTE_CARLO_ENGINE.md`: Monte Carlo internals
+- `docs/WATERFALL_CHARTS.md`: balance-sheet and waterfall interpretation
+- `docs/DEVELOPMENT.md`: developer workflow and contribution standards
 
 ## Troubleshooting
 
-### Dashboard has no data
-
-Run:
+No case data in dashboard:
 
 ```bash
 python scripts/generate_all_data.py
@@ -203,20 +240,17 @@ python scripts/analyze_monte_carlo_sensitivity.py --all-cases
 Lower simulation count while iterating:
 
 ```bash
+python scripts/generate_all_data.py
 python scripts/analyze_monte_carlo_sensitivity.py --all-cases --simulations 300
 ```
 
-### Verify system integrity
+Full integrity check:
 
 ```bash
 python scripts/validate_system.py
-python -m pytest tests -v
+python -m pytest -q
 ```
-
-Expected on current branch:
-- Validation: `403 passed, 0 failed`
-- Tests: `154 passed`
 
 ---
 
-Last updated: February 9, 2026
+Last updated: February 10, 2026

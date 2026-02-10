@@ -1,140 +1,102 @@
-# Bug Fix Summary - General Repository Audit
+# Bug Fix and Quality Summary
 
-## Date: 2026-02-02
+This document tracks major reliability, correctness, and quality hardening work.
 
-This document summarizes the bugs found and fixed during a comprehensive code audit of the entire repository.
+## Scope
 
-## Issues Found and Fixed
-
-### 1. **Bare Exception Handlers (Critical)**
-
-#### Issue: engelberg/core.py (line 1104)
-
-**Problem:** Bare `except:` clause catches all exceptions including system exits and keyboard interrupts.
-
-```python
-# BEFORE (Bad)
-except:
-    return float('inf')
-```
-
-**Fix:** Specify exact exception types to catch only mathematical errors.
-
-```python
-# AFTER (Good)
-except (ZeroDivisionError, OverflowError, ValueError):
-    # Handle mathematical errors (e.g., division by zero, overflow)
-    return float('inf')
-```
-
-**Risk Level:** HIGH - Could mask serious errors
-**Location:** `engelberg/core.py:1104`
+- Runtime safety fixes
+- Calculation correctness fixes
+- Data consistency and export integrity checks
+- Cross-script and cross-output validation coverage
 
 ---
 
-### 2. **Broad Exception Handler (Medium)**
+## 2026-02-02 Audit Hardening
 
-#### Issue: engelberg/model_sensitivity.py (line 505)
+### Fixed
 
-**Problem:** `except Exception:` is too broad and provides no error feedback.
+1. Bare exception handling in `engelberg/core.py`
 
-```python
-# BEFORE (Bad)
-except Exception:
-    # If ATCF calculation fails, use base value
-    low_atcf_val = base_atcf
-    high_atcf_val = base_atcf
-```
+- Issue: `except:` could hide critical failures (`SystemExit`, `KeyboardInterrupt`).
+- Fix: replaced with specific numeric-error exceptions.
+- Impact: safer failure behavior and easier debugging.
 
-**Fix:** Specify likely exception types and add logging.
+2. Overly broad exception handling in `engelberg/model_sensitivity.py`
 
-```python
-# AFTER (Good)
-except (ValueError, KeyError, TypeError) as e:
-    # If ATCF calculation fails (missing data, invalid config), use base value
-    print(f"Warning: ATCF calculation failed for {param_config['parameter_name']}: {e}")
-    low_atcf_val = base_atcf
-    high_atcf_val = base_atcf
-```
+- Issue: broad catch without context obscured root causes.
+- Fix: narrowed exception types and added warning context.
+- Impact: failures remain non-fatal but observable.
 
-**Risk Level:** MEDIUM - Could hide bugs but is a fallback
-**Location:** `engelberg/model_sensitivity.py:505`
+3. Missing explicit file encoding in `scripts/validate_system.py`
 
----
+- Issue: implicit encoding can break on Windows and mixed locale environments.
+- Fix: standardized UTF-8 explicit reads.
+- Impact: deterministic file handling across environments.
 
-### 3. **Missing File Encoding (Low)**
+### Validation at the time
 
-#### Issue: scripts/validate_system.py (multiple locations)
-
-**Problem:** File opens without explicit encoding can cause issues on Windows with non-ASCII characters.
-
-**Locations Fixed:**
-
-- Line 363: `json.load(open(base_assumptions_path))`
-- Line 412: `with open(index_path) as f:`
-- Line 432: `with open(file_path) as f:`
-- Line 481: `with open(data_path) as f:`
-- Line 566: `with open(data_path) as f:`
-- Line 728: `with open(base_assumptions_path) as f:`
-- Line 733: `with open(data_path) as f:`
-- Line 802: `with open(data_path) as f:`
-- Line 863: `with open(data_path) as f:`
-- Line 991: `with open(index_path) as f:`
-
-**Fix:** Added explicit UTF-8 encoding to all file operations.
-
-```python
-# BEFORE (Bad)
-with open(file_path) as f:
-    data = json.load(f)
-
-# AFTER (Good)
-with open(file_path, 'r', encoding='utf-8') as f:
-    data = json.load(f)
-```
-
-**Risk Level:** LOW - Mainly affects Windows systems with non-ASCII data
-**Location:** `scripts/validate_system.py` (10 occurrences)
+- Unit/integration tests passed.
+- System validation checks passed.
 
 ---
 
-## Testing Results
+## 2026-02-10 Consistency and Integration Hardening
 
-### After All Fixes:
+### Added
 
-- **Unit Tests:** ✅ 142 passed
-- **Integration Tests:** ✅ All passed
-- **System Validation:** ✅ 367 checks passed, 0 failed
-- **Linter:** ✅ No errors
+1. Cross-script consistency suite (`tests/integration/test_cross_script_consistency.py`)
 
-## Code Quality Improvements
+- Verifies `cases_index.json` integrity and linked file existence.
+- Verifies assumptions-to-export consistency.
+- Verifies accounting identities in base outputs:
+  - `debt_service = interest + amortization`
+  - `cash_flow_after_debt_service = NOI - debt_service`
+  - owner-level after-tax rollups
+- Verifies cross-analysis consistency (sensitivity/coc/ncf/loan structure).
+- Verifies script-level parity between:
+  - `engelberg.analysis.main()`
+  - `scripts.generate_all_data.generate_case_data()`
+- Uses stochastic tolerance rules for Monte Carlo comparisons.
 
-### What Was Already Good:
+2. Loan structure integration coverage (`tests/integration/test_loan_structure_sensitivity.py`)
 
-1. ✅ No use of `eval()` or `exec()`
-2. ✅ No `import *` statements
-3. ✅ No `os.system()` calls (security risk)
-4. ✅ Good use of `enumerate()` vs `range(len())`
-5. ✅ Proper use of `===` vs `==` in JavaScript
-6. ✅ Try-catch blocks in critical sections
-7. ✅ No division by zero in code (checked)
-8. ✅ No TODO/FIXME/HACK/BUG comments
-9. ✅ No memory leaks from event listeners
-10. ✅ Proper async/await usage
+- Checks required scenario presence.
+- Checks tranche share normalization.
+- Checks stress fields and fixed-only DSCR behavior.
+- Checks recommendation and ranking consistency.
 
-## Summary
+### Validation baseline now
 
-**Total Issues Fixed:** 12
+- `python -m pytest -q` -> `172 passed`
+- `python scripts/validate_system.py` -> `427 passed, 0 failed`
 
-- **Critical (Bare except):** 1
-- **Medium (Broad except):** 1
-- **Low (Missing encoding):** 10
+---
 
-All issues have been fixed and validated with the full test suite. The codebase is now more robust and follows Python best practices.
+## Quality Principles Enforced
 
-## Recommendations for Future
+- No bare `except:` in core math paths
+- Explicit UTF-8 file operations in validation and export pathways
+- Output identity checks between related metrics
+- Backward-compatible behavior where legacy single-rate financing is still supported
+- Cross-entrypoint parity checks to prevent script drift
 
-1. Consider adding type hints to all public functions
-2. Add pre-commit hooks to catch bare `except:` clauses
-3. Consider using `pylint` or `flake8` for continuous code quality checks
-4. Add docstrings to all public functions (many already have them)
+---
+
+## Remaining Risk Areas to Monitor
+
+1. Monte Carlo reproducibility across environments
+
+- Controlled through tolerance-based assertions, not strict deterministic equality.
+
+2. Stale generated data artifacts
+
+- Some checks validate structure/consistency, but teams should regenerate data after model changes.
+
+3. Documentation drift vs generated artifacts
+
+- Keep `README.md`, `QUICK_START.md`, and `CHANGELOG.md` synchronized with regeneration and validation runs.
+
+---
+
+Last updated: February 10, 2026
+
