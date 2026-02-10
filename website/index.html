@@ -663,6 +663,12 @@
           <li class="sidebar-menu-item active" data-analysis="base_case">
             <i class="fas fa-home"></i> Simulation KPIs
           </li>
+          <li class="sidebar-menu-item" data-analysis="balance_sheet_cashflow">
+            <i class="fas fa-layer-group"></i> Balance Sheet vs Cash Flow
+          </li>
+          <li class="sidebar-menu-item" data-analysis="loan_structure_sensitivity">
+            <i class="fas fa-university"></i> Loan Structure Sensitivity
+          </li>
           <li class="sidebar-menu-item" data-analysis="sensitivity">
             <i class="fas fa-sliders-h"></i> Model Sensitivity - Equity IRR
           </li>
@@ -705,8 +711,9 @@
       };
 
       const HorizonResolver = {
-        supportedAnalyses: new Set(["base_case", "sensitivity"]),
+        supportedAnalyses: new Set(["base_case", "balance_sheet_cashflow", "sensitivity"]),
         hiddenAnalyses: new Set([
+          "loan_structure_sensitivity",
           "sensitivity_coc",
           "sensitivity_ncf",
           "monte_carlo",
@@ -790,7 +797,10 @@
 
           try {
             let path;
-            if (analysisType === "base_case") {
+            if (
+              analysisType === "base_case" ||
+              analysisType === "balance_sheet_cashflow"
+            ) {
               // Handle both naming conventions
               path = `data/${caseName}_base_case_analysis.json`;
               // For base_case, also try the alternative naming
@@ -818,6 +828,8 @@
               path = `data/${caseName}_monte_carlo.json`;
             } else if (analysisType === "monte_carlo_sensitivity") {
               path = `data/${caseName}_monte_carlo_sensitivity.json`;
+            } else if (analysisType === "loan_structure_sensitivity") {
+              path = `data/${caseName}_loan_structure_sensitivity.json`;
             }
 
             const response = await fetch(path);
@@ -1510,6 +1522,983 @@
               margin: { l: 50, r: 20, t: 20, b: 70 },
               yaxis: { tickprefix: "CHF ", gridcolor: "#e0e4e7" },
               showlegend: false,
+            },
+            plotConfig,
+          );
+        },
+        renderBalanceSheetCashFlow(data) {
+          const resolved = HorizonResolver.resolve(data, "balance_sheet_cashflow");
+          const scopedData = resolved.payload || {};
+          const results = data.annual_results || {};
+          const financing = data.config?.financing || {};
+          const projectionRaw =
+            scopedData.projection || data.projection || data.projection_15yr || [];
+          const projection = Array.isArray(projectionRaw)
+            ? projectionRaw.slice(
+                0,
+                resolved.horizonApplied ? State.currentHorizon : projectionRaw.length,
+              )
+            : [];
+          const numOwners = Math.max(1, financing.num_owners || 1);
+          const horizonYears = resolved.horizonApplied
+            ? State.currentHorizon
+            : Math.max(projection.length, 15);
+
+          const formatCHF = (value) =>
+            Number(value || 0).toLocaleString("en-US", {
+              style: "currency",
+              currency: "CHF",
+              maximumFractionDigits: 0,
+            });
+
+          const purchasePrice = Number(financing.purchase_price || 0);
+          const year1AppreciationTotal =
+            projection.length > 0
+              ? Number(projection[0].property_value || 0) - purchasePrice
+              : 0;
+
+          const year1AfterTaxPerOwner = Number(
+            results.after_tax_cash_flow_per_owner || 0,
+          );
+          const year1AmortizationPerOwner =
+            Number(results.amortization_payment || 0) / numOwners;
+          const year1AppreciationPerOwner = year1AppreciationTotal / numOwners;
+          const year1NetWealthPerOwner =
+            year1AfterTaxPerOwner +
+            year1AmortizationPerOwner +
+            year1AppreciationPerOwner;
+
+          const monthlyCashFlowPerOwner = year1AfterTaxPerOwner / 12;
+          const monthlyDebtServicePerOwner =
+            Number(results.debt_service || 0) / (12 * numOwners);
+          const monthlyOperatingExpensesPerOwner =
+            Number(results.total_operating_expenses || 0) / (12 * numOwners);
+
+          const firstFive = projection.slice(0, Math.min(5, projection.length));
+          let previousPropertyValue = purchasePrice;
+          let cumulativeWealthPerOwner = 0;
+          const yearlyComponents = firstFive.map((row) => {
+            const propertyValue = Number(row.property_value || previousPropertyValue);
+            const appreciationPerOwner =
+              (propertyValue - previousPropertyValue) / numOwners;
+            const afterTaxPerOwner = Number(
+              row.after_tax_cash_flow_per_owner || row.cash_flow_per_owner || 0,
+            );
+            const amortizationPerOwner =
+              Number(row.amortization_payment || 0) / numOwners;
+            const netWealthPerOwner =
+              afterTaxPerOwner + amortizationPerOwner + appreciationPerOwner;
+            cumulativeWealthPerOwner += netWealthPerOwner;
+            previousPropertyValue = propertyValue;
+            return {
+              year: row.year || row.year_number,
+              afterTaxPerOwner,
+              amortizationPerOwner,
+              appreciationPerOwner,
+              netWealthPerOwner,
+              cumulativeWealthPerOwner,
+            };
+          });
+
+          const sum = (arr, selector) =>
+            arr.reduce((acc, item) => acc + Number(selector(item) || 0), 0);
+          const cumulative5yCashFlowPerOwner = sum(
+            yearlyComponents,
+            (d) => d.afterTaxPerOwner,
+          );
+          const cumulative5yAmortizationPerOwner = sum(
+            yearlyComponents,
+            (d) => d.amortizationPerOwner,
+          );
+          const cumulative5yAppreciationPerOwner = sum(
+            yearlyComponents,
+            (d) => d.appreciationPerOwner,
+          );
+          const cumulative5yNetWealthPerOwner = sum(
+            yearlyComponents,
+            (d) => d.netWealthPerOwner,
+          );
+          const year1EquityBuildPerOwner =
+            year1AmortizationPerOwner + year1AppreciationPerOwner;
+          const year1CashDragCoveredPct =
+            Math.abs(year1AfterTaxPerOwner) > 0
+              ? (year1EquityBuildPerOwner / Math.abs(year1AfterTaxPerOwner)) * 100
+              : null;
+          const positiveWealthYear = yearlyComponents.find(
+            (row) => Number(row.cumulativeWealthPerOwner || 0) > 0,
+          )?.year;
+          const fiveYearEquityMixTotal =
+            cumulative5yAmortizationPerOwner + cumulative5yAppreciationPerOwner;
+          const amortizationSharePct =
+            fiveYearEquityMixTotal > 0
+              ? (cumulative5yAmortizationPerOwner / fiveYearEquityMixTotal) * 100
+              : 0;
+          const appreciationSharePct =
+            fiveYearEquityMixTotal > 0
+              ? (cumulative5yAppreciationPerOwner / fiveYearEquityMixTotal) * 100
+              : 0;
+
+          const yearlyRows =
+            yearlyComponents.length > 0
+              ? yearlyComponents
+                  .map(
+                    (row) => `
+                    <tr>
+                      <td>${row.year}</td>
+                      <td style="color: ${row.afterTaxPerOwner >= 0 ? "var(--color-positive)" : "var(--color-negative)"};">${formatCHF(row.afterTaxPerOwner)}</td>
+                      <td>${formatCHF(row.amortizationPerOwner)}</td>
+                      <td>${formatCHF(row.appreciationPerOwner)}</td>
+                      <td style="color: ${row.netWealthPerOwner >= 0 ? "var(--color-positive)" : "var(--color-negative)"};">${formatCHF(row.netWealthPerOwner)}</td>
+                      <td style="font-weight: 700; color: ${row.cumulativeWealthPerOwner >= 0 ? "var(--color-positive)" : "var(--color-negative)"};">${formatCHF(row.cumulativeWealthPerOwner)}</td>
+                    </tr>
+                  `,
+                  )
+                  .join("")
+              : '<tr><td colspan="6" style="text-align:center; color: var(--gray-500);">No projection data available.</td></tr>';
+
+          UIManager.setContent(`
+            <div class="story-hero">
+              <div class="story-header">
+                <h2><i class="fas fa-layer-group"></i> Balance Sheet vs Cash Flow (${horizonYears}-Year View)</h2>
+                <span class="signal-chip signal-neutral"><i class="fas fa-circle"></i> Liquidity + Wealth Build</span>
+              </div>
+              <p class="story-lead">
+                Cash flow can be negative while wealth still grows through amortization and property appreciation.
+              </p>
+              <div class="story-list">
+                <div class="story-item">
+                  <h4>Liquidity Lens</h4>
+                  <p>Focuses on monthly burden and whether ongoing payments are affordable.</p>
+                </div>
+                <div class="story-item">
+                  <h4>Balance Sheet Lens</h4>
+                  <p>Captures equity creation from principal paydown and property appreciation.</p>
+                </div>
+                <div class="story-item">
+                  <h4>Integrated View</h4>
+                  <p>Combines cash and equity to show true annual wealth change per owner.</p>
+                </div>
+                <div class="story-item">
+                  <h4>Decision Rule</h4>
+                  <p>Use this page to test whether temporary negative cash flow is justified by durable equity growth.</p>
+                </div>
+              </div>
+            </div>
+            <div class="section">
+              <h2 class="section-title"><i class="fas fa-tachometer-alt"></i> Year 1 Perspective (Per Owner)</h2>
+              <div class="kpi-grid">
+                <div class="kpi-card">
+                  <h3>Monthly After-Tax Cash Flow</h3>
+                  <div class="value ${monthlyCashFlowPerOwner >= 0 ? "positive" : "negative"}">${formatCHF(monthlyCashFlowPerOwner)}</div>
+                </div>
+                <div class="kpi-card">
+                  <h3>Monthly Debt Service</h3>
+                  <div class="value negative">${formatCHF(monthlyDebtServicePerOwner)}</div>
+                </div>
+                <div class="kpi-card">
+                  <h3>Monthly Operating Expenses</h3>
+                  <div class="value negative">${formatCHF(monthlyOperatingExpensesPerOwner)}</div>
+                </div>
+                <div class="kpi-card">
+                  <h3>Year 1 Net Wealth Change</h3>
+                  <div class="value ${year1NetWealthPerOwner >= 0 ? "positive" : "negative"}">${formatCHF(year1NetWealthPerOwner)}</div>
+                </div>
+                <div class="kpi-card">
+                  <h3>Year 1 Equity Build</h3>
+                  <div class="value ${year1EquityBuildPerOwner >= 0 ? "positive" : "negative"}">${formatCHF(year1EquityBuildPerOwner)}</div>
+                </div>
+              </div>
+            </div>
+            <div class="section">
+              <h2 class="section-title"><i class="fas fa-compass"></i> How to Interpret This</h2>
+              <div class="insight-grid">
+                <div class="insight-card">
+                  <h4>Cash Drag Coverage</h4>
+                  <div class="insight-value ${year1CashDragCoveredPct !== null && year1CashDragCoveredPct >= 100 ? "positive" : "negative"}">
+                    ${
+                      year1CashDragCoveredPct === null
+                        ? "n/a"
+                        : `${year1CashDragCoveredPct.toFixed(0)}%`
+                    }
+                  </div>
+                  <p style="margin-top: 6px; color: var(--gray-500);">
+                    Share of annual cash drag offset by equity build in Year 1.
+                  </p>
+                </div>
+                <div class="insight-card">
+                  <h4>Cumulative Wealth Turns Positive</h4>
+                  <div class="insight-value ${
+                    positiveWealthYear ? "positive" : "negative"
+                  }">${positiveWealthYear || "Not in first 5 years"}</div>
+                  <p style="margin-top: 6px; color: var(--gray-500);">
+                    First year where cumulative wealth per owner becomes positive.
+                  </p>
+                </div>
+                <div class="insight-card">
+                  <h4>5Y Equity Mix</h4>
+                  <div class="insight-value">${amortizationSharePct.toFixed(0)}% amortization / ${appreciationSharePct.toFixed(0)}% appreciation</div>
+                  <p style="margin-top: 6px; color: var(--gray-500);">
+                    Composition of equity growth over the first five years.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="section">
+              <h2 class="section-title"><i class="fas fa-chart-area"></i> Cash vs Equity Waterfalls</h2>
+              <div class="chart-grid">
+                <div class="chart-panel">
+                  <h3>Year 1 Cash-to-Wealth Bridge (Per Owner, Annual)</h3>
+                  <div id="balanceCashWealthBridgeChart" class="chart-wrapper"></div>
+                </div>
+                <div class="chart-panel">
+                  <h3>First 5 Years Wealth Components (Per Owner)</h3>
+                  <div id="balanceWealthComponentsChart" class="chart-wrapper"></div>
+                </div>
+                <div class="chart-panel">
+                  <h3>Cumulative Wealth Build (Per Owner)</h3>
+                  <div id="balanceCumulativeWealthChart" class="chart-wrapper"></div>
+                </div>
+                <div class="chart-panel">
+                  <h3>Property Value vs Loan Balance</h3>
+                  <div id="balanceSheetTrajectoryChart" class="chart-wrapper"></div>
+                </div>
+              </div>
+            </div>
+            <div class="section">
+              <h2 class="section-title"><i class="fas fa-coins"></i> First 5-Year Wealth Table (Per Owner)</h2>
+              <div class="insight-grid">
+                <div class="insight-card">
+                  <h4>5Y Cumulative Cash Flow</h4>
+                  <div class="insight-value ${cumulative5yCashFlowPerOwner >= 0 ? "positive" : "negative"}">${formatCHF(cumulative5yCashFlowPerOwner)}</div>
+                </div>
+                <div class="insight-card">
+                  <h4>5Y Amortization Equity</h4>
+                  <div class="insight-value">${formatCHF(cumulative5yAmortizationPerOwner)}</div>
+                </div>
+                <div class="insight-card">
+                  <h4>5Y Appreciation Equity</h4>
+                  <div class="insight-value">${formatCHF(cumulative5yAppreciationPerOwner)}</div>
+                </div>
+                <div class="insight-card">
+                  <h4>5Y Net Wealth Creation</h4>
+                  <div class="insight-value ${cumulative5yNetWealthPerOwner >= 0 ? "positive" : "negative"}">${formatCHF(cumulative5yNetWealthPerOwner)}</div>
+                </div>
+              </div>
+              <div class="data-table" style="margin-top: var(--space-xl);">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Year</th>
+                      <th>After-Tax Cash Flow</th>
+                      <th>Amortization Equity</th>
+                      <th>Appreciation Equity</th>
+                      <th>Net Wealth Delta</th>
+                      <th>Cumulative Wealth</th>
+                    </tr>
+                  </thead>
+                  <tbody>${yearlyRows}</tbody>
+                </table>
+              </div>
+            </div>
+          `);
+
+          const plotConfig = {
+            responsive: true,
+            displayModeBar: false,
+            displaylogo: false,
+          };
+
+          Plotly.newPlot(
+            "balanceCashWealthBridgeChart",
+            [
+              {
+                type: "waterfall",
+                orientation: "v",
+                measure: ["relative", "relative", "relative", "relative", "relative", "relative", "total", "relative", "relative", "total"],
+                x: [
+                  "Gross Income",
+                  "OTA Fees",
+                  "Operating Expenses",
+                  "Interest",
+                  "Amortization",
+                  "Tax Savings",
+                  "After-Tax Cash Flow",
+                  "Amortization to Equity",
+                  "Appreciation to Equity",
+                  "Net Wealth Change",
+                ],
+                y: [
+                  Number(results.gross_rental_income || 0) / numOwners,
+                  -Math.abs(Number(results.ota_fees_total || 0) / numOwners),
+                  -Math.abs(Number(results.total_operating_expenses || 0) / numOwners),
+                  -Math.abs(Number(results.interest_payment || 0) / numOwners),
+                  -Math.abs(Number(results.amortization_payment || 0) / numOwners),
+                  Math.abs(Number(results.tax_savings_total || 0) / numOwners),
+                  year1AfterTaxPerOwner,
+                  year1AmortizationPerOwner,
+                  year1AppreciationPerOwner,
+                  year1NetWealthPerOwner,
+                ],
+                connector: { line: { color: "#94a3b8" } },
+                increasing: { marker: { color: "#22c55e" } },
+                decreasing: { marker: { color: "#ef4444" } },
+                totals: { marker: { color: "#667eea" } },
+                hovertemplate: "%{x}: <b>%{y:,.0f} CHF</b><extra></extra>",
+              },
+            ],
+            {
+              ...unifiedChartConfig,
+              margin: { l: 60, r: 20, t: 20, b: 90 },
+              yaxis: { tickprefix: "CHF ", gridcolor: "#e0e4e7" },
+              showlegend: false,
+            },
+            plotConfig,
+          );
+
+          if (yearlyComponents.length > 0) {
+            const years = yearlyComponents.map((row) => row.year);
+            Plotly.newPlot(
+              "balanceWealthComponentsChart",
+              [
+                {
+                  x: years,
+                  y: yearlyComponents.map((row) => row.afterTaxPerOwner),
+                  type: "bar",
+                  name: "After-Tax Cash Flow",
+                  marker: { color: "#ef4444" },
+                },
+                {
+                  x: years,
+                  y: yearlyComponents.map((row) => row.amortizationPerOwner),
+                  type: "bar",
+                  name: "Amortization Equity",
+                  marker: { color: "#0ea5e9" },
+                },
+                {
+                  x: years,
+                  y: yearlyComponents.map((row) => row.appreciationPerOwner),
+                  type: "bar",
+                  name: "Appreciation Equity",
+                  marker: { color: "#22c55e" },
+                },
+                {
+                  x: years,
+                  y: yearlyComponents.map((row) => row.cumulativeWealthPerOwner),
+                  type: "scatter",
+                  mode: "lines+markers",
+                  name: "Cumulative Wealth",
+                  yaxis: "y2",
+                  line: { color: "#111827", width: 3 },
+                },
+              ],
+              {
+                ...unifiedChartConfig,
+                barmode: "relative",
+                margin: { l: 70, r: 70, t: 20, b: 50 },
+                yaxis: { title: { text: "Annual CHF / Owner" }, tickprefix: "CHF " },
+                yaxis2: {
+                  title: { text: "Cumulative CHF / Owner" },
+                  overlaying: "y",
+                  side: "right",
+                  tickprefix: "CHF ",
+                },
+              },
+              plotConfig,
+            );
+
+            Plotly.newPlot(
+              "balanceCumulativeWealthChart",
+              [
+                {
+                  x: years,
+                  y: yearlyComponents.map((row) => row.cumulativeWealthPerOwner),
+                  type: "scatter",
+                  mode: "lines+markers",
+                  name: "Cumulative Wealth",
+                  line: { color: "#16a34a", width: 4 },
+                  fill: "tozeroy",
+                  fillcolor: "rgba(22,163,74,0.10)",
+                },
+              ],
+              {
+                ...unifiedChartConfig,
+                margin: { l: 70, r: 20, t: 20, b: 50 },
+                yaxis: { tickprefix: "CHF ", gridcolor: "#e0e4e7" },
+              },
+              plotConfig,
+            );
+          } else {
+            const wealthComponentsTarget = document.getElementById(
+              "balanceWealthComponentsChart",
+            );
+            const cumulativeTarget = document.getElementById(
+              "balanceCumulativeWealthChart",
+            );
+            const emptyStateHtml =
+              '<div class="empty-state" style="padding-top: 120px; text-align: center; color: var(--gray-500);">No projection data available for first 5-year wealth decomposition.</div>';
+            if (wealthComponentsTarget) {
+              wealthComponentsTarget.innerHTML = emptyStateHtml;
+            }
+            if (cumulativeTarget) {
+              cumulativeTarget.innerHTML = emptyStateHtml;
+            }
+          }
+
+          if (projection.length > 0) {
+            Plotly.newPlot(
+              "balanceSheetTrajectoryChart",
+              [
+                {
+                  x: projection.map((row) => row.year),
+                  y: projection.map((row) => row.property_value || 0),
+                  type: "scatter",
+                  mode: "lines",
+                  name: "Property Value",
+                  line: { color: "#6366f1", width: 3 },
+                },
+                {
+                  x: projection.map((row) => row.year),
+                  y: projection.map((row) => row.remaining_loan_balance || 0),
+                  type: "scatter",
+                  mode: "lines",
+                  name: "Loan Balance",
+                  line: { color: "#f97316", width: 3 },
+                },
+                {
+                  x: projection.map((row) => row.year),
+                  y: projection.map((row) =>
+                    Number(row.property_value || 0) -
+                    Number(row.remaining_loan_balance || 0),
+                  ),
+                  type: "scatter",
+                  mode: "lines",
+                  name: "Equity",
+                  line: { color: "#16a34a", width: 3 },
+                },
+              ],
+              {
+                ...unifiedChartConfig,
+                margin: { l: 70, r: 20, t: 20, b: 50 },
+                yaxis: { tickprefix: "CHF ", gridcolor: "#e0e4e7" },
+              },
+              plotConfig,
+            );
+          } else {
+            const trajectoryTarget = document.getElementById(
+              "balanceSheetTrajectoryChart",
+            );
+            if (trajectoryTarget) {
+              trajectoryTarget.innerHTML =
+                '<div class="empty-state" style="padding-top: 120px; text-align: center; color: var(--gray-500);">No projection data available for balance-sheet trajectory.</div>';
+            }
+          }
+        },
+        renderLoanStructureSensitivity(data) {
+          const scenarios = Array.isArray(data?.scenarios) ? data.scenarios : [];
+          if (scenarios.length === 0) {
+            UIManager.showError("No loan structure sensitivity data available.");
+            return;
+          }
+
+          const recommendedScenario =
+            scenarios.find((scenario) => scenario.id === data.recommended_scenario_id) ||
+            scenarios[0];
+          const scenarioNameById = Object.fromEntries(
+            scenarios.map((scenario) => [scenario.id, scenario.name]),
+          );
+
+          const formatCHF = (value) =>
+            Number(value || 0).toLocaleString("en-US", {
+              style: "currency",
+              currency: "CHF",
+              maximumFractionDigits: 0,
+            });
+          const formatPct = (value, digits = 2) =>
+            `${Number(value || 0).toFixed(digits)}%`;
+          const formatRate = (value, digits = 2) =>
+            `${(Number(value || 0) * 100).toFixed(digits)}%`;
+          const buildTrancheMix = (scenario) =>
+            (scenario.loan_tranches || [])
+              .map((tranche) => {
+                const sharePct = (Number(tranche.share_of_loan || 0) * 100).toFixed(0);
+                if (tranche.rate_type === "saron") {
+                  return `${sharePct}% SARON`;
+                }
+                const term = tranche.term_years ? `${tranche.term_years}Y` : "Fixed";
+                return `${sharePct}% ${term} Fixed`;
+              })
+              .join(" + ");
+
+          const bestCashScenario = scenarios.reduce((best, current) =>
+            Number(current.kpis?.year1_after_tax_cash_flow_per_owner_monthly || 0) >
+            Number(best.kpis?.year1_after_tax_cash_flow_per_owner_monthly || 0)
+              ? current
+              : best,
+          );
+          const bestIrrScenario = scenarios.reduce((best, current) =>
+            Number(current.kpis?.equity_irr_with_sale_pct || 0) >
+            Number(best.kpis?.equity_irr_with_sale_pct || 0)
+              ? current
+              : best,
+          );
+          const bestStressScenario = scenarios.reduce((best, current) =>
+            Number(current.kpis?.stress_dscr_saron_250bps || 0) >
+            Number(best.kpis?.stress_dscr_saron_250bps || 0)
+              ? current
+              : best,
+          );
+          const stressPassingScenarios = scenarios.filter((scenario) =>
+            Boolean(scenario.kpis?.stress_overall_pass),
+          );
+          const hasStressPassingScenario = stressPassingScenarios.length > 0;
+          const stressStatusLabel = hasStressPassingScenario
+            ? `${stressPassingScenarios.length}/${scenarios.length} scenarios pass all stress checks`
+            : "No scenario currently passes all stress checks";
+          const stressStatusClass = hasStressPassingScenario
+            ? "signal-good"
+            : "signal-risk";
+
+          const recommendedMonthlyCash = Number(
+            recommendedScenario.kpis?.year1_after_tax_cash_flow_per_owner_monthly || 0,
+          );
+          const recommendedIrr = Number(
+            recommendedScenario.kpis?.equity_irr_with_sale_pct || 0,
+          );
+          const recommendedDscr250 = Number(
+            recommendedScenario.kpis?.stress_dscr_saron_250bps || 0,
+          );
+          const cashDeltaVsFixed = recommendedMonthlyCash - Number(
+            scenarios.find((scenario) => scenario.id === "fixed_100_10y")?.kpis
+              ?.year1_after_tax_cash_flow_per_owner_monthly || 0,
+          );
+          const cashDeltaVsSaron = recommendedMonthlyCash - Number(
+            scenarios.find((scenario) => scenario.id === "saron_100")?.kpis
+              ?.year1_after_tax_cash_flow_per_owner_monthly || 0,
+          );
+          const assumptions = data?.assumptions || {};
+          const stressPolicy = data?.stress_policy || {};
+          const baseDscrThreshold = Number(stressPolicy.base_dscr_min || 1.2);
+          const saron150DscrThreshold = Number(stressPolicy.saron_150_dscr_min || 1.05);
+
+          const rankingToHtml = (ids) =>
+            (ids || []).length > 0
+              ? (ids || [])
+                  .slice(0, 3)
+                  .map((id, index) => `${index + 1}. ${scenarioNameById[id] || id}`)
+                  .join("<br>")
+              : "Ranking data unavailable";
+
+          const tableRows = scenarios
+            .map((scenario) => {
+              const kpis = scenario.kpis || {};
+              const pass = Boolean(kpis.stress_overall_pass);
+              return `
+                <tr>
+                  <td style="font-weight:700;">${scenario.name}</td>
+                  <td>${buildTrancheMix(scenario)}</td>
+                  <td style="color:${Number(kpis.year1_after_tax_cash_flow_per_owner_monthly || 0) >= 0 ? "var(--color-positive)" : "var(--color-negative)"};">${formatCHF(kpis.year1_after_tax_cash_flow_per_owner_monthly || 0)}</td>
+                  <td>${formatRate(kpis.blended_interest_rate || 0)}</td>
+                  <td>${formatPct(kpis.equity_irr_with_sale_pct || 0)}</td>
+                  <td>${Number(kpis.year1_dscr || 0).toFixed(2)}x</td>
+                  <td>${
+                    kpis.has_saron_exposure
+                      ? `${Number(kpis.stress_dscr_saron_150bps || 0).toFixed(2)}x`
+                      : `${Number(kpis.stress_dscr_saron_150bps || 0).toFixed(2)}x (fixed-only)`
+                  }</td>
+                  <td>${
+                    kpis.has_saron_exposure
+                      ? `${Number(kpis.stress_dscr_saron_250bps || 0).toFixed(2)}x`
+                      : `${Number(kpis.stress_dscr_saron_250bps || 0).toFixed(2)}x (fixed-only)`
+                  }</td>
+                  <td style="font-weight:700; color:${pass ? "var(--color-positive)" : "var(--color-negative)"};">${pass ? "Pass" : "Fail"}</td>
+                </tr>
+              `;
+            })
+            .join("");
+
+          UIManager.setContent(`
+            <div class="story-hero">
+              <div class="story-header">
+                <h2><i class="fas fa-layer-group"></i> Loan Structure Sensitivity</h2>
+                <span class="signal-chip ${stressStatusClass}"><i class="fas fa-circle"></i> ${stressStatusLabel}</span>
+              </div>
+              <p class="story-lead">
+                Compare debt service, cash flow, stress resilience, and wealth creation across SARON/fixed structures.
+              </p>
+              <div class="story-list">
+                <div class="story-item">
+                  <h4>Recommendation</h4>
+                  <p><strong>${recommendedScenario.name}</strong> is currently selected by the model rule (${hasStressPassingScenario ? "best IRR among stress-pass structures" : "best IRR when no structure fully passes stress checks"}).</p>
+                </div>
+                <div class="story-item">
+                  <h4>Cash Flow Trade-Off</h4>
+                  <p>Compared with 100% fixed, this structure changes monthly after-tax cash flow by <strong>${formatCHF(cashDeltaVsFixed)}</strong> per owner; versus 100% SARON, the change is <strong>${formatCHF(cashDeltaVsSaron)}</strong>.</p>
+                </div>
+                <div class="story-item">
+                  <h4>Rate Shock Resilience</h4>
+                  <p>Recommended scenario DSCR at SARON +250 bps is <strong>${recommendedDscr250.toFixed(2)}x</strong> (target: solvent and no covenant breach).</p>
+                </div>
+                <div class="story-item">
+                  <h4>Decision Focus</h4>
+                  <p>Use this page to balance three outcomes at once: monthly affordability, stress survival, and long-term equity IRR.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <h2 class="section-title"><i class="fas fa-tachometer-alt"></i> Decision Snapshot</h2>
+              <div class="kpi-grid">
+                <div class="kpi-card">
+                  <h3>Recommended Structure</h3>
+                  <div class="value" style="font-size:1.35rem;">${recommendedScenario.name}</div>
+                  <div class="unit">${buildTrancheMix(recommendedScenario)}</div>
+                </div>
+                <div class="kpi-card">
+                  <h3>Best Monthly Cash Flow / Owner</h3>
+                  <div class="value ${
+                    Number(bestCashScenario.kpis?.year1_after_tax_cash_flow_per_owner_monthly || 0) >= 0
+                      ? "positive"
+                      : "negative"
+                  }">${formatCHF(bestCashScenario.kpis?.year1_after_tax_cash_flow_per_owner_monthly || 0)}</div>
+                  <div class="unit">${bestCashScenario.name}</div>
+                </div>
+                <div class="kpi-card">
+                  <h3>Best Equity IRR</h3>
+                  <div class="value positive">${formatPct(bestIrrScenario.kpis?.equity_irr_with_sale_pct || 0)}</div>
+                  <div class="unit">${bestIrrScenario.name}</div>
+                </div>
+                <div class="kpi-card">
+                  <h3>Best DSCR @ SARON +250 bps</h3>
+                  <div class="value ${
+                    Number(bestStressScenario.kpis?.stress_dscr_saron_250bps || 0) >= 1
+                      ? "positive"
+                      : "negative"
+                  }">${Number(bestStressScenario.kpis?.stress_dscr_saron_250bps || 0).toFixed(2)}x</div>
+                  <div class="unit">${bestStressScenario.name}</div>
+                </div>
+              </div>
+              <div class="insight-grid" style="margin-top: var(--space-xl);">
+                <div class="insight-card">
+                  <h4>Top IRR Ranking</h4>
+                  <div class="insight-value" style="font-size:1rem; line-height:1.5;">${rankingToHtml(
+                    data?.ranking?.by_equity_irr_desc,
+                  )}</div>
+                </div>
+                <div class="insight-card">
+                  <h4>Top Cash Flow Ranking</h4>
+                  <div class="insight-value" style="font-size:1rem; line-height:1.5;">${rankingToHtml(
+                    data?.ranking?.by_monthly_cashflow_desc,
+                  )}</div>
+                </div>
+                <div class="insight-card">
+                  <h4>Recommended KPI Trio</h4>
+                  <div class="insight-value" style="font-size:1rem; line-height:1.5;">
+                    IRR: ${formatPct(recommendedIrr)}<br>
+                    Monthly ATCF: ${formatCHF(recommendedMonthlyCash)}<br>
+                    DSCR +250bps: ${recommendedDscr250.toFixed(2)}x
+                  </div>
+                </div>
+                <div class="insight-card">
+                  <h4>Rate Anchors Used</h4>
+                  <div class="insight-value" style="font-size:1rem; line-height:1.5;">
+                    SARON base: ${formatRate(assumptions.saron_base_rate || 0)}<br>
+                    SARON margin: ${formatRate(assumptions.saron_margin || 0)}<br>
+                    10Y fixed: ${formatRate(assumptions.long_fixed_rate || 0)}<br>
+                    DSCR policy: ${baseDscrThreshold.toFixed(2)}x / ${saron150DscrThreshold.toFixed(2)}x
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <h2 class="section-title"><i class="fas fa-chart-area"></i> Structure Comparison Charts</h2>
+              <div class="chart-grid">
+                <div class="chart-panel">
+                  <h3>Monthly After-Tax Cash Flow per Owner (Year 1)</h3>
+                  <div id="loanMonthlyCashChart" class="chart-wrapper"></div>
+                </div>
+                <div class="chart-panel">
+                  <h3>Debt Service Coverage Under Stress</h3>
+                  <div id="loanStressDscrChart" class="chart-wrapper"></div>
+                </div>
+                <div class="chart-panel">
+                  <h3>Blended Interest Rate vs Equity IRR</h3>
+                  <div id="loanRateVsIrrChart" class="chart-wrapper"></div>
+                </div>
+                <div class="chart-panel">
+                  <h3>5-Year Wealth Decomposition (Per Owner)</h3>
+                  <div id="loanWealthBridgeChart" class="chart-wrapper"></div>
+                </div>
+              </div>
+            </div>
+            <div class="section">
+              <h2 class="section-title"><i class="fas fa-book-open"></i> Reading Guide</h2>
+              <div class="story-list">
+                <div class="story-item">
+                  <h4>Monthly Cash Chart</h4>
+                  <p>Higher is better for liquidity; this is the first pressure point for owner affordability.</p>
+                </div>
+                <div class="story-item">
+                  <h4>DSCR Stress Chart</h4>
+                  <p>Use 1.20x (base) and 1.05x (+150 bps) as policy lines. If bars drop below, financing resilience is weak. For fixed-only structures, shock DSCR equals base DSCR.</p>
+                </div>
+                <div class="story-item">
+                  <h4>Rate vs IRR Bubble</h4>
+                  <p>Shows whether extra rate risk is compensated with enough return improvement.</p>
+                </div>
+                <div class="story-item">
+                  <h4>5Y Wealth Decomposition</h4>
+                  <p>Separates liquidity drag from equity build so you can compare short-run pain vs long-run value creation.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <h2 class="section-title"><i class="fas fa-table"></i> Scenario Details</h2>
+              <div class="data-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Scenario</th>
+                      <th>Tranche Mix</th>
+                      <th>Monthly ATCF / Owner</th>
+                      <th>Blended Rate</th>
+                      <th>Equity IRR</th>
+                      <th>DSCR Base</th>
+                      <th>DSCR +150 bps</th>
+                      <th>DSCR +250 bps</th>
+                      <th>Stress Rule</th>
+                    </tr>
+                  </thead>
+                  <tbody>${tableRows}</tbody>
+                </table>
+              </div>
+            </div>
+          `);
+
+          const scenarioNames = scenarios.map((scenario) => scenario.name);
+          const monthlyCashPerOwner = scenarios.map((scenario) =>
+            Number(scenario.kpis?.year1_after_tax_cash_flow_per_owner_monthly || 0),
+          );
+          const blendedRatesPct = scenarios.map(
+            (scenario) => Number(scenario.kpis?.blended_interest_rate || 0) * 100,
+          );
+          const equityIrrPct = scenarios.map((scenario) =>
+            Number(scenario.kpis?.equity_irr_with_sale_pct || 0),
+          );
+          const dscrBase = scenarios.map((scenario) =>
+            Number(scenario.kpis?.stress_dscr_base || 0),
+          );
+          const dscr150 = scenarios.map((scenario) =>
+            Number(scenario.kpis?.stress_dscr_saron_150bps || 0),
+          );
+          const dscr250 = scenarios.map((scenario) =>
+            Number(scenario.kpis?.stress_dscr_saron_250bps || 0),
+          );
+
+          const wealthCash = scenarios.map((scenario) =>
+            Number(scenario.equity_build_5y?.cash_flow_after_tax_per_owner || 0),
+          );
+          const wealthAmort = scenarios.map((scenario) =>
+            Number(scenario.equity_build_5y?.amortization_per_owner || 0),
+          );
+          const wealthAppreciation = scenarios.map((scenario) =>
+            Number(scenario.equity_build_5y?.property_appreciation_per_owner || 0),
+          );
+          const wealthNet = scenarios.map((scenario) =>
+            Number(scenario.equity_build_5y?.net_wealth_creation_per_owner || 0),
+          );
+
+          const plotConfig = {
+            responsive: true,
+            displayModeBar: false,
+            displaylogo: false,
+          };
+
+          Plotly.newPlot(
+            "loanMonthlyCashChart",
+            [
+              {
+                x: monthlyCashPerOwner,
+                y: scenarioNames,
+                type: "bar",
+                orientation: "h",
+                marker: {
+                  color: monthlyCashPerOwner.map((value) =>
+                    value >= 0 ? "#22c55e" : "#ef4444",
+                  ),
+                },
+                text: monthlyCashPerOwner.map((value) => formatCHF(value)),
+                textposition: "outside",
+                hovertemplate: "%{y}<br><b>%{text}</b><extra></extra>",
+              },
+            ],
+            {
+              ...unifiedChartConfig,
+              margin: { l: 220, r: 40, t: 20, b: 50 },
+              xaxis: { tickprefix: "CHF ", gridcolor: "#e0e4e7" },
+              yaxis: { autorange: "reversed" },
+              showlegend: false,
+            },
+            plotConfig,
+          );
+
+          Plotly.newPlot(
+            "loanStressDscrChart",
+            [
+              {
+                x: scenarioNames,
+                y: dscrBase,
+                type: "bar",
+                name: "Base",
+                marker: { color: "#6366f1" },
+              },
+              {
+                x: scenarioNames,
+                y: dscr150,
+                type: "bar",
+                name: "SARON +150 bps",
+                marker: { color: "#0ea5e9" },
+              },
+              {
+                x: scenarioNames,
+                y: dscr250,
+                type: "bar",
+                name: "SARON +250 bps",
+                marker: { color: "#f97316" },
+              },
+            ],
+            {
+              ...unifiedChartConfig,
+              margin: { l: 70, r: 20, t: 20, b: 80 },
+              barmode: "group",
+              yaxis: { title: { text: "DSCR (x)" }, gridcolor: "#e0e4e7" },
+              shapes: [
+                {
+                  type: "line",
+                  xref: "paper",
+                  x0: 0,
+                  x1: 1,
+                  y0: baseDscrThreshold,
+                  y1: baseDscrThreshold,
+                  line: { color: "#64748b", dash: "dash", width: 1.5 },
+                },
+                {
+                  type: "line",
+                  xref: "paper",
+                  x0: 0,
+                  x1: 1,
+                  y0: saron150DscrThreshold,
+                  y1: saron150DscrThreshold,
+                  line: { color: "#94a3b8", dash: "dot", width: 1.2 },
+                },
+              ],
+              annotations: [
+                {
+                  xref: "paper",
+                  yref: "y",
+                  x: 1,
+                  y: baseDscrThreshold,
+                  text: `Base threshold ${baseDscrThreshold.toFixed(2)}x`,
+                  showarrow: false,
+                  xanchor: "right",
+                  yanchor: "bottom",
+                  font: { size: 11, color: "#64748b" },
+                },
+                {
+                  xref: "paper",
+                  yref: "y",
+                  x: 1,
+                  y: saron150DscrThreshold,
+                  text: `+150 bps threshold ${saron150DscrThreshold.toFixed(2)}x`,
+                  showarrow: false,
+                  xanchor: "right",
+                  yanchor: "bottom",
+                  font: { size: 11, color: "#94a3b8" },
+                },
+              ],
+            },
+            plotConfig,
+          );
+
+          Plotly.newPlot(
+            "loanRateVsIrrChart",
+            [
+              {
+                x: blendedRatesPct,
+                y: equityIrrPct,
+                text: scenarioNames,
+                mode: "markers+text",
+                type: "scatter",
+                textposition: "top center",
+                marker: {
+                  size: monthlyCashPerOwner.map((value) => Math.max(10, Math.min(32, Math.abs(value) / 12))),
+                  color: scenarios.map((scenario) =>
+                    scenario.kpis?.stress_overall_pass ? "#22c55e" : "#ef4444",
+                  ),
+                  line: { color: "#0f172a", width: 1 },
+                },
+                hovertemplate:
+                  "<b>%{text}</b><br>" +
+                  "Blended Rate: %{x:.2f}%<br>" +
+                  "Equity IRR: %{y:.2f}%<extra></extra>",
+              },
+            ],
+            {
+              ...unifiedChartConfig,
+              margin: { l: 70, r: 20, t: 20, b: 60 },
+              xaxis: { title: { text: "Blended Interest Rate (%)" }, gridcolor: "#e0e4e7" },
+              yaxis: { title: { text: "Equity IRR (%)" }, gridcolor: "#e0e4e7" },
+              showlegend: false,
+            },
+            plotConfig,
+          );
+
+          Plotly.newPlot(
+            "loanWealthBridgeChart",
+            [
+              {
+                x: scenarioNames,
+                y: wealthCash,
+                type: "bar",
+                name: "5Y After-Tax Cash Flow",
+                marker: { color: "#ef4444" },
+              },
+              {
+                x: scenarioNames,
+                y: wealthAmort,
+                type: "bar",
+                name: "5Y Amortization Equity",
+                marker: { color: "#0ea5e9" },
+              },
+              {
+                x: scenarioNames,
+                y: wealthAppreciation,
+                type: "bar",
+                name: "5Y Appreciation Equity",
+                marker: { color: "#22c55e" },
+              },
+              {
+                x: scenarioNames,
+                y: wealthNet,
+                type: "scatter",
+                mode: "lines+markers",
+                name: "5Y Net Wealth",
+                yaxis: "y2",
+                line: { color: "#111827", width: 3 },
+              },
+            ],
+            {
+              ...unifiedChartConfig,
+              barmode: "relative",
+              margin: { l: 70, r: 70, t: 20, b: 80 },
+              yaxis: { title: { text: "CHF / Owner" }, tickprefix: "CHF ", gridcolor: "#e0e4e7" },
+              yaxis2: {
+                title: { text: "Net Wealth CHF / Owner" },
+                overlaying: "y",
+                side: "right",
+                tickprefix: "CHF ",
+              },
             },
             plotConfig,
           );
@@ -5656,6 +6645,10 @@
 
             if (State.currentAnalysis === "base_case") {
               ChartRenderer.renderBaseCase(data);
+            } else if (State.currentAnalysis === "balance_sheet_cashflow") {
+              ChartRenderer.renderBalanceSheetCashFlow(data);
+            } else if (State.currentAnalysis === "loan_structure_sensitivity") {
+              ChartRenderer.renderLoanStructureSensitivity(data);
             } else if (State.currentAnalysis === "sensitivity") {
               ChartRenderer.renderSensitivity(data);
             } else if (State.currentAnalysis === "sensitivity_coc") {
@@ -5676,9 +6669,10 @@
                             <strong>To fix this:</strong><br>
                             1. Run <code>python scripts/analyze.py --analysis base</code> for base-case data<br>
                             2. Run <code>python scripts/analyze.py --analysis sensitivity</code> for sensitivity data<br>
-                            3. Run <code>python scripts/analyze.py --analysis monte_carlo</code> for Monte Carlo data<br>
-                            4. Run <code>python scripts/analyze_monte_carlo_sensitivity.py</code> for MC sensitivity data<br>
-                            5. Or run <code>python scripts/generate_all_data.py</code> to generate all dashboard data
+                            3. Run <code>python scripts/analyze.py --analysis loan_structure_sensitivity</code> for loan-structure data<br>
+                            4. Run <code>python scripts/analyze.py --analysis monte_carlo</code> for Monte Carlo data<br>
+                            5. Run <code>python scripts/analyze_monte_carlo_sensitivity.py</code> for MC sensitivity data<br>
+                            6. Or run <code>python scripts/generate_all_data.py</code> to generate all dashboard data
                         </p>
                     `);
           }
@@ -5692,4 +6686,3 @@
     </script>
   </body>
 </html>
-

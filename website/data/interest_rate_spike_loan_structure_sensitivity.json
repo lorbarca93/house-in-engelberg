@@ -1,0 +1,657 @@
+{
+  "analysis_type": "loan_structure_sensitivity",
+  "case_name": "interest_rate_spike",
+  "projection_years": 15,
+  "assumptions": {
+    "saron_base_rate": 0.013,
+    "saron_margin": 0.009,
+    "short_fixed_rate": 0.014499999999999999,
+    "long_fixed_rate": 0.016
+  },
+  "stress_policy": {
+    "base_dscr_min": 1.2,
+    "saron_150_dscr_min": 1.05,
+    "saron_250_min_cash_flow": 0.0
+  },
+  "recommended_scenario_id": "fixed_staggered_50_50",
+  "ranking": {
+    "by_equity_irr_desc": [
+      "fixed_staggered_50_50",
+      "fixed_100_10y",
+      "mixed_50_50",
+      "mixed_60_40_laddered",
+      "mixed_70_30",
+      "saron_100"
+    ],
+    "by_monthly_cashflow_desc": [
+      "fixed_staggered_50_50",
+      "fixed_100_10y",
+      "mixed_50_50",
+      "mixed_60_40_laddered",
+      "mixed_70_30",
+      "saron_100"
+    ]
+  },
+  "scenarios": [
+    {
+      "id": "saron_100",
+      "name": "100% SARON",
+      "description": "Fully floating-rate exposure with lowest initial fixed-rate lock-in.",
+      "loan_tranches": [
+        {
+          "name": "SARON",
+          "share_of_loan": 1.0,
+          "rate_type": "saron",
+          "fixed_rate": null,
+          "saron_margin": 0.009,
+          "term_years": null
+        }
+      ],
+      "kpis": {
+        "blended_interest_rate": 0.022,
+        "year1_debt_service": 31200.0,
+        "year1_interest_payment": 21450.0,
+        "year1_amortization_payment": 9750.0,
+        "year1_after_tax_cash_flow_per_owner_monthly": -386.4008884803922,
+        "year1_after_tax_cash_flow_total": -18547.242647058825,
+        "year1_dscr": 0.19928709464555047,
+        "equity_irr_with_sale_pct": 5.461120687890794,
+        "npv_at_5pct": 7634.022269483423,
+        "moic": 2.6620091930598138,
+        "stress_overall_pass": false,
+        "stress_dscr_base": 0.19928709464555047,
+        "stress_dscr_saron_150bps": 0.13568483039697055,
+        "stress_dscr_saron_250bps": 0.1118804741869757,
+        "has_saron_exposure": true
+      },
+      "equity_build_5y": {
+        "cash_flow_after_tax_total": -73233.1798560649,
+        "cash_flow_after_tax_per_owner": -18308.294964016226,
+        "amortization_total": 48750.0,
+        "amortization_per_owner": 12187.5,
+        "property_appreciation_total": 220816.12800000026,
+        "property_appreciation_per_owner": 55204.032000000065,
+        "net_wealth_creation_total": 196332.94814393535,
+        "net_wealth_creation_per_owner": 49083.23703598384
+      },
+      "yearly_wealth_components_first5": [
+        {
+          "year": 2026,
+          "year_number": 1,
+          "after_tax_cash_flow_per_owner": -4636.810661764706,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 0.0,
+          "net_wealth_delta_per_owner": -2199.3106617647063,
+          "cumulative_wealth_per_owner": -2199.3106617647063,
+          "equity_per_owner": 83687.5
+        },
+        {
+          "year": 2027,
+          "year_number": 2,
+          "after_tax_cash_flow_per_owner": -3464.746029411764,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 13000.0,
+          "net_wealth_delta_per_owner": 11972.753970588235,
+          "cumulative_wealth_per_owner": 9773.44330882353,
+          "equity_per_owner": 99125.0
+        },
+        {
+          "year": 2028,
+          "year_number": 3,
+          "after_tax_cash_flow_per_owner": -3432.7367976470578,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 13520.000000000058,
+          "net_wealth_delta_per_owner": 12524.763202353,
+          "cumulative_wealth_per_owner": 22298.20651117653,
+          "equity_per_owner": 115082.50000000006
+        },
+        {
+          "year": 2029,
+          "year_number": 4,
+          "after_tax_cash_flow_per_owner": -3401.853392028236,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 14060.799999999988,
+          "net_wealth_delta_per_owner": 13096.446607971753,
+          "cumulative_wealth_per_owner": 35394.65311914828,
+          "equity_per_owner": 131580.80000000005
+        },
+        {
+          "year": 2030,
+          "year_number": 5,
+          "after_tax_cash_flow_per_owner": -3372.148083164462,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 14623.232000000018,
+          "net_wealth_delta_per_owner": 13688.583916835556,
+          "cumulative_wealth_per_owner": 49083.23703598384,
+          "equity_per_owner": 148641.53200000006
+        }
+      ]
+    },
+    {
+      "id": "fixed_100_10y",
+      "name": "100% Fixed 10Y",
+      "description": "Fully fixed rate for ten years with maximum payment stability.",
+      "loan_tranches": [
+        {
+          "name": "Fixed 10Y",
+          "share_of_loan": 1.0,
+          "rate_type": "fixed",
+          "fixed_rate": 0.016,
+          "saron_margin": null,
+          "term_years": 10
+        }
+      ],
+      "kpis": {
+        "blended_interest_rate": 0.016,
+        "year1_debt_service": 25350.0,
+        "year1_interest_payment": 15600.0,
+        "year1_amortization_payment": 9750.0,
+        "year1_after_tax_cash_flow_per_owner_monthly": -301.0883884803922,
+        "year1_after_tax_cash_flow_total": -14452.242647058825,
+        "year1_dscr": 0.24527642417913906,
+        "equity_irr_with_sale_pct": 6.341239195782686,
+        "npv_at_5pct": 21888.684692028866,
+        "moic": 2.902988079816052,
+        "stress_overall_pass": false,
+        "stress_dscr_base": 0.24527642417913906,
+        "stress_dscr_saron_150bps": 0.24527642417913906,
+        "stress_dscr_saron_250bps": 0.24527642417913906,
+        "has_saron_exposure": false
+      },
+      "equity_build_5y": {
+        "cash_flow_after_tax_total": -53167.679856064904,
+        "cash_flow_after_tax_per_owner": -13291.919964016226,
+        "amortization_total": 48750.0,
+        "amortization_per_owner": 12187.5,
+        "property_appreciation_total": 220816.12800000026,
+        "property_appreciation_per_owner": 55204.032000000065,
+        "net_wealth_creation_total": 216398.44814393535,
+        "net_wealth_creation_per_owner": 54099.61203598384
+      },
+      "yearly_wealth_components_first5": [
+        {
+          "year": 2026,
+          "year_number": 1,
+          "after_tax_cash_flow_per_owner": -3613.0606617647063,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 0.0,
+          "net_wealth_delta_per_owner": -1175.5606617647063,
+          "cumulative_wealth_per_owner": -1175.5606617647063,
+          "equity_per_owner": 83687.5
+        },
+        {
+          "year": 2027,
+          "year_number": 2,
+          "after_tax_cash_flow_per_owner": -2451.233529411764,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 13000.0,
+          "net_wealth_delta_per_owner": 12986.266470588236,
+          "cumulative_wealth_per_owner": 11810.70580882353,
+          "equity_per_owner": 99125.0
+        },
+        {
+          "year": 2028,
+          "year_number": 3,
+          "after_tax_cash_flow_per_owner": -2429.4617976470577,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 13520.000000000058,
+          "net_wealth_delta_per_owner": 13528.038202353,
+          "cumulative_wealth_per_owner": 25338.74401117653,
+          "equity_per_owner": 115082.50000000006
+        },
+        {
+          "year": 2029,
+          "year_number": 4,
+          "after_tax_cash_flow_per_owner": -2408.8158920282367,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 14060.799999999988,
+          "net_wealth_delta_per_owner": 14089.484107971752,
+          "cumulative_wealth_per_owner": 39428.22811914828,
+          "equity_per_owner": 131580.80000000005
+        },
+        {
+          "year": 2030,
+          "year_number": 5,
+          "after_tax_cash_flow_per_owner": -2389.348083164462,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 14623.232000000018,
+          "net_wealth_delta_per_owner": 14671.383916835555,
+          "cumulative_wealth_per_owner": 54099.61203598384,
+          "equity_per_owner": 148641.53200000006
+        }
+      ]
+    },
+    {
+      "id": "fixed_staggered_50_50",
+      "name": "Staggered Fixed (50/50)",
+      "description": "No SARON exposure, split between 5-7Y and 10Y fixed maturities.",
+      "loan_tranches": [
+        {
+          "name": "Fixed 5-7Y",
+          "share_of_loan": 0.5,
+          "rate_type": "fixed",
+          "fixed_rate": 0.014499999999999999,
+          "saron_margin": null,
+          "term_years": 7
+        },
+        {
+          "name": "Fixed 10Y",
+          "share_of_loan": 0.5,
+          "rate_type": "fixed",
+          "fixed_rate": 0.016,
+          "saron_margin": null,
+          "term_years": 10
+        }
+      ],
+      "kpis": {
+        "blended_interest_rate": 0.01525,
+        "year1_debt_service": 24618.75,
+        "year1_interest_payment": 14868.75,
+        "year1_amortization_payment": 9750.0,
+        "year1_after_tax_cash_flow_per_owner_monthly": -290.4243259803922,
+        "year1_after_tax_cash_flow_total": -13940.367647058825,
+        "year1_dscr": 0.2525618625210937,
+        "equity_irr_with_sale_pct": 6.4530499367974645,
+        "npv_at_5pct": 23670.517494847067,
+        "moic": 2.933110440660582,
+        "stress_overall_pass": false,
+        "stress_dscr_base": 0.2525618625210937,
+        "stress_dscr_saron_150bps": 0.2525618625210937,
+        "stress_dscr_saron_250bps": 0.2525618625210937,
+        "has_saron_exposure": false
+      },
+      "equity_build_5y": {
+        "cash_flow_after_tax_total": -50659.492356064904,
+        "cash_flow_after_tax_per_owner": -12664.873089016226,
+        "amortization_total": 48750.0,
+        "amortization_per_owner": 12187.5,
+        "property_appreciation_total": 220816.12800000026,
+        "property_appreciation_per_owner": 55204.032000000065,
+        "net_wealth_creation_total": 218906.63564393535,
+        "net_wealth_creation_per_owner": 54726.65891098384
+      },
+      "yearly_wealth_components_first5": [
+        {
+          "year": 2026,
+          "year_number": 1,
+          "after_tax_cash_flow_per_owner": -3485.0919117647063,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 0.0,
+          "net_wealth_delta_per_owner": -1047.5919117647063,
+          "cumulative_wealth_per_owner": -1047.5919117647063,
+          "equity_per_owner": 83687.5
+        },
+        {
+          "year": 2027,
+          "year_number": 2,
+          "after_tax_cash_flow_per_owner": -2324.544466911764,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 13000.0,
+          "net_wealth_delta_per_owner": 13112.955533088236,
+          "cumulative_wealth_per_owner": 12065.36362132353,
+          "equity_per_owner": 99125.0
+        },
+        {
+          "year": 2028,
+          "year_number": 3,
+          "after_tax_cash_flow_per_owner": -2304.052422647058,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 13520.000000000058,
+          "net_wealth_delta_per_owner": 13653.447577353,
+          "cumulative_wealth_per_owner": 25718.81119867653,
+          "equity_per_owner": 115082.50000000006
+        },
+        {
+          "year": 2029,
+          "year_number": 4,
+          "after_tax_cash_flow_per_owner": -2284.6862045282364,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 14060.799999999988,
+          "net_wealth_delta_per_owner": 14213.613795471752,
+          "cumulative_wealth_per_owner": 39932.424994148285,
+          "equity_per_owner": 131580.80000000005
+        },
+        {
+          "year": 2030,
+          "year_number": 5,
+          "after_tax_cash_flow_per_owner": -2266.4980831644616,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 14623.232000000018,
+          "net_wealth_delta_per_owner": 14794.233916835557,
+          "cumulative_wealth_per_owner": 54726.65891098384,
+          "equity_per_owner": 148641.53200000006
+        }
+      ]
+    },
+    {
+      "id": "mixed_50_50",
+      "name": "Mixed 50% SARON / 50% Fixed",
+      "description": "Balanced floating/fixed split with staggered fixed maturities.",
+      "loan_tranches": [
+        {
+          "name": "SARON",
+          "share_of_loan": 0.5,
+          "rate_type": "saron",
+          "fixed_rate": null,
+          "saron_margin": 0.009,
+          "term_years": null
+        },
+        {
+          "name": "Fixed 5-7Y",
+          "share_of_loan": 0.25,
+          "rate_type": "fixed",
+          "fixed_rate": 0.014499999999999999,
+          "saron_margin": null,
+          "term_years": 7
+        },
+        {
+          "name": "Fixed 10Y",
+          "share_of_loan": 0.25,
+          "rate_type": "fixed",
+          "fixed_rate": 0.016,
+          "saron_margin": null,
+          "term_years": 10
+        }
+      ],
+      "kpis": {
+        "blended_interest_rate": 0.018625,
+        "year1_debt_service": 27909.375,
+        "year1_interest_payment": 18159.375,
+        "year1_amortization_payment": 9750.0,
+        "year1_after_tax_cash_flow_per_owner_monthly": -338.4126072303922,
+        "year1_after_tax_cash_flow_total": -16243.805147058825,
+        "year1_dscr": 0.22278382632865032,
+        "equity_irr_with_sale_pct": 5.953072404954579,
+        "npv_at_5pct": 15652.269882165245,
+        "moic": 2.797559816860198,
+        "stress_overall_pass": false,
+        "stress_dscr_base": 0.22278382632865032,
+        "stress_dscr_saron_150bps": 0.17653112882097205,
+        "stress_dscr_saron_250bps": 0.15506837759653774,
+        "has_saron_exposure": true
+      },
+      "equity_build_5y": {
+        "cash_flow_after_tax_total": -61946.336106064904,
+        "cash_flow_after_tax_per_owner": -15486.584026516226,
+        "amortization_total": 48750.0,
+        "amortization_per_owner": 12187.5,
+        "property_appreciation_total": 220816.12800000026,
+        "property_appreciation_per_owner": 55204.032000000065,
+        "net_wealth_creation_total": 207619.79189393535,
+        "net_wealth_creation_per_owner": 51904.94797348384
+      },
+      "yearly_wealth_components_first5": [
+        {
+          "year": 2026,
+          "year_number": 1,
+          "after_tax_cash_flow_per_owner": -4060.9512867647063,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 0.0,
+          "net_wealth_delta_per_owner": -1623.4512867647063,
+          "cumulative_wealth_per_owner": -1623.4512867647063,
+          "equity_per_owner": 83687.5
+        },
+        {
+          "year": 2027,
+          "year_number": 2,
+          "after_tax_cash_flow_per_owner": -2894.6452481617644,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 13000.0,
+          "net_wealth_delta_per_owner": 12542.854751838237,
+          "cumulative_wealth_per_owner": 10919.40346507353,
+          "equity_per_owner": 99125.0
+        },
+        {
+          "year": 2028,
+          "year_number": 3,
+          "after_tax_cash_flow_per_owner": -2868.3946101470574,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 13520.000000000058,
+          "net_wealth_delta_per_owner": 13089.105389853,
+          "cumulative_wealth_per_owner": 24008.50885492653,
+          "equity_per_owner": 115082.50000000006
+        },
+        {
+          "year": 2029,
+          "year_number": 4,
+          "after_tax_cash_flow_per_owner": -2843.2697982782365,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 14060.799999999988,
+          "net_wealth_delta_per_owner": 13655.030201721751,
+          "cumulative_wealth_per_owner": 37663.53905664828,
+          "equity_per_owner": 131580.80000000005
+        },
+        {
+          "year": 2030,
+          "year_number": 5,
+          "after_tax_cash_flow_per_owner": -2819.323083164462,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 14623.232000000018,
+          "net_wealth_delta_per_owner": 14241.408916835557,
+          "cumulative_wealth_per_owner": 51904.94797348384,
+          "equity_per_owner": 148641.53200000006
+        }
+      ]
+    },
+    {
+      "id": "mixed_60_40_laddered",
+      "name": "Mixed 60% SARON / 40% Fixed Laddered",
+      "description": "Recommended structure balancing current cash flow and rate-risk diversification.",
+      "loan_tranches": [
+        {
+          "name": "SARON",
+          "share_of_loan": 0.6,
+          "rate_type": "saron",
+          "fixed_rate": null,
+          "saron_margin": 0.009,
+          "term_years": null
+        },
+        {
+          "name": "Fixed 5-7Y",
+          "share_of_loan": 0.25,
+          "rate_type": "fixed",
+          "fixed_rate": 0.014499999999999999,
+          "saron_margin": null,
+          "term_years": 7
+        },
+        {
+          "name": "Fixed 10Y",
+          "share_of_loan": 0.15,
+          "rate_type": "fixed",
+          "fixed_rate": 0.016,
+          "saron_margin": null,
+          "term_years": 10
+        }
+      ],
+      "kpis": {
+        "blended_interest_rate": 0.019225,
+        "year1_debt_service": 28494.375,
+        "year1_interest_payment": 18744.375,
+        "year1_amortization_payment": 9750.0,
+        "year1_after_tax_cash_flow_per_owner_monthly": -346.9438572303922,
+        "year1_after_tax_cash_flow_total": -16653.305147058825,
+        "year1_dscr": 0.2182099924262657,
+        "equity_irr_with_sale_pct": 5.865033864509312,
+        "npv_at_5pct": 14226.803639910737,
+        "moic": 2.7734619281845743,
+        "stress_overall_pass": false,
+        "stress_dscr_base": 0.2182099924262657,
+        "stress_dscr_saron_150bps": 0.1668328849877728,
+        "stress_dscr_saron_250bps": 0.144198689172586,
+        "has_saron_exposure": true
+      },
+      "equity_build_5y": {
+        "cash_flow_after_tax_total": -63952.88610606491,
+        "cash_flow_after_tax_per_owner": -15988.221526516227,
+        "amortization_total": 48750.0,
+        "amortization_per_owner": 12187.5,
+        "property_appreciation_total": 220816.12800000026,
+        "property_appreciation_per_owner": 55204.032000000065,
+        "net_wealth_creation_total": 205613.24189393537,
+        "net_wealth_creation_per_owner": 51403.31047348384
+      },
+      "yearly_wealth_components_first5": [
+        {
+          "year": 2026,
+          "year_number": 1,
+          "after_tax_cash_flow_per_owner": -4163.326286764706,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 0.0,
+          "net_wealth_delta_per_owner": -1725.8262867647063,
+          "cumulative_wealth_per_owner": -1725.8262867647063,
+          "equity_per_owner": 83687.5
+        },
+        {
+          "year": 2027,
+          "year_number": 2,
+          "after_tax_cash_flow_per_owner": -2995.9964981617636,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 13000.0,
+          "net_wealth_delta_per_owner": 12441.503501838237,
+          "cumulative_wealth_per_owner": 10715.67721507353,
+          "equity_per_owner": 99125.0
+        },
+        {
+          "year": 2028,
+          "year_number": 3,
+          "after_tax_cash_flow_per_owner": -2968.7221101470577,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 13520.000000000058,
+          "net_wealth_delta_per_owner": 12988.777889853001,
+          "cumulative_wealth_per_owner": 23704.455104926532,
+          "equity_per_owner": 115082.50000000006
+        },
+        {
+          "year": 2029,
+          "year_number": 4,
+          "after_tax_cash_flow_per_owner": -2942.5735482782366,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 14060.799999999988,
+          "net_wealth_delta_per_owner": 13555.726451721752,
+          "cumulative_wealth_per_owner": 37260.181556648284,
+          "equity_per_owner": 131580.80000000005
+        },
+        {
+          "year": 2030,
+          "year_number": 5,
+          "after_tax_cash_flow_per_owner": -2917.6030831644616,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 14623.232000000018,
+          "net_wealth_delta_per_owner": 14143.128916835556,
+          "cumulative_wealth_per_owner": 51403.31047348384,
+          "equity_per_owner": 148641.53200000006
+        }
+      ]
+    },
+    {
+      "id": "mixed_70_30",
+      "name": "Mixed 70% SARON / 30% Fixed",
+      "description": "Higher floating exposure to minimize base-case debt service.",
+      "loan_tranches": [
+        {
+          "name": "SARON",
+          "share_of_loan": 0.7,
+          "rate_type": "saron",
+          "fixed_rate": null,
+          "saron_margin": 0.009,
+          "term_years": null
+        },
+        {
+          "name": "Fixed 5-7Y",
+          "share_of_loan": 0.2,
+          "rate_type": "fixed",
+          "fixed_rate": 0.014499999999999999,
+          "saron_margin": null,
+          "term_years": 7
+        },
+        {
+          "name": "Fixed 10Y",
+          "share_of_loan": 0.1,
+          "rate_type": "fixed",
+          "fixed_rate": 0.016,
+          "saron_margin": null,
+          "term_years": 10
+        }
+      ],
+      "kpis": {
+        "blended_interest_rate": 0.019899999999999998,
+        "year1_debt_service": 29152.5,
+        "year1_interest_payment": 19402.5,
+        "year1_amortization_payment": 9750.0,
+        "year1_after_tax_cash_flow_per_owner_monthly": -356.5415134803922,
+        "year1_after_tax_cash_flow_total": -17113.992647058825,
+        "year1_dscr": 0.2132838471122948,
+        "equity_irr_with_sale_pct": 5.766292362939564,
+        "npv_at_5pct": 12623.154117374288,
+        "moic": 2.7463518034244974,
+        "stress_overall_pass": false,
+        "stress_dscr_base": 0.2132838471122948,
+        "stress_dscr_saron_150bps": 0.15785116407568353,
+        "stress_dscr_saron_250bps": 0.13453981073117333,
+        "has_saron_exposure": true
+      },
+      "equity_build_5y": {
+        "cash_flow_after_tax_total": -66210.2548560649,
+        "cash_flow_after_tax_per_owner": -16552.563714016225,
+        "amortization_total": 48750.0,
+        "amortization_per_owner": 12187.5,
+        "property_appreciation_total": 220816.12800000026,
+        "property_appreciation_per_owner": 55204.032000000065,
+        "net_wealth_creation_total": 203355.87314393534,
+        "net_wealth_creation_per_owner": 50838.968285983836
+      },
+      "yearly_wealth_components_first5": [
+        {
+          "year": 2026,
+          "year_number": 1,
+          "after_tax_cash_flow_per_owner": -4278.498161764706,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 0.0,
+          "net_wealth_delta_per_owner": -1840.9981617647063,
+          "cumulative_wealth_per_owner": -1840.9981617647063,
+          "equity_per_owner": 83687.5
+        },
+        {
+          "year": 2027,
+          "year_number": 2,
+          "after_tax_cash_flow_per_owner": -3110.0166544117637,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 13000.0,
+          "net_wealth_delta_per_owner": 12327.483345588236,
+          "cumulative_wealth_per_owner": 10486.48518382353,
+          "equity_per_owner": 99125.0
+        },
+        {
+          "year": 2028,
+          "year_number": 3,
+          "after_tax_cash_flow_per_owner": -3081.590547647057,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 13520.000000000058,
+          "net_wealth_delta_per_owner": 12875.909452353,
+          "cumulative_wealth_per_owner": 23362.39463617653,
+          "equity_per_owner": 115082.50000000006
+        },
+        {
+          "year": 2029,
+          "year_number": 4,
+          "after_tax_cash_flow_per_owner": -3054.2902670282365,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 14060.799999999988,
+          "net_wealth_delta_per_owner": 13444.009732971752,
+          "cumulative_wealth_per_owner": 36806.40436914828,
+          "equity_per_owner": 131580.80000000005
+        },
+        {
+          "year": 2030,
+          "year_number": 5,
+          "after_tax_cash_flow_per_owner": -3028.1680831644617,
+          "amortization_equity_per_owner": 2437.5,
+          "appreciation_equity_per_owner": 14623.232000000018,
+          "net_wealth_delta_per_owner": 14032.563916835556,
+          "cumulative_wealth_per_owner": 50838.968285983836,
+          "equity_per_owner": 148641.53200000006
+        }
+      ]
+    }
+  ]
+}

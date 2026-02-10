@@ -22,6 +22,7 @@ from engelberg.analysis import (
     run_cash_on_cash_sensitivity_analysis,
     run_monthly_ncf_sensitivity_analysis,
     run_monte_carlo_analysis,
+    run_loan_structure_sensitivity_analysis,
     run_monte_carlo_sensitivity_analysis,
     extract_case_name
 )
@@ -106,6 +107,7 @@ def generate_case_data(
         'sensitivity_coc': None,
         'sensitivity_ncf': None,
         'monte_carlo': None,
+        'loan_structure_sensitivity': None,
         'monte_carlo_sensitivity': None,
         'status': 'success',
         'errors': []
@@ -158,6 +160,13 @@ def generate_case_data(
             if os.path.exists(json_path):
                 result['monte_carlo'] = os.path.basename(json_path)
                 print(f"  [+] Monte Carlo JSON: website/data/{case_name}_monte_carlo.json")
+
+            # Run loan structure sensitivity
+            run_loan_structure_sensitivity_analysis(assumptions_path, case_name, verbose=False)
+            json_path_loan = resolve_path(f"website/data/{case_name}_loan_structure_sensitivity.json")
+            if os.path.exists(json_path_loan):
+                result['loan_structure_sensitivity'] = os.path.basename(json_path_loan)
+                print(f"  [+] Loan Structure Sensitivity JSON: website/data/{case_name}_loan_structure_sensitivity.json")
             
             json_path_mc_sens = resolve_path(f"website/data/{case_name}_monte_carlo_sensitivity.json")
             if include_mc_sensitivity:
@@ -319,6 +328,7 @@ def main():
                 'sensitivity_coc': result.get('sensitivity_coc'),
                 'sensitivity_ncf': result.get('sensitivity_ncf'),
                 'monte_carlo': result.get('monte_carlo'),
+                'loan_structure_sensitivity': result.get('loan_structure_sensitivity'),
                 'monte_carlo_sensitivity': result.get('monte_carlo_sensitivity')
             },
             'status': result['status'],

@@ -10,7 +10,8 @@
         "sensitivity_coc": "base_case_sensitivity_coc.json",
         "sensitivity_ncf": "base_case_sensitivity_ncf.json",
         "monte_carlo": "base_case_monte_carlo.json",
-        "monte_carlo_sensitivity": "base_case_monte_carlo_sensitivity.json"
+        "monte_carlo_sensitivity": "base_case_monte_carlo_sensitivity.json",
+        "loan_structure_sensitivity": "base_case_loan_structure_sensitivity.json"
       },
       "status": "success",
       "errors": []
@@ -25,7 +26,8 @@
         "sensitivity_coc": "3_owners_sensitivity_coc.json",
         "sensitivity_ncf": "3_owners_sensitivity_ncf.json",
         "monte_carlo": "3_owners_monte_carlo.json",
-        "monte_carlo_sensitivity": "3_owners_monte_carlo_sensitivity.json"
+        "monte_carlo_sensitivity": "3_owners_monte_carlo_sensitivity.json",
+        "loan_structure_sensitivity": "3_owners_loan_structure_sensitivity.json"
       },
       "status": "success",
       "errors": []
@@ -40,7 +42,8 @@
         "sensitivity_coc": "5_owners_sensitivity_coc.json",
         "sensitivity_ncf": "5_owners_sensitivity_ncf.json",
         "monte_carlo": "5_owners_monte_carlo.json",
-        "monte_carlo_sensitivity": "5_owners_monte_carlo_sensitivity.json"
+        "monte_carlo_sensitivity": "5_owners_monte_carlo_sensitivity.json",
+        "loan_structure_sensitivity": "5_owners_loan_structure_sensitivity.json"
       },
       "status": "success",
       "errors": []
@@ -55,7 +58,8 @@
         "sensitivity_coc": "90day_restriction_sensitivity_coc.json",
         "sensitivity_ncf": "90day_restriction_sensitivity_ncf.json",
         "monte_carlo": "90day_restriction_monte_carlo.json",
-        "monte_carlo_sensitivity": "90day_restriction_monte_carlo_sensitivity.json"
+        "monte_carlo_sensitivity": "90day_restriction_monte_carlo_sensitivity.json",
+        "loan_structure_sensitivity": "90day_restriction_loan_structure_sensitivity.json"
       },
       "status": "success",
       "errors": []
@@ -70,7 +74,8 @@
         "sensitivity_coc": "climate_risk_sensitivity_coc.json",
         "sensitivity_ncf": "climate_risk_sensitivity_ncf.json",
         "monte_carlo": "climate_risk_monte_carlo.json",
-        "monte_carlo_sensitivity": "climate_risk_monte_carlo_sensitivity.json"
+        "monte_carlo_sensitivity": "climate_risk_monte_carlo_sensitivity.json",
+        "loan_structure_sensitivity": "climate_risk_loan_structure_sensitivity.json"
       },
       "status": "success",
       "errors": []
@@ -85,7 +90,8 @@
         "sensitivity_coc": "early_exit_sensitivity_coc.json",
         "sensitivity_ncf": "early_exit_sensitivity_ncf.json",
         "monte_carlo": "early_exit_monte_carlo.json",
-        "monte_carlo_sensitivity": "early_exit_monte_carlo_sensitivity.json"
+        "monte_carlo_sensitivity": "early_exit_monte_carlo_sensitivity.json",
+        "loan_structure_sensitivity": "early_exit_loan_structure_sensitivity.json"
       },
       "status": "success",
       "errors": []
@@ -100,7 +106,8 @@
         "sensitivity_coc": "engelbergerstrasse53_sensitivity_coc.json",
         "sensitivity_ncf": "engelbergerstrasse53_sensitivity_ncf.json",
         "monte_carlo": "engelbergerstrasse53_monte_carlo.json",
-        "monte_carlo_sensitivity": "engelbergerstrasse53_monte_carlo_sensitivity.json"
+        "monte_carlo_sensitivity": "engelbergerstrasse53_monte_carlo_sensitivity.json",
+        "loan_structure_sensitivity": "engelbergerstrasse53_loan_structure_sensitivity.json"
       },
       "status": "success",
       "errors": []
@@ -115,7 +122,8 @@
         "sensitivity_coc": "engelbergerstrasse53_145_sensitivity_coc.json",
         "sensitivity_ncf": "engelbergerstrasse53_145_sensitivity_ncf.json",
         "monte_carlo": "engelbergerstrasse53_145_monte_carlo.json",
-        "monte_carlo_sensitivity": "engelbergerstrasse53_145_monte_carlo_sensitivity.json"
+        "monte_carlo_sensitivity": "engelbergerstrasse53_145_monte_carlo_sensitivity.json",
+        "loan_structure_sensitivity": "engelbergerstrasse53_145_loan_structure_sensitivity.json"
       },
       "status": "success",
       "errors": []
@@ -130,7 +138,8 @@
         "sensitivity_coc": "engelbergerstrasse53_850_success_sensitivity_coc.json",
         "sensitivity_ncf": "engelbergerstrasse53_850_success_sensitivity_ncf.json",
         "monte_carlo": "engelbergerstrasse53_850_success_monte_carlo.json",
-        "monte_carlo_sensitivity": "engelbergerstrasse53_850_success_monte_carlo_sensitivity.json"
+        "monte_carlo_sensitivity": "engelbergerstrasse53_850_success_monte_carlo_sensitivity.json",
+        "loan_structure_sensitivity": "engelbergerstrasse53_850_success_loan_structure_sensitivity.json"
       },
       "status": "success",
       "errors": []
@@ -145,7 +154,8 @@
         "sensitivity_coc": "engelbergerstrasse53_longterm_sensitivity_coc.json",
         "sensitivity_ncf": "engelbergerstrasse53_longterm_sensitivity_ncf.json",
         "monte_carlo": "engelbergerstrasse53_longterm_monte_carlo.json",
-        "monte_carlo_sensitivity": "engelbergerstrasse53_longterm_monte_carlo_sensitivity.json"
+        "monte_carlo_sensitivity": "engelbergerstrasse53_longterm_monte_carlo_sensitivity.json",
+        "loan_structure_sensitivity": "engelbergerstrasse53_longterm_loan_structure_sensitivity.json"
       },
       "status": "success",
       "errors": []
@@ -160,7 +170,8 @@
         "sensitivity_coc": "interest_rate_spike_sensitivity_coc.json",
         "sensitivity_ncf": "interest_rate_spike_sensitivity_ncf.json",
         "monte_carlo": "interest_rate_spike_monte_carlo.json",
-        "monte_carlo_sensitivity": "interest_rate_spike_monte_carlo_sensitivity.json"
+        "monte_carlo_sensitivity": "interest_rate_spike_monte_carlo_sensitivity.json",
+        "loan_structure_sensitivity": "interest_rate_spike_loan_structure_sensitivity.json"
       },
       "status": "success",
       "errors": []
@@ -175,7 +186,8 @@
         "sensitivity_coc": "migros_sensitivity_coc.json",
         "sensitivity_ncf": "migros_sensitivity_ncf.json",
         "monte_carlo": "migros_monte_carlo.json",
-        "monte_carlo_sensitivity": "migros_monte_carlo_sensitivity.json"
+        "monte_carlo_sensitivity": "migros_monte_carlo_sensitivity.json",
+        "loan_structure_sensitivity": "migros_loan_structure_sensitivity.json"
       },
       "status": "success",
       "errors": []

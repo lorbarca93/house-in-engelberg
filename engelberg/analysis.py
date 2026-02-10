@@ -54,7 +54,7 @@ import os
 import sys
 import json
 import argparse
-from typing import Dict
+from typing import Dict, List, Any
 
 # ===========================================================================
 # SECTION 1: IMPORTS
@@ -82,6 +82,7 @@ from engelberg.core import (
     # Data structures
     BaseCaseConfig,                 # Main configuration object
     FinancingParams,                # Financing parameters
+    LoanTranche,                    # Loan tranche structure
     RentalParams,                   # Rental income parameters
     ExpenseParams,                  # Operating expense parameters
     
@@ -382,6 +383,446 @@ def run_monte_carlo_analysis(json_path: str, case_name: str,
 
 
 # ===========================================================================
+# SECTION 5B: LOAN STRUCTURE SENSITIVITY
+# Compare KPI outcomes across alternative debt tranche structures
+# ===========================================================================
+
+def _clone_financing_with_tranches(
+    base_financing: FinancingParams,
+    loan_tranches: List[LoanTranche],
+    saron_base_rate: float,
+) -> FinancingParams:
+    """Clone financing terms while replacing loan tranches."""
+    return FinancingParams(
+        purchase_price=base_financing.purchase_price,
+        ltv=base_financing.ltv,
+        interest_rate=base_financing.interest_rate,
+        amortization_rate=base_financing.amortization_rate,
+        num_owners=base_financing.num_owners,
+        notary_fee_rate=base_financing.notary_fee_rate,
+        legal_doc_fee_rate=base_financing.legal_doc_fee_rate,
+        agency_fee_rate_buyer=base_financing.agency_fee_rate_buyer,
+        inspection_chf=base_financing.inspection_chf,
+        interior_designer_chf=base_financing.interior_designer_chf,
+        furniture_chf=base_financing.furniture_chf,
+        loan_tranches=loan_tranches,
+        saron_base_rate=saron_base_rate,
+        stress=base_financing.stress,
+    )
+
+
+def _extract_base_rate_anchors(financing: FinancingParams) -> Dict[str, float]:
+    """
+    Derive base rate anchors from configured tranches (or fallbacks).
+    """
+    saron_base = financing.effective_saron_base_rate
+    default_short_fixed = financing.interest_rate + 0.0015
+    default_long_fixed = financing.interest_rate + 0.0030
+    default_saron_margin = max(0.0, financing.interest_rate - saron_base)
+
+    fixed_tranches = sorted(
+        [t for t in (financing.loan_tranches or []) if t.rate_type == "fixed"],
+        key=lambda t: t.term_years or 0,
+    )
+    saron_tranches = [t for t in (financing.loan_tranches or []) if t.rate_type == "saron"]
+
+    short_fixed_rate = (
+        float(fixed_tranches[0].fixed_rate)
+        if fixed_tranches and fixed_tranches[0].fixed_rate is not None
+        else default_short_fixed
+    )
+    long_fixed_rate = (
+        float(fixed_tranches[-1].fixed_rate)
+        if fixed_tranches and fixed_tranches[-1].fixed_rate is not None
+        else default_long_fixed
+    )
+    if long_fixed_rate < short_fixed_rate:
+        long_fixed_rate = short_fixed_rate
+
+    if saron_tranches:
+        saron_margin = sum(float(t.saron_margin or 0.0) for t in saron_tranches) / len(saron_tranches)
+    else:
+        saron_margin = default_saron_margin if default_saron_margin > 0 else 0.009
+
+    return {
+        "saron_base_rate": saron_base,
+        "saron_margin": saron_margin,
+        "short_fixed_rate": short_fixed_rate,
+        "long_fixed_rate": long_fixed_rate,
+    }
+
+
+def run_loan_structure_sensitivity_analysis(
+    json_path: str,
+    case_name: str,
+    verbose: bool = True,
+) -> Dict[str, Any]:
+    """
+    Compare major KPIs across predefined loan structures:
+    100% SARON, 100% fixed, staggered fixed, and mixed structures.
+    """
+    if verbose:
+        print("\n" + "=" * 70)
+        print("LOAN STRUCTURE SENSITIVITY")
+        print("=" * 70)
+
+    base_config = create_base_case_config(json_path)
+    proj_defaults = get_projection_defaults(json_path)
+    rate_anchors = _extract_base_rate_anchors(base_config.financing)
+    num_owners = max(1, base_config.financing.num_owners)
+    projection_years = int(proj_defaults.get("projection_years", 15))
+    ramp_up_months = int(proj_defaults.get("ramp_up_months", 0))
+    renovation_downtime_months = int(proj_defaults.get("renovation_downtime_months", 0))
+    renovation_frequency_years = int(proj_defaults.get("renovation_frequency_years", 0))
+    operational_months_year1 = max(0, 12 - ramp_up_months)
+    if (
+        renovation_frequency_years > 0
+        and renovation_downtime_months > 0
+        and (1 % renovation_frequency_years == 0)
+    ):
+        operational_months_year1 = max(0, operational_months_year1 - renovation_downtime_months)
+
+    short_term = 7
+    long_term = 10
+    saron_base_rate = rate_anchors["saron_base_rate"]
+    saron_margin = rate_anchors["saron_margin"]
+    short_fixed_rate = rate_anchors["short_fixed_rate"]
+    long_fixed_rate = rate_anchors["long_fixed_rate"]
+
+    scenario_defs = [
+        {
+            "id": "saron_100",
+            "name": "100% SARON",
+            "description": "Fully floating-rate exposure with lowest initial fixed-rate lock-in.",
+            "loan_tranches": [
+                LoanTranche(
+                    name="SARON",
+                    share_of_loan=1.0,
+                    rate_type="saron",
+                    saron_margin=saron_margin,
+                )
+            ],
+        },
+        {
+            "id": "fixed_100_10y",
+            "name": "100% Fixed 10Y",
+            "description": "Fully fixed rate for ten years with maximum payment stability.",
+            "loan_tranches": [
+                LoanTranche(
+                    name="Fixed 10Y",
+                    share_of_loan=1.0,
+                    rate_type="fixed",
+                    fixed_rate=long_fixed_rate,
+                    term_years=long_term,
+                )
+            ],
+        },
+        {
+            "id": "fixed_staggered_50_50",
+            "name": "Staggered Fixed (50/50)",
+            "description": "No SARON exposure, split between 5-7Y and 10Y fixed maturities.",
+            "loan_tranches": [
+                LoanTranche(
+                    name="Fixed 5-7Y",
+                    share_of_loan=0.5,
+                    rate_type="fixed",
+                    fixed_rate=short_fixed_rate,
+                    term_years=short_term,
+                ),
+                LoanTranche(
+                    name="Fixed 10Y",
+                    share_of_loan=0.5,
+                    rate_type="fixed",
+                    fixed_rate=long_fixed_rate,
+                    term_years=long_term,
+                ),
+            ],
+        },
+        {
+            "id": "mixed_50_50",
+            "name": "Mixed 50% SARON / 50% Fixed",
+            "description": "Balanced floating/fixed split with staggered fixed maturities.",
+            "loan_tranches": [
+                LoanTranche(
+                    name="SARON",
+                    share_of_loan=0.5,
+                    rate_type="saron",
+                    saron_margin=saron_margin,
+                ),
+                LoanTranche(
+                    name="Fixed 5-7Y",
+                    share_of_loan=0.25,
+                    rate_type="fixed",
+                    fixed_rate=short_fixed_rate,
+                    term_years=short_term,
+                ),
+                LoanTranche(
+                    name="Fixed 10Y",
+                    share_of_loan=0.25,
+                    rate_type="fixed",
+                    fixed_rate=long_fixed_rate,
+                    term_years=long_term,
+                ),
+            ],
+        },
+        {
+            "id": "mixed_60_40_laddered",
+            "name": "Mixed 60% SARON / 40% Fixed Laddered",
+            "description": "Recommended structure balancing current cash flow and rate-risk diversification.",
+            "loan_tranches": [
+                LoanTranche(
+                    name="SARON",
+                    share_of_loan=0.6,
+                    rate_type="saron",
+                    saron_margin=saron_margin,
+                ),
+                LoanTranche(
+                    name="Fixed 5-7Y",
+                    share_of_loan=0.25,
+                    rate_type="fixed",
+                    fixed_rate=short_fixed_rate,
+                    term_years=short_term,
+                ),
+                LoanTranche(
+                    name="Fixed 10Y",
+                    share_of_loan=0.15,
+                    rate_type="fixed",
+                    fixed_rate=long_fixed_rate,
+                    term_years=long_term,
+                ),
+            ],
+        },
+        {
+            "id": "mixed_70_30",
+            "name": "Mixed 70% SARON / 30% Fixed",
+            "description": "Higher floating exposure to minimize base-case debt service.",
+            "loan_tranches": [
+                LoanTranche(
+                    name="SARON",
+                    share_of_loan=0.7,
+                    rate_type="saron",
+                    saron_margin=saron_margin,
+                ),
+                LoanTranche(
+                    name="Fixed 5-7Y",
+                    share_of_loan=0.2,
+                    rate_type="fixed",
+                    fixed_rate=short_fixed_rate,
+                    term_years=short_term,
+                ),
+                LoanTranche(
+                    name="Fixed 10Y",
+                    share_of_loan=0.1,
+                    rate_type="fixed",
+                    fixed_rate=long_fixed_rate,
+                    term_years=long_term,
+                ),
+            ],
+        },
+    ]
+
+    scenario_results: List[Dict[str, Any]] = []
+    for scenario in scenario_defs:
+        scenario_financing = _clone_financing_with_tranches(
+            base_financing=base_config.financing,
+            loan_tranches=scenario["loan_tranches"],
+            saron_base_rate=saron_base_rate,
+        )
+        scenario_config = BaseCaseConfig(
+            financing=scenario_financing,
+            rental=base_config.rental,
+            expenses=base_config.expenses,
+            projection=base_config.projection,
+        )
+
+        year1_results = compute_annual_cash_flows(
+            scenario_config,
+            operational_months=operational_months_year1,
+        )
+        projection = compute_15_year_projection(
+            scenario_config,
+            start_year=proj_defaults["start_year"],
+            inflation_rate=proj_defaults["inflation_rate"],
+            property_appreciation_rate=proj_defaults["property_appreciation_rate"],
+            projection_years=projection_years,
+            ramp_up_months=ramp_up_months,
+            renovation_downtime_months=renovation_downtime_months,
+            renovation_frequency_years=renovation_frequency_years,
+        )
+        irr_results = calculate_irrs_from_projection(
+            projection=projection,
+            initial_equity=scenario_financing.total_initial_investment_per_owner,
+            final_property_value=projection[-1]["property_value"],
+            final_loan_balance=projection[-1]["remaining_loan_balance"],
+            num_owners=scenario_financing.num_owners,
+            purchase_price=scenario_financing.purchase_price,
+            selling_costs_rate=proj_defaults["selling_costs_rate"],
+            discount_rate=proj_defaults["discount_rate"],
+            capital_gains_tax_rate=proj_defaults.get("capital_gains_tax_rate", 0.02),
+            property_transfer_tax_sale_rate=proj_defaults.get("property_transfer_tax_sale_rate", 0.015),
+        )
+
+        first_five = projection[: min(5, len(projection))]
+        cumulative_cash_flow_after_tax_total = sum(
+            float(row.get("after_tax_cash_flow_total", row.get("cash_flow_after_debt_service", 0.0)))
+            for row in first_five
+        )
+        cumulative_amortization_total = sum(float(row.get("amortization_payment", 0.0)) for row in first_five)
+        property_appreciation_total = (
+            float(first_five[-1].get("property_value", 0.0)) - scenario_financing.purchase_price
+            if first_five
+            else 0.0
+        )
+        net_wealth_creation_total = (
+            cumulative_cash_flow_after_tax_total
+            + cumulative_amortization_total
+            + property_appreciation_total
+        )
+
+        yearly_components: List[Dict[str, Any]] = []
+        cumulative_wealth_per_owner = 0.0
+        previous_property_value = scenario_financing.purchase_price
+        for row in first_five:
+            property_value = float(row.get("property_value", previous_property_value))
+            annual_appreciation_per_owner = (property_value - previous_property_value) / num_owners
+            after_tax_per_owner = float(
+                row.get("after_tax_cash_flow_per_owner", row.get("cash_flow_per_owner", 0.0))
+            )
+            amortization_per_owner = float(row.get("amortization_payment", 0.0)) / num_owners
+            net_wealth_delta_per_owner = (
+                after_tax_per_owner + amortization_per_owner + annual_appreciation_per_owner
+            )
+            cumulative_wealth_per_owner += net_wealth_delta_per_owner
+            yearly_components.append(
+                {
+                    "year": row.get("year"),
+                    "year_number": row.get("year_number"),
+                    "after_tax_cash_flow_per_owner": after_tax_per_owner,
+                    "amortization_equity_per_owner": amortization_per_owner,
+                    "appreciation_equity_per_owner": annual_appreciation_per_owner,
+                    "net_wealth_delta_per_owner": net_wealth_delta_per_owner,
+                    "cumulative_wealth_per_owner": cumulative_wealth_per_owner,
+                    "equity_per_owner": (
+                        (float(row.get("property_value", 0.0)) - float(row.get("remaining_loan_balance", 0.0)))
+                        / num_owners
+                    ),
+                }
+            )
+            previous_property_value = property_value
+
+        stress = year1_results.get("stress_results", {}) or {}
+        stress_base = stress.get("base", {}) or {}
+        stress_150 = stress.get("saron_150bps", {}) or {}
+        stress_250 = stress.get("saron_250bps", {}) or {}
+        has_saron_exposure = any(
+            tranche.rate_type == "saron" for tranche in scenario["loan_tranches"]
+        )
+        base_dscr = float(stress_base.get("dscr", 0.0))
+        dscr_150 = float(
+            stress_150.get("dscr", base_dscr if not has_saron_exposure else 0.0)
+        )
+        dscr_250 = float(
+            stress_250.get("dscr", base_dscr if not has_saron_exposure else 0.0)
+        )
+
+        scenario_results.append(
+            {
+                "id": scenario["id"],
+                "name": scenario["name"],
+                "description": scenario["description"],
+                "loan_tranches": [
+                    {
+                        "name": t.name,
+                        "share_of_loan": t.share_of_loan,
+                        "rate_type": t.rate_type,
+                        "fixed_rate": t.fixed_rate,
+                        "saron_margin": t.saron_margin,
+                        "term_years": t.term_years,
+                    }
+                    for t in scenario["loan_tranches"]
+                ],
+                "kpis": {
+                    "blended_interest_rate": float(year1_results.get("blended_interest_rate", 0.0)),
+                    "year1_debt_service": float(year1_results.get("debt_service", 0.0)),
+                    "year1_interest_payment": float(year1_results.get("interest_payment", 0.0)),
+                    "year1_amortization_payment": float(year1_results.get("amortization_payment", 0.0)),
+                    "year1_after_tax_cash_flow_per_owner_monthly": float(
+                        year1_results.get("after_tax_cash_flow_per_owner", 0.0)
+                    )
+                    / 12.0,
+                    "year1_after_tax_cash_flow_total": float(
+                        year1_results.get("after_tax_cash_flow_total", 0.0)
+                    ),
+                    "year1_dscr": float(year1_results.get("debt_coverage_ratio", 0.0)),
+                    "equity_irr_with_sale_pct": float(irr_results.get("equity_irr_with_sale_pct", 0.0)),
+                    "npv_at_5pct": float(irr_results.get("npv_at_5pct", 0.0)),
+                    "moic": float(irr_results.get("moic", 0.0)),
+                    "stress_overall_pass": bool(stress.get("overall_pass", False)),
+                    "stress_dscr_base": base_dscr,
+                    "stress_dscr_saron_150bps": dscr_150,
+                    "stress_dscr_saron_250bps": dscr_250,
+                    "has_saron_exposure": has_saron_exposure,
+                },
+                "equity_build_5y": {
+                    "cash_flow_after_tax_total": cumulative_cash_flow_after_tax_total,
+                    "cash_flow_after_tax_per_owner": cumulative_cash_flow_after_tax_total / num_owners,
+                    "amortization_total": cumulative_amortization_total,
+                    "amortization_per_owner": cumulative_amortization_total / num_owners,
+                    "property_appreciation_total": property_appreciation_total,
+                    "property_appreciation_per_owner": property_appreciation_total / num_owners,
+                    "net_wealth_creation_total": net_wealth_creation_total,
+                    "net_wealth_creation_per_owner": net_wealth_creation_total / num_owners,
+                },
+                "yearly_wealth_components_first5": yearly_components,
+            }
+        )
+
+    ranking_by_irr = sorted(
+        scenario_results,
+        key=lambda s: s["kpis"]["equity_irr_with_sale_pct"],
+        reverse=True,
+    )
+    ranking_by_cash = sorted(
+        scenario_results,
+        key=lambda s: s["kpis"]["year1_after_tax_cash_flow_per_owner_monthly"],
+        reverse=True,
+    )
+    stress_passed = [s for s in ranking_by_irr if s["kpis"]["stress_overall_pass"]]
+    recommended = stress_passed[0] if stress_passed else ranking_by_irr[0]
+
+    out = {
+        "analysis_type": "loan_structure_sensitivity",
+        "case_name": case_name,
+        "projection_years": projection_years,
+        "assumptions": {
+            "saron_base_rate": saron_base_rate,
+            "saron_margin": saron_margin,
+            "short_fixed_rate": short_fixed_rate,
+            "long_fixed_rate": long_fixed_rate,
+        },
+        "stress_policy": {
+            "base_dscr_min": float(proj_defaults.get("base_dscr_min", 1.20)),
+            "saron_150_dscr_min": float(proj_defaults.get("saron_150_dscr_min", 1.05)),
+            "saron_250_min_cash_flow": float(
+                proj_defaults.get("saron_250_min_cash_flow", 0.0)
+            ),
+        },
+        "recommended_scenario_id": recommended["id"],
+        "ranking": {
+            "by_equity_irr_desc": [s["id"] for s in ranking_by_irr],
+            "by_monthly_cashflow_desc": [s["id"] for s in ranking_by_cash],
+        },
+        "scenarios": scenario_results,
+    }
+
+    output_path = save_json(out, case_name, "loan_structure_sensitivity")
+    if verbose:
+        print(f"  [+] JSON exported: {output_path}")
+        print(f"  Recommended scenario: {recommended['name']} ({recommended['id']})")
+    return out
+
+
+# ===========================================================================
 # SECTION 6: MAIN PROGRAM
 # Command-line interface and orchestration
 # ===========================================================================
@@ -392,7 +833,7 @@ def main():
     
     COMMAND-LINE OPTIONS:
         assumptions_file: Which scenario to analyze (default: assumptions.json)
-        --analysis: Which analysis to run (base, sensitivity, monte_carlo, all)
+        --analysis: Which analysis to run (base, sensitivity, monte_carlo, loan_structure_sensitivity, all)
         --simulations: Number of Monte Carlo simulations (default: 1000)
         --quiet: Suppress detailed output
     
@@ -416,6 +857,7 @@ Examples:
         python run_analysis.py --analysis base         # Only base case
         python run_analysis.py --analysis sensitivity  # Only Model Sensitivity
         python run_analysis.py --analysis monte_carlo_sensitivity  # Only MC Sensitivity
+        python run_analysis.py --analysis loan_structure_sensitivity  # Loan structure scenarios
         python run_analysis.py --simulations 5000      # 5,000 Monte Carlo sims
         python run_analysis.py --quiet                 # Minimal output
         """
@@ -430,7 +872,7 @@ Examples:
     
     parser.add_argument(
         '--analysis', '-a',
-        choices=['all', 'base', 'sensitivity', 'monte_carlo', 'monte_carlo_sensitivity'],
+        choices=['all', 'base', 'sensitivity', 'monte_carlo', 'monte_carlo_sensitivity', 'loan_structure_sensitivity'],
         default='all',
         help='Which analysis to run (default: all). monte_carlo_sensitivity runs Monte Carlo for each parameter value.'
     )
@@ -542,6 +984,12 @@ Examples:
             sensitivity_sims = 1000
             results['monte_carlo_sensitivity'] = run_monte_carlo_sensitivity_analysis(
                 json_path, case_name, sensitivity_sims, verbose
+            )
+
+        # Loan Structure Sensitivity
+        if args.analysis in ['all', 'loan_structure_sensitivity']:
+            results['loan_structure_sensitivity'] = run_loan_structure_sensitivity_analysis(
+                json_path, case_name, verbose
             )
         
         # -------------------------------------------------------------------
