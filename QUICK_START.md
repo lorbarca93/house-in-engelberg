@@ -5,6 +5,7 @@ Fast operator guide for running analyses, generating dashboard data, and validat
 ## 1) Install
 
 ```bash
+# From repository root
 pip install -r requirements.txt
 ```
 
@@ -13,6 +14,7 @@ pip install -r requirements.txt
 ### Fast all-cases batch (recommended during normal iteration)
 
 ```bash
+# Standard fast path
 python scripts/generate_all_data.py
 ```
 
@@ -24,26 +26,39 @@ Behavior:
 ### Full all-cases batch (slow)
 
 ```bash
+# Use this when you need completely fresh MC sensitivity output
 python scripts/generate_all_data.py --include-mc-sensitivity
 ```
 
 ### Run MC sensitivity separately (recommended)
 
 ```bash
+# Current assumptions file only
 python scripts/analyze_monte_carlo_sensitivity.py
+
+# Every assumptions file under assumptions/
 python scripts/analyze_monte_carlo_sensitivity.py --all-cases
+
+# Every case with a custom simulation count
 python scripts/analyze_monte_carlo_sensitivity.py --all-cases --simulations 1500
 ```
 
 ## 3) Run Single Case
 
 ```bash
+# Default assumptions file: assumptions/assumptions.json
 python scripts/analyze.py
+
+# Specific assumptions file
 python scripts/analyze.py assumptions/assumptions_migros.json
+
+# Run one analysis type only
 python scripts/analyze.py --analysis base
 python scripts/analyze.py --analysis sensitivity
 python scripts/analyze.py --analysis monte_carlo
 python scripts/analyze.py --analysis monte_carlo_sensitivity
+
+# Override Monte Carlo simulation count for this run
 python scripts/analyze.py --simulations 5000
 ```
 
@@ -55,6 +70,8 @@ python -m http.server 8080
 ```
 
 Open `http://localhost:8080/index.html`.
+
+Tip: If the page loads but has empty charts, regenerate data and refresh the browser.
 
 ## 5) Validate
 

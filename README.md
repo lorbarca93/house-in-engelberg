@@ -21,40 +21,50 @@ It combines:
 
 ## Quick Start
 
-1. Install dependencies:
+### 1) Install dependencies
 
 ```bash
+# From repository root
 pip install -r requirements.txt
 ```
 
-2. Generate dashboard data for all cases:
+### 2) Generate dashboard data (all cases)
+
+Use this during normal iteration. It regenerates deterministic + Monte Carlo outputs and reuses existing Monte Carlo sensitivity files if they already exist.
 
 ```bash
 python scripts/generate_all_data.py
 ```
 
-3. Optional slow path: regenerate Monte Carlo sensitivity in the same batch:
+### 3) (Optional) Regenerate Monte Carlo sensitivity in the same run
+
+This is slower, but guarantees all Monte Carlo sensitivity JSON files are freshly produced.
 
 ```bash
 python scripts/generate_all_data.py --include-mc-sensitivity
 ```
 
-4. Run Monte Carlo sensitivity independently (recommended for iteration speed):
+### 4) Run Monte Carlo sensitivity separately (recommended)
 
 ```bash
+# Current assumptions file only
 python scripts/analyze_monte_carlo_sensitivity.py
+
+# Every assumptions file under assumptions/
 python scripts/analyze_monte_carlo_sensitivity.py --all-cases
+
+# Every case with a custom simulation count
 python scripts/analyze_monte_carlo_sensitivity.py --all-cases --simulations 1500
 ```
 
-5. Start dashboard:
+### 5) Start the dashboard
 
 ```bash
 cd website
 python -m http.server 8080
 ```
 
-Open `http://localhost:8080/index.html`.
+Then open `http://localhost:8080/index.html`.
 
 ## Core Scripts
 
@@ -68,12 +78,19 @@ Open `http://localhost:8080/index.html`.
 ### `analyze.py` examples
 
 ```bash
+# Run all analyses for the default assumptions file (assumptions/assumptions.json)
 python scripts/analyze.py
+
+# Run all analyses for a specific scenario
 python scripts/analyze.py assumptions/assumptions_migros.json
+
+# Run one analysis type only
 python scripts/analyze.py --analysis base
 python scripts/analyze.py --analysis sensitivity
 python scripts/analyze.py --analysis monte_carlo
 python scripts/analyze.py --analysis monte_carlo_sensitivity
+
+# Increase Monte Carlo simulation count for the run
 python scripts/analyze.py --simulations 5000
 ```
 
@@ -172,7 +189,7 @@ Run:
 python scripts/generate_all_data.py
 ```
 
-Check that `website/data/cases_index.json` exists.
+Check that `website/data/cases_index.json` exists and contains the generated cases list.
 
 ### Monte Carlo sensitivity is slow
 
