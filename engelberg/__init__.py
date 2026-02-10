@@ -30,19 +30,31 @@ from engelberg.core import (
     export_monte_carlo_sensitivity_to_json,
 )
 
-from engelberg.analysis import (
-    run_base_case_analysis,
-    run_sensitivity_analysis,
-    run_cash_on_cash_sensitivity_analysis,
-    run_monthly_ncf_sensitivity_analysis,
-    run_monte_carlo_analysis,
-    run_monte_carlo_sensitivity_analysis,
-)
 
-from engelberg.monte_carlo import (
-    run_monte_carlo_simulation,
-    calculate_statistics,
-)
+# Lazily import optional analysis/Monte Carlo symbols so importing
+# `engelberg.core` does not require SciPy unless those APIs are used.
+_LAZY_EXPORTS = {
+    'run_base_case_analysis': ('engelberg.analysis', 'run_base_case_analysis'),
+    'run_sensitivity_analysis': ('engelberg.analysis', 'run_sensitivity_analysis'),
+    'run_cash_on_cash_sensitivity_analysis': ('engelberg.analysis', 'run_cash_on_cash_sensitivity_analysis'),
+    'run_monthly_ncf_sensitivity_analysis': ('engelberg.analysis', 'run_monthly_ncf_sensitivity_analysis'),
+    'run_monte_carlo_analysis': ('engelberg.analysis', 'run_monte_carlo_analysis'),
+    'run_monte_carlo_sensitivity_analysis': ('engelberg.analysis', 'run_monte_carlo_sensitivity_analysis'),
+    'run_monte_carlo_simulation': ('engelberg.monte_carlo', 'run_monte_carlo_simulation'),
+    'calculate_statistics': ('engelberg.monte_carlo', 'calculate_statistics'),
+}
+
+
+def __getattr__(name):
+    """Resolve optional package exports lazily on first access."""
+    if name not in _LAZY_EXPORTS:
+        raise AttributeError(f"module 'engelberg' has no attribute '{name}'")
+
+    module_name, attr_name = _LAZY_EXPORTS[name]
+    module = __import__(module_name, fromlist=[attr_name])
+    value = getattr(module, attr_name)
+    globals()[name] = value
+    return value
 
 __all__ = [
     # Constants
