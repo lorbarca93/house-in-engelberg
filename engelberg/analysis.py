@@ -93,12 +93,6 @@ from engelberg.core import (
     apply_sensitivity                # Modify config with parameter changes
 )
 
-# Import Monte Carlo functions
-from engelberg.monte_carlo import (
-    run_monte_carlo_simulation,     # Runs probabilistic simulations
-    calculate_statistics            # Calculates summary statistics from simulations
-)
-
 
 # ===========================================================================
 # SECTION 2: HELPER FUNCTIONS
@@ -308,9 +302,13 @@ from engelberg.model_sensitivity import (
     run_monthly_ncf_sensitivity_analysis,
 )
 
-from engelberg.mc_sensitivity import (
-    run_monte_carlo_sensitivity_analysis,
-)
+
+
+
+def run_monte_carlo_sensitivity_analysis(*args, **kwargs):
+    """Delegate to MC sensitivity module with lazy import of SciPy dependency."""
+    from engelberg.mc_sensitivity import run_monte_carlo_sensitivity_analysis as _run
+    return _run(*args, **kwargs)
 
 # ===========================================================================
 # SECTION 5: MONTE CARLO SIMULATION
@@ -358,10 +356,14 @@ def run_monte_carlo_analysis(json_path: str, case_name: str,
     # Load configuration
     config = create_base_case_config(json_path)
     
+    # Import Monte Carlo engine lazily so base/sensitivity analyses do not
+    # require SciPy unless Monte Carlo is explicitly requested.
+    from engelberg.monte_carlo import run_monte_carlo_simulation, calculate_statistics
+
     # Run simulations
     # This returns a DataFrame with one row per simulation
     df = run_monte_carlo_simulation(config, num_simulations=n_simulations)
-    
+
     # Calculate summary statistics
     stats = calculate_statistics(df)
     
