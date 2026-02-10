@@ -287,8 +287,8 @@ def modify_ramp_up_months(cfg: BaseCaseConfig, value: float, json_path: str) -> 
 # Functions that calculate specific financial metrics for sensitivity analysis
 # ═══════════════════════════════════════════════════════════════════════════
 
-def calculate_equity_irr(config: BaseCaseConfig, json_path: str, 
-                         property_appreciation_rate: float = None,
+def calculate_equity_irr(config: BaseCaseConfig, json_path: str,
+                         property_appreciation_rate: float = None, 
                          projection_years: Optional[int] = None,
                          ramp_up_months: Optional[int] = None) -> float:
     """
@@ -314,6 +314,8 @@ def calculate_equity_irr(config: BaseCaseConfig, json_path: str,
     appreciation_rate = property_appreciation_rate if property_appreciation_rate is not None else proj_defaults['property_appreciation_rate']
     years = projection_years if projection_years is not None else proj_defaults.get('projection_years', 15)
     ramp_up = ramp_up_months if ramp_up_months is not None else proj_defaults.get('ramp_up_months', 0)
+    renovation_downtime_months = int(proj_defaults.get('renovation_downtime_months', 0))
+    renovation_frequency_years = int(proj_defaults.get('renovation_frequency_years', 0))
     
     # Calculate results
     results = compute_annual_cash_flows(config)
@@ -323,7 +325,9 @@ def calculate_equity_irr(config: BaseCaseConfig, json_path: str,
         inflation_rate=proj_defaults['inflation_rate'],
         property_appreciation_rate=appreciation_rate,
         projection_years=years,
-        ramp_up_months=ramp_up
+        ramp_up_months=ramp_up,
+        renovation_downtime_months=renovation_downtime_months,
+        renovation_frequency_years=renovation_frequency_years
     )
     
     # Get IRR
@@ -335,7 +339,9 @@ def calculate_equity_irr(config: BaseCaseConfig, json_path: str,
         config.financing.num_owners,
         config.financing.purchase_price,
         proj_defaults['selling_costs_rate'],
-        proj_defaults['discount_rate']
+        proj_defaults['discount_rate'],
+        proj_defaults.get('capital_gains_tax_rate', 0.02),
+        proj_defaults.get('property_transfer_tax_sale_rate', 0.015)
     )
     
     return irr_results['equity_irr_with_sale_pct']
@@ -346,6 +352,8 @@ def calculate_after_tax_cash_flow_per_person(
     json_path: str,
     property_appreciation_rate: float = None,
     ramp_up_months: Optional[int] = None,
+    renovation_downtime_months: Optional[int] = None,
+    renovation_frequency_years: Optional[int] = None,
 ) -> float:
     """
     Calculate after-tax cash flow per person (monthly) for any configuration.
@@ -360,6 +368,8 @@ def calculate_after_tax_cash_flow_per_person(
         json_path: Path to assumptions (for projection defaults)
         property_appreciation_rate: Override appreciation rate (for sensitivity)
         ramp_up_months: Override ramp-up period for Year 1 cash flow
+        renovation_downtime_months: Override renovation downtime months
+        renovation_frequency_years: Override renovation cycle frequency
     
     Returns:
         After-tax cash flow per person (monthly, in CHF)
@@ -376,9 +386,20 @@ def calculate_after_tax_cash_flow_per_person(
         if ramp_up_months is not None
         else int(proj_defaults.get("ramp_up_months", 0))
     )
+    renovation_months = (
+        int(renovation_downtime_months)
+        if renovation_downtime_months is not None
+        else int(proj_defaults.get("renovation_downtime_months", 0))
+    )
+    renovation_frequency = (
+        int(renovation_frequency_years)
+        if renovation_frequency_years is not None
+        else int(proj_defaults.get("renovation_frequency_years", 0))
+    )
 
-    # If ramp-up is active, use projection Year 1 because annual cash flows assume steady-state operation.
-    if ramp_up > 0:
+    # If Year 1 has downtime (ramp-up or renovation), use projection Year 1.
+    year1_has_renovation = renovation_frequency > 0 and renovation_months > 0 and (1 % renovation_frequency == 0)
+    if ramp_up > 0 or year1_has_renovation:
         projection = compute_15_year_projection(
             config=config,
             start_year=2026,
@@ -386,6 +407,8 @@ def calculate_after_tax_cash_flow_per_person(
             inflation_rate=proj_defaults["inflation_rate"],
             property_appreciation_rate=appreciation_rate,
             ramp_up_months=ramp_up,
+            renovation_downtime_months=renovation_months,
+            renovation_frequency_years=renovation_frequency,
         )
         annual_cash_flow = projection[0].get("after_tax_cash_flow_per_owner", 0.0)
     else:
@@ -416,12 +439,25 @@ def calculate_cash_on_cash(config: BaseCaseConfig, json_path: str,
     Returns:
         Cash-on-Cash return as percentage (e.g., 5.5 means 5.5%)
     """
-    # Calculate Year 1 results
-    results = compute_annual_cash_flows(config)
+    proj_defaults = get_projection_defaults(json_path)
+    ramp_up = int(kwargs.get('ramp_up_months', proj_defaults.get('ramp_up_months', 0)))
+    renovation_months = int(kwargs.get('renovation_downtime_months', proj_defaults.get('renovation_downtime_months', 0)))
+    renovation_frequency = int(kwargs.get('renovation_frequency_years', proj_defaults.get('renovation_frequency_years', 0)))
+
+    year1_projection = compute_15_year_projection(
+        config=config,
+        start_year=proj_defaults.get('start_year', 2026),
+        projection_years=1,
+        inflation_rate=proj_defaults.get('inflation_rate', 0.01),
+        property_appreciation_rate=proj_defaults.get('property_appreciation_rate', 0.025),
+        ramp_up_months=ramp_up,
+        renovation_downtime_months=renovation_months,
+        renovation_frequency_years=renovation_frequency,
+    )
     
     # Cash-on-Cash = Annual Cash Flow per Owner / Equity per Owner * 100
-    equity_per_owner = results['equity_per_owner']
-    annual_cash_flow_per_owner = results['cash_flow_per_owner']
+    equity_per_owner = config.financing.equity_per_owner
+    annual_cash_flow_per_owner = year1_projection[0].get('cash_flow_per_owner', 0.0)
     
     if equity_per_owner == 0:
         return 0.0
@@ -453,11 +489,24 @@ def calculate_monthly_ncf(config: BaseCaseConfig, json_path: str,
     Returns:
         Monthly net cash flow per owner in CHF (can be negative!)
     """
-    # Calculate Year 1 results
-    results = compute_annual_cash_flows(config)
-    
+    proj_defaults = get_projection_defaults(json_path)
+    ramp_up = int(kwargs.get('ramp_up_months', proj_defaults.get('ramp_up_months', 0)))
+    renovation_months = int(kwargs.get('renovation_downtime_months', proj_defaults.get('renovation_downtime_months', 0)))
+    renovation_frequency = int(kwargs.get('renovation_frequency_years', proj_defaults.get('renovation_frequency_years', 0)))
+
+    year1_projection = compute_15_year_projection(
+        config=config,
+        start_year=proj_defaults.get('start_year', 2026),
+        projection_years=1,
+        inflation_rate=proj_defaults.get('inflation_rate', 0.01),
+        property_appreciation_rate=proj_defaults.get('property_appreciation_rate', 0.025),
+        ramp_up_months=ramp_up,
+        renovation_downtime_months=renovation_months,
+        renovation_frequency_years=renovation_frequency,
+    )
+
     # Monthly cash flow = Annual cash flow per owner / 12
-    annual_cash_flow_per_owner = results['cash_flow_per_owner']
+    annual_cash_flow_per_owner = year1_projection[0].get('cash_flow_per_owner', 0.0)
     monthly_ncf = annual_cash_flow_per_owner / 12
     
     return monthly_ncf
@@ -667,7 +716,9 @@ def run_unified_sensitivity_analysis(
                 inflation_rate=inflation_rate,
                 property_appreciation_rate=proj_defaults['property_appreciation_rate'],
                 projection_years=years,
-                ramp_up_months=ramp_up_months
+                ramp_up_months=ramp_up_months,
+                renovation_downtime_months=proj_defaults.get('renovation_downtime_months', 0),
+                renovation_frequency_years=proj_defaults.get('renovation_frequency_years', 0)
             )
             irr_results = calculate_irrs_from_projection(
                 projection,
@@ -677,7 +728,9 @@ def run_unified_sensitivity_analysis(
                 base_cfg.financing.num_owners,
                 base_cfg.financing.purchase_price,
                 proj_defaults['selling_costs_rate'],
-                proj_defaults['discount_rate']
+                proj_defaults['discount_rate'],
+                proj_defaults.get('capital_gains_tax_rate', 0.02),
+                proj_defaults.get('property_transfer_tax_sale_rate', 0.015)
             )
             return irr_results['equity_irr_with_sale_pct']
         
@@ -728,7 +781,9 @@ def run_unified_sensitivity_analysis(
                 inflation_rate=proj_defaults['inflation_rate'],
                 property_appreciation_rate=proj_defaults['property_appreciation_rate'],
                 projection_years=years,
-                ramp_up_months=ramp_up_months
+                ramp_up_months=ramp_up_months,
+                renovation_downtime_months=proj_defaults.get('renovation_downtime_months', 0),
+                renovation_frequency_years=proj_defaults.get('renovation_frequency_years', 0)
             )
             irr_results = calculate_irrs_from_projection(
                 projection,
@@ -738,7 +793,9 @@ def run_unified_sensitivity_analysis(
                 base_cfg.financing.num_owners,
                 base_cfg.financing.purchase_price,
                 selling_rate,
-                proj_defaults['discount_rate']
+                proj_defaults['discount_rate'],
+                proj_defaults.get('capital_gains_tax_rate', 0.02),
+                proj_defaults.get('property_transfer_tax_sale_rate', 0.015)
             )
             return irr_results['equity_irr_with_sale_pct']
         

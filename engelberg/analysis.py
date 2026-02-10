@@ -196,7 +196,11 @@ def run_base_case_analysis(json_path: str, case_name: str, verbose: bool = True)
     # Step 2: Calculate Year 1 annual cash flows (account for ramp-up period)
     # This computes revenue, all expenses, NOI, debt service, and final cash flow
     ramp_up_months = proj_defaults.get('ramp_up_months', 0)
-    operational_months_year1 = 12 - ramp_up_months
+    renovation_downtime_months = proj_defaults.get('renovation_downtime_months', 0)
+    renovation_frequency_years = proj_defaults.get('renovation_frequency_years', 0)
+    operational_months_year1 = max(0, 12 - ramp_up_months)
+    if renovation_frequency_years > 0 and renovation_downtime_months > 0 and 1 % renovation_frequency_years == 0:
+        operational_months_year1 = max(0, operational_months_year1 - renovation_downtime_months)
     results = compute_annual_cash_flows(config, operational_months=operational_months_year1)
     
     # Year-1 KPIs (same for all horizons)
@@ -204,7 +208,9 @@ def run_base_case_analysis(json_path: str, case_name: str, verbose: bool = True)
         'cap_rate_pct': results.get('cap_rate_pct', 0),
         'cash_on_cash_return_pct': results.get('cash_on_cash_return_pct', 0),
         'debt_coverage_ratio': results.get('debt_coverage_ratio', 0),
-        'operating_expense_ratio_pct': results.get('operating_expense_ratio_pct', 0)
+        'operating_expense_ratio_pct': results.get('operating_expense_ratio_pct', 0),
+        'blended_interest_rate': results.get('blended_interest_rate', config.financing.blended_interest_rate),
+        'stress_overall_pass': results.get('stress_results', {}).get('overall_pass'),
     }
     
     def _irr_to_export(irr_results):
@@ -222,8 +228,12 @@ def run_base_case_analysis(json_path: str, case_name: str, verbose: bool = True)
             'payback_period_years': irr_results.get('payback_period_years'),
             'gross_sale_price': irr_results.get('gross_sale_price', 0),
             'selling_costs': irr_results.get('selling_costs', 0),
+            'capital_gains_tax': irr_results.get('capital_gains_tax', 0),
+            'property_transfer_tax_sale': irr_results.get('property_transfer_tax_sale', 0),
             'net_sale_price': irr_results.get('net_sale_price', 0),
-            'selling_costs_rate_pct': irr_results.get('selling_costs_rate_pct', 0)
+            'selling_costs_rate_pct': irr_results.get('selling_costs_rate_pct', 0),
+            'capital_gains_tax_rate_pct': irr_results.get('capital_gains_tax_rate_pct', 0),
+            'property_transfer_tax_sale_rate_pct': irr_results.get('property_transfer_tax_sale_rate_pct', 0),
         }
     
     # Step 3: Build by_horizon (projection + IRR + KPIs for each horizon)
@@ -237,7 +247,9 @@ def run_base_case_analysis(json_path: str, case_name: str, verbose: bool = True)
             inflation_rate=proj_defaults['inflation_rate'],
             property_appreciation_rate=proj_defaults['property_appreciation_rate'],
             projection_years=horizon,
-            ramp_up_months=ramp_up_months
+            ramp_up_months=ramp_up_months,
+            renovation_downtime_months=renovation_downtime_months,
+            renovation_frequency_years=renovation_frequency_years
         )
         final_pv = proj[-1]['property_value']
         final_loan = proj[-1]['remaining_loan_balance']
@@ -249,7 +261,9 @@ def run_base_case_analysis(json_path: str, case_name: str, verbose: bool = True)
             config.financing.num_owners,
             config.financing.purchase_price,
             proj_defaults['selling_costs_rate'],
-            proj_defaults['discount_rate']
+            proj_defaults['discount_rate'],
+            proj_defaults.get('capital_gains_tax_rate', 0.02),
+            proj_defaults.get('property_transfer_tax_sale_rate', 0.015)
         )
         by_horizon[str(horizon)] = {
             'projection': proj,

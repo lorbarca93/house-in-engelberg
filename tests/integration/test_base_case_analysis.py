@@ -287,3 +287,42 @@ class TestBaseCaseAnalysisWorkflow:
             
             # Operational months should match ramp-up calculation
             assert operational_months == 12 - ramp_up, f"Operational months should be 12 - {ramp_up} = {12-ramp_up}, got {operational_months}"
+
+    def test_renovation_downtime_in_projection(self, sample_assumptions_path):
+        """Test recurring renovation downtime metadata and revenue impact in projection output."""
+        json_data = run_base_case_analysis(sample_assumptions_path, "test_case", verbose=False)
+        projection = json_data['projection_15yr']
+
+        # Sample assumptions fixture uses renovation every 5 years for 3 months
+        year5 = projection[4]
+        year4 = projection[3]
+        year6 = projection[5]
+
+        assert 'renovation_downtime_months' in year5
+        assert year5['renovation_downtime_months'] == 3
+        assert year5['operational_months'] == 9
+        assert year5['non_operational_months'] == 3
+        assert year5['gross_rental_income'] < year4['gross_rental_income']
+        assert year5['gross_rental_income'] < year6['gross_rental_income']
+
+    def test_tranche_and_stress_outputs_present(self, sample_assumptions_path):
+        """Test tranche mix and SARON stress outputs are exported in analysis payloads."""
+        json_data = run_base_case_analysis(sample_assumptions_path, "test_case", verbose=False)
+
+        financing_cfg = json_data["config"]["financing"]
+        annual_results = json_data["annual_results"]
+        projection_year1 = json_data["projection_15yr"][0]
+
+        assert "loan_tranches" in financing_cfg
+        assert len(financing_cfg["loan_tranches"]) == 3
+        assert "stress" in financing_cfg
+        assert financing_cfg["stress"]["saron_shocks_bps"] == [150, 250]
+
+        assert "blended_interest_rate" in annual_results
+        assert "annual_interest_by_tranche" in annual_results
+        assert "stress_results" in annual_results
+        assert "overall_pass" in annual_results["stress_results"]
+
+        assert "blended_interest_rate" in projection_year1
+        assert "annual_interest_by_tranche" in projection_year1
+        assert "stress_results" in projection_year1

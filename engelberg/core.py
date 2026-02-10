@@ -57,10 +57,25 @@ def resolve_path(relative_path: str) -> str:
 # -----------------------------
 
 @dataclass
+class LoanTranche:
+    """
+    Loan tranche definition for mixed fixed/SARON financing.
+
+    `share_of_loan` must be expressed as a decimal share of total loan (e.g. 0.60).
+    """
+    name: str
+    share_of_loan: float
+    rate_type: str  # "fixed" or "saron"
+    fixed_rate: Optional[float] = None
+    saron_margin: Optional[float] = None
+    term_years: Optional[int] = None
+
+
+@dataclass
 class FinancingParams:
     purchase_price: float  # CHF
     ltv: float             # loan to value, for example 0.75
-    interest_rate: float   # annual interest rate, for example 0.019
+    interest_rate: float   # annual interest rate, for example 0.019 (legacy single-rate path)
     amortization_rate: float  # annual amortization rate as percent of initial loan
     num_owners: int
     # Acquisition cost components (configurable from assumptions)
@@ -70,6 +85,10 @@ class FinancingParams:
     inspection_chf: float = 0.0         # technical expert / inspection
     interior_designer_chf: float = 0.0  # interior designer
     furniture_chf: float = 0.0          # furniture
+    # Optional tranche-based financing configuration
+    loan_tranches: Optional[List[LoanTranche]] = None
+    saron_base_rate: Optional[float] = None
+    stress: Optional[Dict[str, Any]] = None
 
     @property
     def loan_amount(self) -> float:
@@ -106,7 +125,7 @@ class FinancingParams:
 
     @property
     def annual_interest(self) -> float:
-        return self.loan_amount * self.interest_rate
+        return self.loan_amount * self.blended_interest_rate
 
     @property
     def annual_amortization(self) -> float:
@@ -115,6 +134,34 @@ class FinancingParams:
     @property
     def annual_debt_service(self) -> float:
         return self.annual_interest + self.annual_amortization
+
+    @property
+    def uses_loan_tranches(self) -> bool:
+        return bool(self.loan_tranches)
+
+    @property
+    def effective_saron_base_rate(self) -> float:
+        return self.saron_base_rate if self.saron_base_rate is not None else self.interest_rate
+
+    @property
+    def blended_interest_rate(self) -> float:
+        """
+        Weighted rate across tranches.
+        Falls back to legacy single-rate behavior if no tranches are configured.
+        """
+        if not self.loan_tranches:
+            return self.interest_rate
+
+        weighted_rate = 0.0
+        for tranche in self.loan_tranches:
+            if tranche.rate_type == 'fixed':
+                tranche_rate = float(tranche.fixed_rate or 0.0)
+            elif tranche.rate_type == 'saron':
+                tranche_rate = self.effective_saron_base_rate + float(tranche.saron_margin or 0.0)
+            else:
+                continue
+            weighted_rate += tranche.share_of_loan * tranche_rate
+        return weighted_rate
 
 
 @dataclass
@@ -237,7 +284,9 @@ class ProjectionParams:
     inflation_rate: float = 0.01
     property_appreciation_rate: float = 0.025
     discount_rate: float = 0.05
-    ramp_up_months: int = 7  # Pre-operational period before starting rentals
+    ramp_up_months: int = 3  # Pre-operational period before starting rentals
+    renovation_downtime_months: int = 3  # No-revenue downtime during renovation windows
+    renovation_frequency_years: int = 5  # Renovation downtime repeats every N years
     selling_costs_rate: float = 0.078
 
 
@@ -252,6 +301,111 @@ class BaseCaseConfig:
 # -----------------------------
 # JSON Configuration Loader
 # -----------------------------
+
+def _validate_and_build_loan_tranches(loan_tranches_data: Any) -> List[LoanTranche]:
+    """
+    Validate and construct tranche definitions from JSON-like data.
+
+    Raises:
+        ValueError: If tranche configuration is invalid.
+    """
+    if not isinstance(loan_tranches_data, list) or not loan_tranches_data:
+        raise ValueError("financing.loan_tranches must be a non-empty list")
+
+    tranches: List[LoanTranche] = []
+    total_share = 0.0
+    for idx, raw in enumerate(loan_tranches_data, start=1):
+        if not isinstance(raw, dict):
+            raise ValueError(f"financing.loan_tranches[{idx}] must be an object")
+
+        name = str(raw.get('name', f"tranche_{idx}"))
+        rate_type = str(raw.get('rate_type', '')).strip().lower()
+        if rate_type not in {'fixed', 'saron'}:
+            raise ValueError(
+                f"financing.loan_tranches[{idx}].rate_type must be 'fixed' or 'saron', got '{rate_type}'"
+            )
+
+        try:
+            share_of_loan = float(raw.get('share_of_loan'))
+        except (TypeError, ValueError):
+            raise ValueError(f"financing.loan_tranches[{idx}].share_of_loan must be numeric")
+        if share_of_loan <= 0:
+            raise ValueError(f"financing.loan_tranches[{idx}].share_of_loan must be > 0")
+
+        fixed_rate = raw.get('fixed_rate')
+        saron_margin = raw.get('saron_margin')
+        term_years = raw.get('term_years')
+
+        if rate_type == 'fixed':
+            if fixed_rate is None:
+                raise ValueError(f"financing.loan_tranches[{idx}] fixed tranche requires fixed_rate")
+            try:
+                fixed_rate = float(fixed_rate)
+            except (TypeError, ValueError):
+                raise ValueError(f"financing.loan_tranches[{idx}].fixed_rate must be numeric")
+
+            if term_years is None:
+                raise ValueError(f"financing.loan_tranches[{idx}] fixed tranche requires term_years")
+            try:
+                term_years = int(term_years)
+            except (TypeError, ValueError):
+                raise ValueError(f"financing.loan_tranches[{idx}].term_years must be an integer")
+            if term_years <= 0:
+                raise ValueError(f"financing.loan_tranches[{idx}].term_years must be > 0")
+            saron_margin = None
+        else:
+            if saron_margin is None:
+                raise ValueError(f"financing.loan_tranches[{idx}] saron tranche requires saron_margin")
+            try:
+                saron_margin = float(saron_margin)
+            except (TypeError, ValueError):
+                raise ValueError(f"financing.loan_tranches[{idx}].saron_margin must be numeric")
+            fixed_rate = None
+            if term_years is not None:
+                try:
+                    term_years = int(term_years)
+                except (TypeError, ValueError):
+                    raise ValueError(f"financing.loan_tranches[{idx}].term_years must be an integer when provided")
+
+        total_share += share_of_loan
+        tranches.append(
+            LoanTranche(
+                name=name,
+                share_of_loan=share_of_loan,
+                rate_type=rate_type,
+                fixed_rate=fixed_rate,
+                saron_margin=saron_margin,
+                term_years=term_years,
+            )
+        )
+
+    if abs(total_share - 1.0) > 1e-6:
+        raise ValueError(
+            f"financing.loan_tranches shares must sum to 1.0, got {total_share:.6f}"
+        )
+
+    return tranches
+
+
+def _normalize_financing_stress(stress_data: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Normalize financing stress configuration with defaults.
+    """
+    stress_data = stress_data or {}
+    saron_shocks = stress_data.get('saron_shocks_bps', [150, 250])
+    if not isinstance(saron_shocks, list) or not saron_shocks:
+        raise ValueError("financing.stress.saron_shocks_bps must be a non-empty list")
+    try:
+        saron_shocks = [int(x) for x in saron_shocks]
+    except (TypeError, ValueError):
+        raise ValueError("financing.stress.saron_shocks_bps must contain integer basis-point values")
+
+    return {
+        'saron_shocks_bps': saron_shocks,
+        'base_dscr_min': float(stress_data.get('base_dscr_min', 1.20)),
+        'saron_150_dscr_min': float(stress_data.get('saron_150_dscr_min', 1.05)),
+        'saron_250_min_cash_flow': float(stress_data.get('saron_250_min_cash_flow', 0.0)),
+    }
 
 def load_assumptions_from_json(json_path: str = "assumptions.json") -> Dict:
     """
@@ -346,6 +500,16 @@ def load_assumptions_from_json(json_path: str = "assumptions.json") -> Dict:
         raise ValueError(
             f"Missing required financing fields: {', '.join(missing_financing)}"
         )
+
+    # Validate optional tranche-based financing schema
+    if 'loan_tranches' in financing and financing.get('loan_tranches') is not None:
+        _validate_and_build_loan_tranches(financing.get('loan_tranches'))
+
+    # Validate optional financing stress schema
+    if 'stress' in financing and financing.get('stress') is not None:
+        if not isinstance(financing.get('stress'), dict):
+            raise ValueError("financing.stress must be an object")
+        _normalize_financing_stress(financing.get('stress'))
     
     # Validate rental section
     rental = assumptions['rental']
@@ -419,7 +583,7 @@ def load_assumptions_from_json(json_path: str = "assumptions.json") -> Dict:
     return assumptions
 
 
-def get_projection_defaults(json_path: str = "assumptions.json") -> Dict[str, float]:
+def get_projection_defaults(json_path: str = "assumptions.json") -> Dict[str, Any]:
     """
     Get projection default values from JSON.
     
@@ -435,7 +599,9 @@ def get_projection_defaults(json_path: str = "assumptions.json") -> Dict[str, fl
     """
     assumptions = load_assumptions_from_json(json_path)
     projection = assumptions['projection']
+    financing = assumptions.get('financing', {})
     selling_costs = projection.get('selling_costs', {})
+    stress = _normalize_financing_stress(financing.get('stress'))
     
     return {
         'inflation_rate': float(projection.get('inflation_rate', 0.01)),
@@ -443,11 +609,21 @@ def get_projection_defaults(json_path: str = "assumptions.json") -> Dict[str, fl
         'start_year': int(projection.get('start_year', 2026)),
         'projection_years': int(projection.get('projection_years', 15)),
         'discount_rate': float(projection.get('discount_rate', 0.05)),
-        'ramp_up_months': int(projection.get('ramp_up_months', 0)),  # NEW: Default 0 for backward compatibility
+        'ramp_up_months': int(projection.get('ramp_up_months', 3)),
+        'renovation_downtime_months': int(projection.get('renovation_downtime_months', 0)),
+        'renovation_frequency_years': int(projection.get('renovation_frequency_years', 0)),
         'selling_costs_rate': float(selling_costs.get('total_rate', 0.078)),
         'broker_fee_rate': float(selling_costs.get('broker_fee_rate', 0.03)),
         'notary_fee_rate': float(selling_costs.get('notary_fee_rate', 0.015)),
-        'transfer_tax_rate': float(selling_costs.get('transfer_tax_rate', 0.033))
+        'transfer_tax_rate': float(selling_costs.get('transfer_tax_rate', 0.033)),
+        # Additional taxes at sale/disposition only
+        'capital_gains_tax_rate': float(selling_costs.get('capital_gains_tax_rate', 0.02)),
+        'property_transfer_tax_sale_rate': float(selling_costs.get('property_transfer_tax_sale_rate', 0.015)),
+        # Financing stress defaults
+        'saron_shocks_bps': stress.get('saron_shocks_bps', [150, 250]),
+        'base_dscr_min': float(stress.get('base_dscr_min', 1.20)),
+        'saron_150_dscr_min': float(stress.get('saron_150_dscr_min', 1.05)),
+        'saron_250_min_cash_flow': float(stress.get('saron_250_min_cash_flow', 0.0)),
     }
 
 
@@ -588,6 +764,12 @@ def create_base_case_config(json_path: str = "assumptions.json") -> BaseCaseConf
     inspection_chf = float(acq.get('inspection_chf', 0.0))
     interior_designer_chf = float(acq.get('interior_designer_chf', 0.0))
     furniture_chf = float(acq.get('furniture_chf', 0.0))
+    loan_tranches = None
+    if financing_data.get('loan_tranches') is not None:
+        loan_tranches = _validate_and_build_loan_tranches(financing_data.get('loan_tranches'))
+    saron_base_rate_raw = financing_data.get('saron_base_rate')
+    saron_base_rate = float(saron_base_rate_raw) if saron_base_rate_raw is not None else None
+    stress_config = _normalize_financing_stress(financing_data.get('stress'))
     financing = FinancingParams(
         purchase_price=purchase_price,
         ltv=float(financing_data.get('ltv', 0.75)),
@@ -599,7 +781,10 @@ def create_base_case_config(json_path: str = "assumptions.json") -> BaseCaseConf
         agency_fee_rate_buyer=agency_fee_rate_buyer,
         inspection_chf=inspection_chf,
         interior_designer_chf=interior_designer_chf,
-        furniture_chf=furniture_chf
+        furniture_chf=furniture_chf,
+        loan_tranches=loan_tranches,
+        saron_base_rate=saron_base_rate,
+        stress=stress_config,
     )
 
     # Create rental parameters
@@ -628,16 +813,160 @@ def create_base_case_config(json_path: str = "assumptions.json") -> BaseCaseConf
         vat_rate_on_gross_rental=float(expenses_data.get('vat_rate_on_gross_rental', 0.0))
     )
 
+    projection_data = assumptions.get('projection', {})
+    selling_costs_data = projection_data.get('selling_costs', {})
+    projection = ProjectionParams(
+        start_year=int(projection_data.get('start_year', 2026)),
+        projection_years=int(projection_data.get('projection_years', 15)),
+        inflation_rate=float(projection_data.get('inflation_rate', 0.01)),
+        property_appreciation_rate=float(projection_data.get('property_appreciation_rate', 0.025)),
+        discount_rate=float(projection_data.get('discount_rate', 0.05)),
+        ramp_up_months=int(projection_data.get('ramp_up_months', 3)),
+        renovation_downtime_months=int(projection_data.get('renovation_downtime_months', 0)),
+        renovation_frequency_years=int(projection_data.get('renovation_frequency_years', 0)),
+        selling_costs_rate=float(selling_costs_data.get('total_rate', 0.078)),
+    )
+
     return BaseCaseConfig(
         financing=financing,
         rental=rental,
-        expenses=expenses
+        expenses=expenses,
+        projection=projection
     )
 
 
 # -----------------------------
 # Core calculation logic
 # -----------------------------
+
+def _compute_interest_for_balance(
+    financing: FinancingParams,
+    loan_balance: float,
+    current_saron_base_rate: Optional[float] = None,
+    saron_shock_bps: int = 0,
+) -> Tuple[float, float, Dict[str, float]]:
+    """
+    Compute interest on a given loan balance.
+
+    Returns:
+        interest_payment, blended_interest_rate, annual_interest_by_tranche
+    """
+    loan_balance = max(0.0, loan_balance)
+
+    # Backward-compatible single-rate behavior
+    if not financing.loan_tranches:
+        rate = (
+            current_saron_base_rate
+            if current_saron_base_rate is not None
+            else financing.interest_rate
+        )
+        interest_payment = loan_balance * rate
+        return interest_payment, rate, {'single_rate': interest_payment}
+
+    base_saron = (
+        current_saron_base_rate
+        if current_saron_base_rate is not None
+        else financing.effective_saron_base_rate
+    )
+    shock_rate = saron_shock_bps / 10000.0
+
+    annual_interest_by_tranche: Dict[str, float] = {}
+    interest_payment = 0.0
+    blended_interest_rate = 0.0
+
+    for tranche in financing.loan_tranches:
+        tranche_balance = loan_balance * tranche.share_of_loan
+        if tranche.rate_type == 'fixed':
+            tranche_rate = float(tranche.fixed_rate or 0.0)
+        else:
+            tranche_rate = base_saron + float(tranche.saron_margin or 0.0) + shock_rate
+
+        tranche_interest = tranche_balance * tranche_rate
+        annual_interest_by_tranche[tranche.name] = tranche_interest
+        interest_payment += tranche_interest
+        blended_interest_rate += tranche.share_of_loan * tranche_rate
+
+    return interest_payment, blended_interest_rate, annual_interest_by_tranche
+
+
+def _compute_stress_results(
+    financing: FinancingParams,
+    net_operating_income: float,
+    loan_balance: float,
+    amortization_payment: float,
+    base_interest_payment: float,
+    base_debt_service: float,
+    base_blended_interest_rate: float,
+    current_saron_base_rate: Optional[float] = None,
+) -> Dict[str, Any]:
+    """
+    Compute DSCR and debt-service stress under configured SARON shocks.
+    """
+    stress_cfg = _normalize_financing_stress(financing.stress)
+    base_dscr = net_operating_income / base_debt_service if base_debt_service > 0 else 0.0
+    base_pass = base_dscr >= float(stress_cfg.get('base_dscr_min', 1.20))
+
+    results: Dict[str, Any] = {
+        'base': {
+            'blended_interest_rate': base_blended_interest_rate,
+            'interest_payment': base_interest_payment,
+            'debt_service': base_debt_service,
+            'dscr': base_dscr,
+            'pass': base_pass,
+        },
+        'overall_pass': base_pass,
+    }
+
+    # If no SARON tranche exists, no SARON shock sensitivity applies.
+    if not financing.loan_tranches or not any(t.rate_type == 'saron' for t in financing.loan_tranches):
+        return results
+
+    overall_pass = base_pass
+    stress_saron_base_rate = (
+        current_saron_base_rate
+        if current_saron_base_rate is not None
+        else financing.effective_saron_base_rate
+    )
+    for shock_bps in stress_cfg.get('saron_shocks_bps', [150, 250]):
+        shock_interest, shock_blended_rate, shock_interest_by_tranche = _compute_interest_for_balance(
+            financing=financing,
+            loan_balance=loan_balance,
+            current_saron_base_rate=stress_saron_base_rate,
+            saron_shock_bps=int(shock_bps),
+        )
+        shock_debt_service = shock_interest + amortization_payment
+        shock_dscr = net_operating_income / shock_debt_service if shock_debt_service > 0 else 0.0
+        shock_cash_flow_after_debt = net_operating_income - shock_debt_service
+
+        dscr_threshold = None
+        if int(shock_bps) == 150:
+            dscr_threshold = float(stress_cfg.get('saron_150_dscr_min', 1.05))
+        pass_dscr = shock_dscr >= dscr_threshold if dscr_threshold is not None else shock_dscr > 1.0
+
+        min_cash_flow_threshold = 0.0
+        if int(shock_bps) == 250:
+            min_cash_flow_threshold = float(stress_cfg.get('saron_250_min_cash_flow', 0.0))
+        pass_solvency = shock_cash_flow_after_debt >= min_cash_flow_threshold
+
+        pass_scenario = pass_dscr and pass_solvency
+        overall_pass = overall_pass and pass_scenario
+
+        results[f'saron_{int(shock_bps)}bps'] = {
+            'shock_bps': int(shock_bps),
+            'blended_interest_rate': shock_blended_rate,
+            'interest_payment': shock_interest,
+            'annual_interest_by_tranche': shock_interest_by_tranche,
+            'debt_service': shock_debt_service,
+            'dscr': shock_dscr,
+            'cash_flow_after_debt_service': shock_cash_flow_after_debt,
+            'dscr_threshold': dscr_threshold,
+            'pass_dscr': pass_dscr,
+            'pass_solvency': pass_solvency,
+            'pass': pass_scenario,
+        }
+
+    results['overall_pass'] = overall_pass
+    return results
 
 def compute_annual_cash_flows(config: BaseCaseConfig,
                                operational_months: int = 12,
@@ -734,10 +1063,15 @@ def compute_annual_cash_flows(config: BaseCaseConfig,
     # NOI = Net rental income (after OTA fees) - Operating expenses
     net_operating_income = net_rental_income - total_operating_expenses
 
-    # Debt Service
-    debt_service = f.annual_debt_service
-    interest_payment = f.annual_interest
+    # Debt service (tranche-aware with backward-compatible single-rate fallback)
+    base_saron_rate = f.effective_saron_base_rate if f.loan_tranches else f.interest_rate
+    interest_payment, blended_interest_rate, annual_interest_by_tranche = _compute_interest_for_balance(
+        financing=f,
+        loan_balance=f.loan_amount,
+        current_saron_base_rate=base_saron_rate,
+    )
     amortization_payment = f.annual_amortization
+    debt_service = interest_payment + amortization_payment
 
     # Cash Flow (Pre-Tax)
     cash_flow_after_debt_service = net_operating_income - debt_service
@@ -761,6 +1095,16 @@ def compute_annual_cash_flows(config: BaseCaseConfig,
     cash_on_cash_return = (cash_flow_after_debt_service / f.total_initial_investment) * 100
     debt_coverage_ratio = net_operating_income / debt_service if debt_service > 0 else 0
     operating_expense_ratio = (total_operating_expenses / net_rental_income * 100) if net_rental_income > 0 else 0
+    stress_results = _compute_stress_results(
+        financing=f,
+        net_operating_income=net_operating_income,
+        loan_balance=f.loan_amount,
+        amortization_payment=amortization_payment,
+        base_interest_payment=interest_payment,
+        base_debt_service=debt_service,
+        base_blended_interest_rate=blended_interest_rate,
+        current_saron_base_rate=base_saron_rate,
+    )
 
     result = {
         # Operational Period Info
@@ -792,6 +1136,8 @@ def compute_annual_cash_flows(config: BaseCaseConfig,
         "net_operating_income": net_operating_income,
         
         # Debt Service (detailed)
+        "blended_interest_rate": blended_interest_rate,
+        "annual_interest_by_tranche": annual_interest_by_tranche,
         "interest_payment": interest_payment,
         "amortization_payment": amortization_payment,
         "debt_service": debt_service,
@@ -821,6 +1167,7 @@ def compute_annual_cash_flows(config: BaseCaseConfig,
         "cash_on_cash_return_pct": cash_on_cash_return,
         "debt_coverage_ratio": debt_coverage_ratio,
         "operating_expense_ratio_pct": operating_expense_ratio,
+        "stress_results": stress_results,
     }
     
     # Add seasonal breakdown if seasons are defined
@@ -837,10 +1184,50 @@ def compute_annual_cash_flows(config: BaseCaseConfig,
     return result
 
 
+def _get_operational_months_for_year(
+    year_num: int,
+    ramp_up_months: int,
+    renovation_downtime_months: int,
+    renovation_frequency_years: int,
+) -> Tuple[int, int, int]:
+    """
+    Compute operational and downtime months for a given projection year.
+
+    Returns:
+        (operational_months, ramp_up_months_this_year, renovation_downtime_months_this_year)
+    """
+    # Ramp-up handling (supports multi-year ramp-up)
+    months_into_ownership = (year_num - 1) * 12 + 12
+    months_at_start_of_year = (year_num - 1) * 12
+
+    if months_into_ownership <= ramp_up_months:
+        ramp_up_months_this_year = 12
+    elif months_at_start_of_year < ramp_up_months:
+        ramp_up_months_this_year = ramp_up_months - months_at_start_of_year
+    else:
+        ramp_up_months_this_year = 0
+
+    operational_after_ramp = 12 - ramp_up_months_this_year
+
+    # Renovation downtime: every N years, reduce operational months
+    renovation_months_this_year = 0
+    if (
+        renovation_frequency_years > 0
+        and renovation_downtime_months > 0
+        and year_num % renovation_frequency_years == 0
+    ):
+        renovation_months_this_year = min(renovation_downtime_months, operational_after_ramp)
+
+    operational_months = operational_after_ramp - renovation_months_this_year
+    return operational_months, ramp_up_months_this_year, renovation_months_this_year
+
+
 def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026, 
                                inflation_rate: float = 0.02, property_appreciation_rate: float = 0.025,
                                projection_years: int = 15,
                                ramp_up_months: int = 0,
+                               renovation_downtime_months: int = 0,
+                               renovation_frequency_years: int = 0,
                                ota_booking_percentage: Optional[float] = None,
                                ota_fee_rate: Optional[float] = None,
                                average_length_of_stay: Optional[float] = None,
@@ -860,6 +1247,7 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
     - Ramp-up period (default 0 months): Pre-operational period with no revenue
       During ramp-up: pay debt service, insurance, Nebenkosten, minimal utilities (25%)
       No revenue, property management, cleaning, tourist tax, or VAT during ramp-up
+    - Renovation downtime (optional): no-revenue months every N years
     - Loan amount decreases each year due to amortization
     - Interest is calculated on remaining loan balance
     - Inflation applied to revenue and variable expenses (default 2%)
@@ -867,6 +1255,8 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
     
     Args:
         ramp_up_months: Pre-operational period in months (default 0 for backward compatibility)
+        renovation_downtime_months: No-revenue months in renovation years
+        renovation_frequency_years: Renovation cycle frequency in years (e.g., 5 = every 5 years)
     
     Returns a list of dictionaries, one for each year.
     """
@@ -943,26 +1333,32 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
     
     # Initialize refinancing tracking
     current_interest_rate = config.financing.interest_rate
+    current_saron_base_rate = config.financing.effective_saron_base_rate
+
+    # Normalize month-based inputs
+    ramp_up_months = max(0, int(ramp_up_months))
+    renovation_downtime_months = max(0, int(renovation_downtime_months))
+    renovation_frequency_years = max(0, int(renovation_frequency_years))
     
     for year_num in range(1, projection_years + 1):
         # Apply inflation and appreciation (using pre-calculated factors)
         inflation_factor = inflation_factors[year_num - 1]
         appreciation_factor = appreciation_factors[year_num - 1]
         
-        # Calculate operational months for this year based on ramp-up period
-        # Handles multi-year ramp-up (e.g., 14-month ramp-up spans Year 1 and Year 2)
-        months_into_ownership = (year_num - 1) * 12 + 12  # End of this year
-        months_at_start_of_year = (year_num - 1) * 12      # Start of this year
-        
-        if months_into_ownership <= ramp_up_months:
-            # Still in ramp-up period (entire year is pre-operational)
-            operational_months_this_year = 0
-        elif months_at_start_of_year < ramp_up_months:
-            # Partial year: ramp-up ends during this year
-            operational_months_this_year = months_into_ownership - ramp_up_months
-        else:
-            # Full operation (ramp-up already completed)
-            operational_months_this_year = 12
+        # Calculate operational months for this year based on:
+        # 1) initial ramp-up period
+        # 2) recurring renovation downtime every N years
+        (
+            operational_months_this_year,
+            ramp_up_months_this_year,
+            renovation_downtime_months_this_year,
+        ) = _get_operational_months_for_year(
+            year_num=year_num,
+            ramp_up_months=ramp_up_months,
+            renovation_downtime_months=renovation_downtime_months,
+            renovation_frequency_years=renovation_frequency_years,
+        )
+        non_operational_months_this_year = 12 - operational_months_this_year
         
         # Check for market shock in this year
         shock_multiplier_occ = 1.0
@@ -992,22 +1388,25 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
         if refinancing_events and year_num in refinancing_events:
             refi = refinancing_events[year_num]
             if refi.get('refinance', False):
-                current_interest_rate = refi['new_rate']
+                if config.financing.loan_tranches:
+                    current_saron_base_rate = float(refi['new_rate'])
+                else:
+                    current_interest_rate = float(refi['new_rate'])
                 # Apply refinancing cost as one-time expense
                 # Note: This will be added to operating expenses below
         
-        # Apply operational months fraction for ramp-up handling
+        # Apply operational fraction for downtime handling
         operational_fraction_year = operational_months_this_year / 12.0
-        ramp_up_fraction_year = (12 - operational_months_this_year) / 12.0
+        non_operational_fraction_year = non_operational_months_this_year / 12.0
         
-        # Calculate rented_nights for this year (accounts for occupancy changes from market shocks AND ramp-up)
+        # Calculate rented_nights for this year (accounts for market shocks and downtime)
         # Rented nights change with occupancy multiplier (market shocks affect bookings)
-        # AND prorated by operational months (ramp-up period has zero guests)
+        # AND prorated by operational months (downtime periods have zero guests)
         rented_nights = base_rented_nights * inflation_factor * shock_multiplier_occ * operational_fraction_year
         
         # Inflated revenue (apply market shock multipliers if active AND operational months fraction)
         # Revenue = base_revenue x inflation x occupancy_multiplier x rate_multiplier x operational_fraction
-        # During ramp-up months: no revenue
+        # During downtime months (ramp-up/renovation): no revenue
         # During operational months: full revenue (inflated and shock-adjusted)
         gross_rental_income = base_gross_income * inflation_factor * shock_multiplier_occ * shock_multiplier_rate * operational_fraction_year
         # OTA fees (inflate with revenue, use effective rate)
@@ -1038,10 +1437,10 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
         insurance = base_insurance * inflation_factor
         nubbing_costs = base_nubbing_costs * inflation_factor
         
-        # Utilities: minimal (25%) during ramp-up, full during operational period
-        # Formula: (ramp_up_months / 12) x annual x 0.25 + (operational_months / 12) x annual
+        # Utilities: minimal (25%) during non-operational months, full during operational months
+        # Formula: (non_operational_months / 12) x annual x 0.25 + (operational_months / 12) x annual
         # Then apply inflation factor
-        electricity_internet = (ramp_up_fraction_year * base_electricity_internet * 0.25 + 
+        electricity_internet = (non_operational_fraction_year * base_electricity_internet * 0.25 + 
                                operational_fraction_year * base_electricity_internet) * inflation_factor
         
         # Maintenance reserve based on appreciated property value (1% of current property value)
@@ -1079,9 +1478,13 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
         # NOI = Net rental income (after OTA fees) - Operating expenses
         net_operating_income = net_rental_income - total_operating_expenses
         
-        # Calculate debt service based on current loan balance
-        # Use current interest rate (may have been refinanced)
-        interest_payment = current_loan * current_interest_rate
+        # Calculate debt service based on current loan balance (tranche-aware)
+        rate_input = current_saron_base_rate if config.financing.loan_tranches else current_interest_rate
+        interest_payment, blended_interest_rate, annual_interest_by_tranche = _compute_interest_for_balance(
+            financing=config.financing,
+            loan_balance=current_loan,
+            current_saron_base_rate=rate_input,
+        )
         amortization_payment = initial_loan_amount * config.financing.amortization_rate  # Use stored initial loan amount
         debt_service = interest_payment + amortization_payment
         
@@ -1104,6 +1507,16 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
         # Calculate metrics
         debt_coverage_ratio = net_operating_income / debt_service if debt_service > 0 else 0
         cap_rate = (net_operating_income / current_property_value) * 100
+        stress_results = _compute_stress_results(
+            financing=config.financing,
+            net_operating_income=net_operating_income,
+            loan_balance=current_loan,
+            amortization_payment=amortization_payment,
+            base_interest_payment=interest_payment,
+            base_debt_service=debt_service,
+            base_blended_interest_rate=blended_interest_rate,
+            current_saron_base_rate=rate_input,
+        )
         
         # Update loan balance after calculating debt service for this year
         # (loan balance at start of year is used for interest calculation)
@@ -1113,7 +1526,9 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
             'year': year,
             'year_number': year_num,
             'operational_months': operational_months_this_year,
-            'ramp_up_months': 12 - operational_months_this_year,
+            'ramp_up_months': ramp_up_months_this_year,
+            'renovation_downtime_months': renovation_downtime_months_this_year,
+            'non_operational_months': non_operational_months_this_year,
             'inflation_factor': inflation_factor,
             'appreciation_factor': appreciation_factor,
             'property_value': current_property_value,
@@ -1123,6 +1538,8 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
             'net_rental_income': net_rental_income,
             'total_operating_expenses': total_operating_expenses,
             'net_operating_income': net_operating_income,
+            'blended_interest_rate': blended_interest_rate,
+            'annual_interest_by_tranche': annual_interest_by_tranche,
             'interest_payment': interest_payment,
             'amortization_payment': amortization_payment,
             'debt_service': debt_service,
@@ -1138,6 +1555,7 @@ def compute_15_year_projection(config: BaseCaseConfig, start_year: int = 2026,
             'remaining_loan_balance': current_loan,  # Balance at end of year (after amortization)
             'debt_coverage_ratio': debt_coverage_ratio,
             'cap_rate_pct': cap_rate,
+            'stress_results': stress_results,
         }
         
         projection.append(annual_results)
@@ -1214,7 +1632,9 @@ def calculate_irrs_from_projection(projection: List[Dict], initial_equity: float
                                    final_property_value: float, final_loan_balance: float,
                                    num_owners: int = 4, purchase_price: float = None,
                                    selling_costs_rate: float = 0.078,
-                                   discount_rate: float = 0.05) -> Dict[str, float]:
+                                   discount_rate: float = 0.05,
+                                   capital_gains_tax_rate: float = 0.02,
+                                   property_transfer_tax_sale_rate: float = 0.015) -> Dict[str, float]:
     """
     Calculate multiple IRRs with selling costs:
     1. Equity IRR with sale (levered, includes debt service and selling costs)
@@ -1227,6 +1647,10 @@ def calculate_irrs_from_projection(projection: List[Dict], initial_equity: float
     - Notary fees: 1.5%
     - Transfer tax: 3.3% (varies by canton, Obwalden has high rate)
     
+    Additional sale taxes:
+    - Capital gains tax: taxed on gain = max(sale price - purchase price, 0)
+    - Property transfer tax at sale: % of gross sale price
+
     Args:
         projection: 15-year projection data
         initial_equity: Initial equity investment per owner
@@ -1235,6 +1659,8 @@ def calculate_irrs_from_projection(projection: List[Dict], initial_equity: float
         num_owners: Number of owners
         purchase_price: Total purchase price (needed for unlevered IRR)
         selling_costs_rate: Total selling costs as % of sale price (default 7.8%)
+        capital_gains_tax_rate: Tax on capital gain at sale (default 2%)
+        property_transfer_tax_sale_rate: Property transfer tax at sale (default 1.5%)
     
     Returns:
         Dictionary with all IRR metrics (as percentages), NPV, MOIC, and payback period
@@ -1247,7 +1673,10 @@ def calculate_irrs_from_projection(projection: List[Dict], initial_equity: float
     
     # Calculate selling costs
     selling_costs_total = final_property_value * selling_costs_rate
-    net_sale_price = final_property_value - selling_costs_total
+    capital_gain = max(0.0, final_property_value - (purchase_price if purchase_price is not None else final_property_value))
+    capital_gains_tax_total = capital_gain * capital_gains_tax_rate
+    property_transfer_tax_sale_total = final_property_value * property_transfer_tax_sale_rate
+    net_sale_price = final_property_value - selling_costs_total - capital_gains_tax_total - property_transfer_tax_sale_total
     
     # Calculate sale proceeds per owner (net of loan payoff and selling costs for levered)
     sale_proceeds_per_owner = (net_sale_price - final_loan_balance) / num_owners
@@ -1305,8 +1734,12 @@ def calculate_irrs_from_projection(projection: List[Dict], initial_equity: float
         # Sale details
         'gross_sale_price': final_property_value,
         'selling_costs': selling_costs_total,
+        'capital_gains_tax': capital_gains_tax_total,
+        'property_transfer_tax_sale': property_transfer_tax_sale_total,
         'net_sale_price': net_sale_price,
         'selling_costs_rate_pct': selling_costs_rate * 100,
+        'capital_gains_tax_rate_pct': capital_gains_tax_rate * 100,
+        'property_transfer_tax_sale_rate_pct': property_transfer_tax_sale_rate * 100,
         # Legacy names for backward compatibility
         'irr_with_sale_pct': equity_irr_with_sale * 100,
         'irr_without_sale_pct': equity_irr_without_sale * 100,
@@ -1402,6 +1835,9 @@ def apply_sensitivity(
     average_length_of_stay: Optional[float] = None,
     insurance_rate: Optional[float] = None,
     ltv: Optional[float] = None,
+    saron_share: Optional[float] = None,
+    fixed_10y_share: Optional[float] = None,
+    saron_margin: Optional[float] = None,
 ) -> BaseCaseConfig:
     """
     Return a new config instance with some parameters modified.
@@ -1424,15 +1860,109 @@ def apply_sensitivity(
         average_length_of_stay: Override average length of stay (if None, uses base)
         insurance_rate: Override insurance rate as % of purchase price (if None, uses base)
         ltv: Override loan-to-value ratio (if None, uses base)
+        saron_share: Override total SARON share of loan (0-1, tranche mode only)
+        fixed_10y_share: Override 10y fixed share of total loan (tranche mode only)
+        saron_margin: Override SARON margin across SARON tranches (tranche mode only)
     
     Returns:
         Modified BaseCaseConfig with specified parameters changed
     """
     f = base_config.financing
+
+    # Clone tranche definitions for safe modification
+    new_loan_tranches = None
+    if f.loan_tranches:
+        new_loan_tranches = [
+            LoanTranche(
+                name=t.name,
+                share_of_loan=t.share_of_loan,
+                rate_type=t.rate_type,
+                fixed_rate=t.fixed_rate,
+                saron_margin=t.saron_margin,
+                term_years=t.term_years,
+            )
+            for t in f.loan_tranches
+        ]
+
+        # Override SARON margin if requested
+        if saron_margin is not None:
+            for tranche in new_loan_tranches:
+                if tranche.rate_type == 'saron':
+                    tranche.saron_margin = float(saron_margin)
+
+        # Override SARON share by rebalancing fixed/saron buckets proportionally
+        if saron_share is not None:
+            saron_target = max(0.0, min(1.0, float(saron_share)))
+            fixed_target = 1.0 - saron_target
+
+            saron_tranches = [t for t in new_loan_tranches if t.rate_type == 'saron']
+            fixed_tranches = [t for t in new_loan_tranches if t.rate_type == 'fixed']
+
+            saron_total = sum(t.share_of_loan for t in saron_tranches)
+            fixed_total = sum(t.share_of_loan for t in fixed_tranches)
+
+            if saron_tranches:
+                if saron_total > 0:
+                    for t in saron_tranches:
+                        t.share_of_loan = saron_target * (t.share_of_loan / saron_total)
+                else:
+                    equal_share = saron_target / len(saron_tranches)
+                    for t in saron_tranches:
+                        t.share_of_loan = equal_share
+
+            if fixed_tranches:
+                if fixed_total > 0:
+                    for t in fixed_tranches:
+                        t.share_of_loan = fixed_target * (t.share_of_loan / fixed_total)
+                else:
+                    equal_share = fixed_target / len(fixed_tranches)
+                    for t in fixed_tranches:
+                        t.share_of_loan = equal_share
+
+        # Override 10y fixed share while keeping total fixed share constant
+        if fixed_10y_share is not None:
+            fixed_tranches = [t for t in new_loan_tranches if t.rate_type == 'fixed']
+            if fixed_tranches:
+                fixed_total = sum(t.share_of_loan for t in fixed_tranches)
+                if fixed_total > 0:
+                    long_fixed = max(
+                        fixed_tranches,
+                        key=lambda t: (t.term_years if t.term_years is not None else 0),
+                    )
+                    target_long_fixed = max(0.0, min(fixed_total, float(fixed_10y_share)))
+                    remaining_fixed = max(0.0, fixed_total - target_long_fixed)
+
+                    other_fixed = [t for t in fixed_tranches if t is not long_fixed]
+                    other_total = sum(t.share_of_loan for t in other_fixed)
+                    long_fixed.share_of_loan = target_long_fixed
+                    if other_fixed:
+                        if other_total > 0:
+                            for t in other_fixed:
+                                t.share_of_loan = remaining_fixed * (t.share_of_loan / other_total)
+                        else:
+                            equal_share = remaining_fixed / len(other_fixed)
+                            for t in other_fixed:
+                                t.share_of_loan = equal_share
+
+        # Renormalize for floating-point drift
+        total_share = sum(t.share_of_loan for t in new_loan_tranches)
+        if total_share > 0:
+            for t in new_loan_tranches:
+                t.share_of_loan = t.share_of_loan / total_share
+
+    new_interest_rate = interest_rate if interest_rate is not None else f.interest_rate
+    if f.loan_tranches:
+        # In tranche mode, interest_rate sensitivity shifts SARON base.
+        new_saron_base_rate = (
+            float(interest_rate) if interest_rate is not None else f.effective_saron_base_rate
+        )
+    else:
+        new_saron_base_rate = f.saron_base_rate
+
     new_financing = FinancingParams(
         purchase_price=purchase_price if purchase_price is not None else f.purchase_price,
         ltv=ltv if ltv is not None else f.ltv,
-        interest_rate=interest_rate if interest_rate is not None else f.interest_rate,
+        interest_rate=new_interest_rate,
         amortization_rate=amortization_rate if amortization_rate is not None else f.amortization_rate,
         num_owners=f.num_owners,
         notary_fee_rate=f.notary_fee_rate,
@@ -1440,7 +1970,10 @@ def apply_sensitivity(
         agency_fee_rate_buyer=f.agency_fee_rate_buyer,
         inspection_chf=f.inspection_chf,
         interior_designer_chf=f.interior_designer_chf,
-        furniture_chf=f.furniture_chf
+        furniture_chf=f.furniture_chf,
+        loan_tranches=new_loan_tranches,
+        saron_base_rate=new_saron_base_rate,
+        stress=_normalize_financing_stress(f.stress),
     )
 
     # Handle seasonal model - preserve seasons if they exist
@@ -1513,7 +2046,8 @@ def apply_sensitivity(
     return BaseCaseConfig(
         financing=new_financing,
         rental=new_rental,
-        expenses=new_expenses
+        expenses=new_expenses,
+        projection=base_config.projection
     )
 
 
@@ -1543,6 +2077,8 @@ def export_base_case_to_json(config: BaseCaseConfig, results: Dict[str, float],
             'purchase_price': config.financing.purchase_price,
             'ltv': config.financing.ltv,
             'interest_rate': config.financing.interest_rate,
+            'blended_interest_rate': config.financing.blended_interest_rate,
+            'saron_base_rate': config.financing.effective_saron_base_rate,
             'amortization_rate': config.financing.amortization_rate,
             'num_owners': config.financing.num_owners,
             'loan_amount': config.financing.loan_amount,
@@ -1557,7 +2093,19 @@ def export_base_case_to_json(config: BaseCaseConfig, results: Dict[str, float],
             'acquisition_interior_designer': config.financing.interior_designer_chf,
             'acquisition_furniture': config.financing.furniture_chf,
             'total_initial_investment': config.financing.total_initial_investment,
-            'total_initial_investment_per_owner': config.financing.total_initial_investment_per_owner
+            'total_initial_investment_per_owner': config.financing.total_initial_investment_per_owner,
+            'loan_tranches': [
+                {
+                    'name': t.name,
+                    'share_of_loan': t.share_of_loan,
+                    'rate_type': t.rate_type,
+                    'fixed_rate': t.fixed_rate,
+                    'saron_margin': t.saron_margin,
+                    'term_years': t.term_years,
+                }
+                for t in (config.financing.loan_tranches or [])
+            ],
+            'stress': _normalize_financing_stress(config.financing.stress),
         },
         'rental': {
             'owner_nights_per_person': config.rental.owner_nights_per_person,
@@ -1592,6 +2140,17 @@ def export_base_case_to_json(config: BaseCaseConfig, results: Dict[str, float],
             'maintenance_rate': config.expenses.maintenance_rate,
             'property_value': config.expenses.property_value,
             'vat_rate_on_gross_rental': config.expenses.vat_rate_on_gross_rental
+        },
+        'projection': {
+            'start_year': config.projection.start_year if config.projection else 2026,
+            'projection_years': config.projection.projection_years if config.projection else 15,
+            'inflation_rate': config.projection.inflation_rate if config.projection else 0.01,
+            'property_appreciation_rate': config.projection.property_appreciation_rate if config.projection else 0.025,
+            'discount_rate': config.projection.discount_rate if config.projection else 0.05,
+            'ramp_up_months': config.projection.ramp_up_months if config.projection else 0,
+            'renovation_downtime_months': config.projection.renovation_downtime_months if config.projection else 0,
+            'renovation_frequency_years': config.projection.renovation_frequency_years if config.projection else 0,
+            'selling_costs_rate': config.projection.selling_costs_rate if config.projection else 0.0,
         }
     }
     
@@ -1600,6 +2159,8 @@ def export_base_case_to_json(config: BaseCaseConfig, results: Dict[str, float],
         # Operational period metadata
         'operational_months': results.get('operational_months', 12),
         'ramp_up_months': results.get('ramp_up_months', 0),
+        'renovation_downtime_months': results.get('renovation_downtime_months', 0),
+        'non_operational_months': results.get('non_operational_months', results.get('ramp_up_months', 0)),
         
         # Financial overview
         'purchase_price': results.get('purchase_price', config.financing.purchase_price),
@@ -1627,6 +2188,8 @@ def export_base_case_to_json(config: BaseCaseConfig, results: Dict[str, float],
         'maintenance_reserve': results.get('maintenance_reserve', 0),
         'total_operating_expenses': results.get('total_operating_expenses', 0),
         'net_operating_income': results.get('net_operating_income', 0),
+        'blended_interest_rate': results.get('blended_interest_rate', config.financing.blended_interest_rate),
+        'annual_interest_by_tranche': results.get('annual_interest_by_tranche', {}),
         'interest_payment': results.get('interest_payment', 0),
         'amortization_payment': results.get('amortization_payment', 0),
         'debt_service': results.get('debt_service', 0),
@@ -1641,7 +2204,8 @@ def export_base_case_to_json(config: BaseCaseConfig, results: Dict[str, float],
         'cap_rate_pct': results.get('cap_rate_pct', 0),
         'cash_on_cash_return_pct': results.get('cash_on_cash_return_pct', 0),
         'debt_coverage_ratio': results.get('debt_coverage_ratio', 0),
-        'operating_expense_ratio_pct': results.get('operating_expense_ratio_pct', 0)
+        'operating_expense_ratio_pct': results.get('operating_expense_ratio_pct', 0),
+        'stress_results': results.get('stress_results', {}),
     }
     
     # Add seasonal breakdown if available
@@ -1653,7 +2217,8 @@ def export_base_case_to_json(config: BaseCaseConfig, results: Dict[str, float],
         'cap_rate_pct': results.get('cap_rate_pct', 0),
         'cash_on_cash_return_pct': results.get('cash_on_cash_return_pct', 0),
         'debt_coverage_ratio': results.get('debt_coverage_ratio', 0),
-        'operating_expense_ratio_pct': results.get('operating_expense_ratio_pct', 0)
+        'operating_expense_ratio_pct': results.get('operating_expense_ratio_pct', 0),
+        'stress_overall_pass': results.get('stress_results', {}).get('overall_pass'),
     }
     
     # Structure IRR results (include all new metrics)
@@ -1672,8 +2237,12 @@ def export_base_case_to_json(config: BaseCaseConfig, results: Dict[str, float],
         # Selling cost details
         'gross_sale_price': irr_results.get('gross_sale_price', 0),
         'selling_costs': irr_results.get('selling_costs', 0),
+        'capital_gains_tax': irr_results.get('capital_gains_tax', 0),
+        'property_transfer_tax_sale': irr_results.get('property_transfer_tax_sale', 0),
         'net_sale_price': irr_results.get('net_sale_price', 0),
-        'selling_costs_rate_pct': irr_results.get('selling_costs_rate_pct', 0)
+        'selling_costs_rate_pct': irr_results.get('selling_costs_rate_pct', 0),
+        'capital_gains_tax_rate_pct': irr_results.get('capital_gains_tax_rate_pct', 0),
+        'property_transfer_tax_sale_rate_pct': irr_results.get('property_transfer_tax_sale_rate_pct', 0),
     }
     
     out = {

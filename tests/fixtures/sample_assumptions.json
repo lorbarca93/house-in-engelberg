@@ -6,6 +6,35 @@
     "purchase_price": 1000000.0,
     "ltv": 0.75,
     "interest_rate": 0.01,
+    "saron_base_rate": 0.003,
+    "loan_tranches": [
+      {
+        "name": "SARON Tranche",
+        "share_of_loan": 0.6,
+        "rate_type": "saron",
+        "saron_margin": 0.009
+      },
+      {
+        "name": "Fixed Tranche 5-7Y",
+        "share_of_loan": 0.25,
+        "rate_type": "fixed",
+        "fixed_rate": 0.0135,
+        "term_years": 7
+      },
+      {
+        "name": "Fixed Tranche 10Y",
+        "share_of_loan": 0.15,
+        "rate_type": "fixed",
+        "fixed_rate": 0.0155,
+        "term_years": 10
+      }
+    ],
+    "stress": {
+      "saron_shocks_bps": [150, 250],
+      "base_dscr_min": 1.2,
+      "saron_150_dscr_min": 1.05,
+      "saron_250_min_cash_flow": 0.0
+    },
     "amortization_rate": 0.01,
     "num_owners": 2,
     "acquisition_costs": {
@@ -70,12 +99,16 @@
     "inflation_rate": 0.008,
     "property_appreciation_rate": 0.025,
     "discount_rate": 0.05,
-    "ramp_up_months": 7,
+    "ramp_up_months": 3,
+    "renovation_downtime_months": 3,
+    "renovation_frequency_years": 5,
     "selling_costs": {
       "broker_fee_rate": 0.03,
       "notary_fee_rate": 0.015,
-      "transfer_tax_rate": 0.033,
-      "total_rate": 0.078
+      "transfer_tax_rate": 0.015,
+      "capital_gains_tax_rate": 0.02,
+      "property_transfer_tax_sale_rate": 0.015,
+      "total_rate": 0.06
     }
   }
 }

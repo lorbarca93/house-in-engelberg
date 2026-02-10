@@ -64,7 +64,7 @@ MC_SENSITIVITY_PARAMETER_CONFIG = {
     },
     'ramp_up_months': {
         'parameter_name': 'Ramp-Up Period',
-        'get_base_value': lambda cfg: 7,  # Default 7 months
+        'get_base_value': lambda cfg: cfg.projection.ramp_up_months if getattr(cfg, 'projection', None) else 3,
         'min_factor': 0.57,   # 4 months (7 × 0.57 ≈ 4)
         'max_factor': 1.43,   # 10 months (7 × 1.43 ≈ 10)
         'clamp_min': 3,

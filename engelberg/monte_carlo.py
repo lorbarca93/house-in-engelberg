@@ -476,8 +476,17 @@ def run_single_simulation(args: Tuple) -> Dict:
     cleaning_cost_per_stay = float(samples_dict['cleaning_cost_per_stay'][i])
     marginal_tax_rate = float(samples_dict['marginal_tax_rate'][i])
     discount_rate = float(samples_dict['discount_rate'][i])
-    # Ramp-up months (default to 7 if not sampled for backward compatibility with old test data)
-    ramp_up_months = int(round(float(samples_dict['ramp_up_months'][i]))) if 'ramp_up_months' in samples_dict else 7
+    # Ramp-up/renovation schedule defaults from projection config (if available)
+    if getattr(base_config, 'projection', None) is not None:
+        default_ramp_up_months = int(getattr(base_config.projection, 'ramp_up_months', 3))
+        renovation_downtime_months = int(getattr(base_config.projection, 'renovation_downtime_months', 0))
+        renovation_frequency_years = int(getattr(base_config.projection, 'renovation_frequency_years', 0))
+    else:
+        default_ramp_up_months = 3
+        renovation_downtime_months = 0
+        renovation_frequency_years = 0
+
+    ramp_up_months = int(round(float(samples_dict['ramp_up_months'][i]))) if 'ramp_up_months' in samples_dict else default_ramp_up_months
     
     # Generate time-varying series for inflation and appreciation using AR(1) process
     base_inflation = float(samples_dict['inflation_rate'][i])
@@ -589,6 +598,8 @@ def run_single_simulation(args: Tuple) -> Dict:
         inflation_rate=base_inflation,  # Base rate for backward compatibility
         property_appreciation_rate=base_appreciation,  # Base rate for backward compatibility
         ramp_up_months=ramp_up_months,  # Sampled ramp-up period
+        renovation_downtime_months=renovation_downtime_months,
+        renovation_frequency_years=renovation_frequency_years,
         ota_booking_percentage=ota_booking_percentage,
         ota_fee_rate=ota_fee_rate,
         average_length_of_stay=average_length_of_stay,
@@ -640,6 +651,9 @@ def run_single_simulation(args: Tuple) -> Dict:
         'cleaning_cost_per_stay': cleaning_cost_per_stay,
         'marginal_tax_rate': marginal_tax_rate,
         'discount_rate': discount_rate,
+        'ramp_up_months': ramp_up_months,
+        'renovation_downtime_months': renovation_downtime_months,
+        'renovation_frequency_years': renovation_frequency_years,
         'inflation_rate': base_inflation,  # Base inflation rate
         'property_appreciation': base_appreciation,  # Base appreciation rate
         'annual_cash_flow': annual_result['cash_flow_after_debt_service'],
@@ -967,11 +981,11 @@ def get_default_distributions() -> Dict[str, DistributionConfig]:
             bounds=(-0.02, 0.09)  # -2% to 9% per year (allows for market downturns)
         ),
         
-        # Ramp-up period (pre-operational months)
+        # Ramp-up period (fixed by model assumptions unless explicitly overridden)
         'ramp_up_months': DistributionConfig(
-            dist_type='triangular',
-            params={'min': 4, 'mode': 7, 'max': 10},  # Most likely 7 months, range 4-10
-            bounds=(4, 10)
+            dist_type='uniform',
+            params={'min': 3, 'max': 3},
+            bounds=(3, 3)
         ),
     }
 
@@ -1664,7 +1678,18 @@ def generate_monte_carlo_html(df: pd.DataFrame, stats: dict, charts: list,
     # Calculate base case for comparison
     from engelberg.core import compute_annual_cash_flows, compute_15_year_projection, calculate_irrs_from_projection
     base_result = compute_annual_cash_flows(base_config)
-    base_projection = compute_15_year_projection(base_config, start_year=2026, inflation_rate=0.02, property_appreciation_rate=0.025)  # 2.5% property appreciation per year
+    base_ramp_up = int(base_config.projection.ramp_up_months) if getattr(base_config, 'projection', None) else 0
+    base_renovation_months = int(base_config.projection.renovation_downtime_months) if getattr(base_config, 'projection', None) else 0
+    base_renovation_frequency = int(base_config.projection.renovation_frequency_years) if getattr(base_config, 'projection', None) else 0
+    base_projection = compute_15_year_projection(
+        base_config,
+        start_year=2026,
+        inflation_rate=0.02,
+        property_appreciation_rate=0.025,
+        ramp_up_months=base_ramp_up,
+        renovation_downtime_months=base_renovation_months,
+        renovation_frequency_years=base_renovation_frequency
+    )  # 2.5% property appreciation per year
     base_final_value = base_projection[-1]['property_value']
     base_final_loan = base_projection[-1]['remaining_loan_balance']
     base_irr = calculate_irrs_from_projection(

@@ -96,6 +96,15 @@ class TestSensitivityAnalysis:
         base_result = json_data['base_irr']
         assert isinstance(base_result, (int, float))
         assert -100.0 < base_result < 100.0  # Reasonable IRR range
+
+    def test_tranche_sensitivity_parameters_present(self, sample_assumptions_path):
+        """Test tranche-related loan sensitivity parameters are exposed."""
+        json_data = run_sensitivity_analysis(sample_assumptions_path, 'test_case', verbose=False)
+        parameter_names = {sens['parameter'] for sens in json_data['sensitivities']}
+
+        assert 'SARON Share' in parameter_names
+        assert 'Fixed 10Y Share' in parameter_names
+        assert 'SARON Margin' in parameter_names
     
     def test_sensitivity_delta_calculations(self, sample_assumptions_path):
         """Test sensitivity impact calculations (high - low)."""

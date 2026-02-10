@@ -5,10 +5,11 @@ This module defines all parameter ranges, clamps, and modifiers for Model Sensit
 Model Sensitivity tests how deterministic metrics (Equity IRR, Cash-on-Cash, Monthly NCF)
 change when parameters vary.
 
-CONFIG PARAMETERS (13):
+CONFIG PARAMETERS (16):
 - maintenance_rate, management_fee, purchase_price, occupancy, average_daily_rate
 - interest_rate, ltv, amortization, cleaning_cost, length_of_stay
 - insurance_rate, winter_occupancy, ramp_up_months
+- saron_share, fixed_10y_share, saron_margin
 
 SPECIAL PARAMETERS (3):
 - property_appreciation: Projection parameter (affects IRR only)
@@ -98,6 +99,58 @@ MODEL_SENSITIVITY_PARAMETER_CONFIG = {
         'affects_exit': False,
         'range_pct': 154
     },
+    'saron_share': {
+        'parameter_name': 'SARON Share',
+        'get_base_value': lambda cfg: sum(
+            t.share_of_loan for t in (cfg.financing.loan_tranches or []) if t.rate_type == 'saron'
+        ),
+        'low_factor': 0.67,
+        'high_factor': 1.17,
+        'clamp_min': 0.30,
+        'clamp_max': 0.80,
+        'modifier': lambda cfg, val: apply_sensitivity(cfg, saron_share=val),
+        'affects_year1': True,
+        'affects_exit': False,
+        'range_pct': 50
+    },
+    'fixed_10y_share': {
+        'parameter_name': 'Fixed 10Y Share',
+        'get_base_value': lambda cfg: max(
+            (
+                t.share_of_loan
+                for t in (cfg.financing.loan_tranches or [])
+                if t.rate_type == 'fixed'
+            ),
+            default=0.0,
+        ),
+        'low_factor': 0.67,
+        'high_factor': 1.33,
+        'clamp_min': 0.05,
+        'clamp_max': 0.50,
+        'modifier': lambda cfg, val: apply_sensitivity(cfg, fixed_10y_share=val),
+        'affects_year1': True,
+        'affects_exit': False,
+        'range_pct': 66
+    },
+    'saron_margin': {
+        'parameter_name': 'SARON Margin',
+        'get_base_value': lambda cfg: next(
+            (
+                t.saron_margin
+                for t in (cfg.financing.loan_tranches or [])
+                if t.rate_type == 'saron'
+            ),
+            0.009,
+        ),
+        'low_factor': 0.75,
+        'high_factor': 1.25,
+        'clamp_min': 0.0,
+        'clamp_max': None,
+        'modifier': lambda cfg, val: apply_sensitivity(cfg, saron_margin=val),
+        'affects_year1': True,
+        'affects_exit': False,
+        'range_pct': 50
+    },
     'ltv': {
         'parameter_name': 'Loan-to-Value (LTV)',
         'get_base_value': lambda cfg: cfg.financing.ltv,
@@ -172,7 +225,7 @@ MODEL_SENSITIVITY_PARAMETER_CONFIG = {
     },
     'ramp_up_months': {
         'parameter_name': 'Ramp-Up Period',
-        'get_base_value': lambda cfg: 7,  # Default 7 months, will be read from projection defaults
+        'get_base_value': lambda cfg: cfg.projection.ramp_up_months if getattr(cfg, 'projection', None) else 3,
         'low_factor': 0.43,   # 3 months (7 × 0.43 ≈ 3)
         'high_factor': 1.71,  # 12 months (7 × 1.71 ≈ 12)
         'clamp_min': 0,

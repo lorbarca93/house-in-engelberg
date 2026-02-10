@@ -15,7 +15,42 @@
     "_ltv_explanation": "75% loan-to-value ratio is standard for investment properties in Switzerland. This provides 25% equity buffer, which is typical for rental property investments. Higher LTV would increase leverage but also risk, while lower LTV would require more equity upfront. The loan will be amortized to 70% LTV over 15 years.",
 
     "interest_rate": 0.013,
-    "_interest_rate_explanation": "1.3% annual interest rate reflects current Swiss mortgage market conditions (as of 2025). Swiss interest rates are historically low compared to other markets. This is a fixed-rate assumption for the base case, though rates may vary and need to be rolled periodically.",
+    "_interest_rate_explanation": "Legacy single-rate fallback used when loan_tranches are not configured.",
+
+    "saron_base_rate": 0.003,
+    "_saron_base_rate_explanation": "Base SARON reference rate used for SARON tranches. Effective SARON tranche rate = saron_base_rate + saron_margin.",
+
+    "loan_tranches": [
+      {
+        "name": "SARON Tranche",
+        "share_of_loan": 0.6,
+        "rate_type": "saron",
+        "saron_margin": 0.009
+      },
+      {
+        "name": "Fixed Tranche 5-7Y",
+        "share_of_loan": 0.25,
+        "rate_type": "fixed",
+        "fixed_rate": 0.0135,
+        "term_years": 7
+      },
+      {
+        "name": "Fixed Tranche 10Y",
+        "share_of_loan": 0.15,
+        "rate_type": "fixed",
+        "fixed_rate": 0.0155,
+        "term_years": 10
+      }
+    ],
+    "_loan_tranches_explanation": "Preferred structure: 60% SARON + 40% fixed, laddered as 25% (5-7y) and 15% (10y).",
+
+    "stress": {
+      "saron_shocks_bps": [150, 250],
+      "base_dscr_min": 1.2,
+      "saron_150_dscr_min": 1.05,
+      "saron_250_min_cash_flow": 0.0
+    },
+    "_stress_explanation": "Debt service stress checks using SARON shocks in basis points.",
 
     "amortization_rate": 0.004444,
     "_amortization_explanation": "0.444% annual amortization rate calculated to reduce LTV from 75% to 70% over 15 years. Starting loan: CHF 975,000 (75% of CHF 1,300,000). Target loan after 15 years: CHF 910,000 (70% of original purchase price). Annual amortization: CHF 4,333. This gradual paydown improves equity position while maintaining cash flow.",
@@ -38,7 +73,7 @@
       "furniture_chf": 25000.0,
       "_furniture_chf_explanation": "Furniture for short-term rental",
       "total_rate": 0.0105,
-      "_total_explanation": "Total acquisition costs = rate-based (notary + legal + agency) on purchase price + fixed CHF (inspection, interior designer, furniture)"
+      "_total_explanation": "Total selling costs = 6.0% of sale price (3% broker + 1.5% notary + 1.5% transfer tax). Capital gains tax and sale transfer tax are modeled separately."
     }
   },
 
@@ -155,8 +190,14 @@
   "projection": {
     "_explanation": "Projection assumptions define how the investment evolves over time. These parameters affect the 15-year forecast and terminal value calculations.",
 
-    "ramp_up_months": 7,
-    "_ramp_up_months_explanation": "Pre-operational period (months) before starting short-term rentals. During this time: property acquired, society formed, management contract signed, apartment furnished, listings created on Airbnb/Booking.com. Costs paid during ramp-up: debt service (interest + principal), insurance, Nebenkosten (building fees), minimal utilities (~25% of full). No revenue generated during this period. After ramp-up, property begins normal rental operations.",
+    "ramp_up_months": 3,
+    "_ramp_up_months_explanation": "Initial pre-operational period of 3 months before starting short-term rentals. During this time there is no rental revenue. Fixed costs still apply (debt service, insurance, Nebenkosten) and utilities are modeled at minimal usage.",
+
+    "renovation_downtime_months": 3,
+    "_renovation_downtime_months_explanation": "Renovation downtime per cycle: 3 months with no rental revenue.",
+
+    "renovation_frequency_years": 5,
+    "_renovation_frequency_years_explanation": "Renovation cycle frequency: every 5 years, apply renovation downtime months with no revenue.",
 
     "start_year": 2026,
     "_start_year_explanation": "Starting in January 2026 assumes purchase/closing in late 2025. This allows for full year analysis starting from the first operational year.",
@@ -182,11 +223,17 @@
       "notary_fee_rate": 0.015,
       "_notary_fee_explanation": "1.5% notary and legal fees for property transfer documentation, title transfer, and legal work. Swiss notaries handle all real estate transactions.",
 
-      "transfer_tax_rate": 0.033,
-      "_transfer_tax_explanation": "3.3% transfer tax (Handänderungssteuer) in Canton Obwalden. This varies by canton (1-3.3%). Obwalden has one of the highest rates in Switzerland.",
+      "transfer_tax_rate": 0.015,
+      "_transfer_tax_explanation": "1.5% transfer tax applied at sale in this model.",
 
-      "total_rate": 0.078,
-      "_total_explanation": "Total selling costs = 7.8% of sale price (3% broker + 1.5% notary + 3.3% transfer tax). This significantly impacts net proceeds and thus IRR."
+      "capital_gains_tax_rate": 0.02,
+      "_capital_gains_tax_explanation": "2.0% capital gains tax applied at sale on positive gain only: max(sale_price - purchase_price, 0).",
+
+      "property_transfer_tax_sale_rate": 0.015,
+      "_property_transfer_tax_sale_explanation": "1.5% property transfer tax applied at sale on gross sale price.",
+
+      "total_rate": 0.06,
+      "_total_explanation": "Total selling costs = 6.0% of sale price (3% broker + 1.5% notary + 1.5% transfer tax). Capital gains tax and sale transfer tax are modeled separately."
     }
   }
 }

@@ -2,15 +2,18 @@
 Unit tests for core calculation functions: compute_annual_cash_flows, expense calculations, tax calculations, ramp-up period
 """
 
+import json
 import pytest
 from engelberg.core import (
     compute_annual_cash_flows,
     compute_15_year_projection,
     BaseCaseConfig,
     FinancingParams,
+    LoanTranche,
     RentalParams,
     ExpenseParams,
-    SeasonalParams
+    SeasonalParams,
+    load_assumptions_from_json,
 )
 from tests.fixtures.test_configs import create_test_base_config
 from tests.conftest import assert_approximately_equal
@@ -531,3 +534,148 @@ class TestRampUpPeriod:
         # Should be identical
         assert results_explicit_zero['gross_rental_income'] == pytest.approx(results_full_default['gross_rental_income'], rel=1e-6)
         assert results_explicit_zero['cash_flow_per_owner'] == pytest.approx(results_full_default['cash_flow_per_owner'], rel=1e-6)
+
+    def test_renovation_downtime_every_5_years(self):
+        """Test recurring 3-month renovation downtime every 5 years."""
+        config = create_test_base_config()
+        projection = compute_15_year_projection(
+            config,
+            start_year=2026,
+            projection_years=15,
+            ramp_up_months=3,
+            renovation_downtime_months=3,
+            renovation_frequency_years=5
+        )
+
+        # Year 1: 3-month ramp-up only
+        year1 = projection[0]
+        assert year1['operational_months'] == 9
+        assert year1['ramp_up_months'] == 3
+        assert year1['renovation_downtime_months'] == 0
+        assert year1['non_operational_months'] == 3
+
+        # Years 5, 10, 15: 3-month renovation downtime
+        for year_number in [5, 10, 15]:
+            year_data = projection[year_number - 1]
+            assert year_data['ramp_up_months'] == 0
+            assert year_data['renovation_downtime_months'] == 3
+            assert year_data['operational_months'] == 9
+            assert year_data['non_operational_months'] == 3
+
+    def test_renovation_year_revenue_reduction(self):
+        """Test that renovation years have lower revenue than adjacent years."""
+        config = create_test_base_config()
+        projection = compute_15_year_projection(
+            config,
+            start_year=2026,
+            projection_years=15,
+            ramp_up_months=3,
+            renovation_downtime_months=3,
+            renovation_frequency_years=5
+        )
+
+        # Year 5 should be lower than Year 4 and Year 6 due to renovation downtime
+        year4_revenue = projection[3]['gross_rental_income']
+        year5_revenue = projection[4]['gross_rental_income']
+        year6_revenue = projection[5]['gross_rental_income']
+        assert year5_revenue < year4_revenue
+        assert year5_revenue < year6_revenue
+
+
+class TestLoanTrancheAndStressModeling:
+    """Tests for tranche-based financing and SARON stress outputs."""
+
+    def _build_tranche_config(self):
+        config = create_test_base_config()
+        config.financing.loan_tranches = [
+            LoanTranche(
+                name="SARON Tranche",
+                share_of_loan=0.60,
+                rate_type="saron",
+                saron_margin=0.009,
+            ),
+            LoanTranche(
+                name="Fixed Tranche 5-7Y",
+                share_of_loan=0.25,
+                rate_type="fixed",
+                fixed_rate=0.0135,
+                term_years=7,
+            ),
+            LoanTranche(
+                name="Fixed Tranche 10Y",
+                share_of_loan=0.15,
+                rate_type="fixed",
+                fixed_rate=0.0155,
+                term_years=10,
+            ),
+        ]
+        config.financing.saron_base_rate = 0.003
+        config.financing.stress = {
+            "saron_shocks_bps": [150, 250],
+            "base_dscr_min": 1.20,
+            "saron_150_dscr_min": 1.05,
+            "saron_250_min_cash_flow": 0.0,
+        }
+        return config
+
+    def test_tranche_math_blended_interest_and_breakdown(self):
+        config = self._build_tranche_config()
+        results = compute_annual_cash_flows(config)
+
+        expected_blended_rate = (
+            0.60 * (0.003 + 0.009) +
+            0.25 * 0.0135 +
+            0.15 * 0.0155
+        )
+        expected_interest = config.financing.loan_amount * expected_blended_rate
+
+        assert results["blended_interest_rate"] == pytest.approx(expected_blended_rate, rel=1e-6)
+        assert results["interest_payment"] == pytest.approx(expected_interest, rel=1e-6)
+        assert sum(results["annual_interest_by_tranche"].values()) == pytest.approx(
+            results["interest_payment"], rel=1e-6
+        )
+
+    def test_stress_results_for_saron_shocks(self):
+        config = self._build_tranche_config()
+        results = compute_annual_cash_flows(config)
+        stress = results["stress_results"]
+
+        assert "base" in stress
+        assert "saron_150bps" in stress
+        assert "saron_250bps" in stress
+        assert isinstance(stress.get("overall_pass"), bool)
+        assert stress["saron_150bps"]["debt_service"] > stress["base"]["debt_service"]
+        assert stress["saron_250bps"]["debt_service"] > stress["saron_150bps"]["debt_service"]
+
+    def test_single_rate_backward_compatibility_still_works(self):
+        config = create_test_base_config(interest_rate=0.012)
+        config.financing.loan_tranches = None
+        results = compute_annual_cash_flows(config)
+
+        assert results["blended_interest_rate"] == pytest.approx(0.012, rel=1e-6)
+        assert "single_rate" in results["annual_interest_by_tranche"]
+        assert results["interest_payment"] == pytest.approx(
+            config.financing.loan_amount * 0.012, rel=1e-6
+        )
+
+    def test_invalid_tranche_shares_rejected(self, tmp_path, sample_assumptions_path):
+        with open(sample_assumptions_path, "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+
+        data["financing"]["loan_tranches"][0]["share_of_loan"] = 0.70
+        invalid_path = tmp_path / "invalid_shares.json"
+        invalid_path.write_text(json.dumps(data), encoding="utf-8")
+
+        with pytest.raises(ValueError, match="shares must sum to 1.0"):
+            load_assumptions_from_json(str(invalid_path))
+
+    def test_missing_tranche_rate_field_rejected(self, tmp_path, sample_assumptions_path):
+        with open(sample_assumptions_path, "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+
+        data["financing"]["loan_tranches"][0].pop("saron_margin", None)
+        invalid_path = tmp_path / "invalid_rate_field.json"
+        invalid_path.write_text(json.dumps(data), encoding="utf-8")
+
+        with pytest.raises(ValueError, match="saron tranche requires saron_margin"):
+            load_assumptions_from_json(str(invalid_path))
